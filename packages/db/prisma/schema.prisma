@@ -1,0 +1,189 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Plan {
+  FREE
+  STARTER
+  PRO
+  AGENCY
+  ENTERPRISE
+}
+
+enum Platform {
+  GSC
+  GA4
+  GOOGLE_ADS
+  META_ADS
+  REDDIT_ADS
+  SHOPIFY
+  BING_ADS
+  INSTAGRAM
+  LINKEDIN_ADS
+  GOOGLE_MY_BUSINESS
+  TIKTOK_ADS
+  GOOGLE_TRENDS
+}
+
+enum PromptCategory {
+  SEO
+  ANALYTICS
+  PAID_ADS
+  SOCIAL
+  ECOMMERCE
+}
+
+enum ConnectionStatus {
+  CONNECTED
+  DISCONNECTED
+  ERROR
+  PENDING
+}
+
+model User {
+  id                String        @id @default(cuid())
+  clerkId           String        @unique
+  email             String        @unique
+  name              String?
+  plan              Plan          @default(FREE)
+  apiKey            String        @unique @default(cuid())
+  onboarded         Boolean       @default(false)
+  activeWorkspaceId String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  workspaces         Workspace[]
+  connections        Connection[]
+  promptRuns         PromptRun[]
+  subscription       Subscription?
+  activityLogs       ActivityLog[]
+  oauthCodes         OAuthCode[]
+  pendingConnections PendingConnection[]
+}
+
+model Workspace {
+  id          String       @id @default(cuid())
+  userId      String
+  name        String
+  slug        String       // URL-safe, used in MCP tool names — immutable after creation
+  websiteUrl  String?
+  faviconUrl  String?
+  isDefault   Boolean      @default(false)
+  sortOrder   Int          @default(0)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  connections Connection[]
+  pendingConnections PendingConnection[]
+
+  @@unique([userId, slug])
+}
+
+model OAuthClient {
+  id           String   @id @default(cuid())
+  clientId     String   @unique
+  redirectUris String[]
+  clientName   String?
+  createdAt    DateTime @default(now())
+}
+
+model OAuthCode {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  clientId    String
+  userId      String
+  redirectUri String
+  expiresAt   DateTime
+  used        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Connection {
+  id            String           @id @default(cuid())
+  userId        String
+  workspaceId   String?
+  platform      Platform
+  accessToken   String           // AES-256 encrypted
+  refreshToken  String?          // AES-256 encrypted
+  expiresAt     DateTime?
+  status        ConnectionStatus @default(CONNECTED)
+  siteUrl       String?          // for GSC — one Connection per site
+  accountId     String?          // for ads/GA4 platforms
+  label         String?          // user-friendly name e.g. "getgowns.com"
+  metadata      Json?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace     Workspace?       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, platform, siteUrl])
+}
+
+// Temporarily holds OAuth tokens between Google callback and site selection
+model PendingConnection {
+  id           String    @id @default(cuid())
+  userId       String
+  workspaceId  String?
+  platform     Platform
+  accessToken  String    // AES-256 encrypted
+  refreshToken String?   // AES-256 encrypted
+  tokenExpiry  DateTime?
+  sites        Json      // array of { siteUrl, permissionLevel } for GSC / { name, displayName } for GA4
+  userEmail    String?
+  expiresAt    DateTime  // this pending record expires in 15 min
+  createdAt    DateTime  @default(now())
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace    Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model Prompt {
+  id              String         @id @default(cuid())
+  title           String
+  description     String
+  category        PromptCategory
+  requiredSources Platform[]
+  requiredPlan    Plan           @default(FREE)
+  template        String         @db.Text
+  isActive        Boolean        @default(true)
+  sortOrder       Int            @default(0)
+  createdAt       DateTime       @default(now())
+  runs            PromptRun[]
+}
+
+model PromptRun {
+  id        String   @id @default(cuid())
+  userId    String
+  promptId  String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prompt    Prompt   @relation(fields: [promptId], references: [id])
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // CONNECTED, DISCONNECTED, PROMPT_RUN, TOKEN_REFRESH, KEY_ROTATED
+  message   String
+  metadata  Json?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id                 String   @id @default(cuid())
+  userId             String   @unique
+  stripeCustomerId   String   @unique
+  stripePriceId      String
+  stripeSubId        String   @unique
+  status             String
+  currentPeriodEnd   DateTime
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
