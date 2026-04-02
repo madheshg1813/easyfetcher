@@ -44,7 +44,8 @@ export async function GET(request: NextRequest) {
   }
 
   // Auto-create user if webhook hasn't fired yet (local dev)
-  let dbUser: Awaited<ReturnType<typeof prisma.user.findUnique>> = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let dbUser: any = null;
   try {
     dbUser = await prisma.user.findUnique({ where: { clerkId: userId } });
   } catch (err) {
