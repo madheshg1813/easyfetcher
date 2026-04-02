@@ -44,7 +44,13 @@ export async function GET(request: NextRequest) {
   }
 
   // Auto-create user if webhook hasn't fired yet (local dev)
-  let dbUser = await prisma.user.findUnique({ where: { clerkId: userId } });
+  let dbUser: Awaited<ReturnType<typeof prisma.user.findUnique>> = null;
+  try {
+    dbUser = await prisma.user.findUnique({ where: { clerkId: userId } });
+  } catch (err) {
+    console.error("DB error finding user:", err);
+    return NextResponse.json({ error: "Database error", detail: String(err) }, { status: 500 });
+  }
   if (!dbUser) {
     const clerkUser = await currentUser();
     const email = clerkUser?.emailAddresses?.[0]?.emailAddress ?? `${userId}@unknown.local`;
