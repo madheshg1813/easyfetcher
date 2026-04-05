@@ -43,15 +43,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Invalid platform for Google OAuth" }, { status: 400 });
   }
 
-  // Auto-create user if webhook hasn't fired yet (local dev)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let dbUser: any = null;
-  try {
-    dbUser = await prisma.user.findUnique({ where: { clerkId: userId } });
-  } catch (err) {
-    console.error("DB error finding user:", err);
-    return NextResponse.json({ error: "Database error", detail: String(err) }, { status: 500 });
-  }
+  // Auto-create user if webhook hasn't fired yet
+  let dbUser = await prisma.user.findUnique({ where: { clerkId: userId } });
   if (!dbUser) {
     const clerkUser = await currentUser();
     const email = clerkUser?.emailAddresses?.[0]?.emailAddress ?? `${userId}@unknown.local`;
