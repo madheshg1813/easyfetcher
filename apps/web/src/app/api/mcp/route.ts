@@ -31,7 +31,7 @@ function makeOAuth2Client(accessToken: string, refreshToken: string | null, expi
   const client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    process.env.GOOGLE_REDIRECT_URI
+    `${process.env.NEXT_PUBLIC_APP_URL}/api/callback/google`
   );
   client.setCredentials({
     access_token: decrypt(accessToken),
