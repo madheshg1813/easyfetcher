@@ -159,7 +159,7 @@ async function executeTool(name: string, args: Record<string, unknown>, user: Us
   if (name === "ga4_query") {
     const result = resolveConnection("GA4", args.property_name as string | undefined, args.workspace_name as string | undefined, user);
     if ("error" in result) return text(result.error);
-    return executeGa4Tool(args.metric as "traffic" | "top_pages" | "traffic_sources", args, result.conn, text, makeOAuth2Client);
+    return executeGa4Tool(args.metric as "traffic" | "top_pages" | "traffic_sources" | "devices" | "geo", args, result.conn, text, makeOAuth2Client);
   }
 
   // GMB
