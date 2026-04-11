@@ -29,8 +29,15 @@ export async function executeGscTool(
 ) {
   if (!conn.siteUrl) return text("GSC connected but no site URL found. Try re-authenticating.");
 
-  const auth = makeOAuth2Client(conn.accessToken, conn.refreshToken, conn.expiresAt);
-  const sc = google.webmasters({ version: "v3", auth });
+  let authClient: ReturnType<typeof makeOAuth2Client>;
+  try {
+    authClient = makeOAuth2Client(conn.accessToken, conn.refreshToken, conn.expiresAt);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[gsc] token decrypt failed:", msg);
+    return text(`Token decryption failed: ${msg}. Try reconnecting GSC from your EasyFetcher dashboard.`);
+  }
+  const sc = google.webmasters({ version: "v3", auth: authClient });
 
   const days = typeof args.days === "number" ? args.days : 28;
   const limit = typeof args.limit === "number" ? args.limit : 20;
@@ -39,17 +46,33 @@ export async function executeGscTool(
   startDate.setDate(startDate.getDate() - days);
   const fmt = (d: Date) => d.toISOString().split("T")[0];
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async function gscQuery(requestBody: Record<string, any>) {
+    try {
+      return await sc.searchanalytics.query({ siteUrl: conn.siteUrl!, requestBody });
+    } catch (err: unknown) {
+      const gErr = err as { response?: { data?: { error?: { message?: string; status?: string } } }; message?: string };
+      const apiMsg = gErr?.response?.data?.error?.message ?? gErr?.message ?? String(err);
+      const status = gErr?.response?.data?.error?.status ?? "";
+      console.error(`[gsc] API error for ${conn.siteUrl}:`, apiMsg);
+      if (status === "PERMISSION_DENIED" || apiMsg.includes("403")) {
+        throw new Error(`Google account does not have access to ${conn.siteUrl}. Re-connect GSC from your EasyFetcher dashboard.`);
+      }
+      if (status === "UNAUTHENTICATED" || apiMsg.includes("401") || apiMsg.toLowerCase().includes("invalid credentials")) {
+        throw new Error(`GSC token expired or revoked. Re-connect GSC from your EasyFetcher dashboard.`);
+      }
+      throw new Error(apiMsg);
+    }
+  }
+
   if (base === "top_queries") {
     const page = typeof args.page === "string" ? args.page : undefined;
-    const res = await sc.searchanalytics.query({
-      siteUrl: conn.siteUrl,
-      requestBody: {
-        startDate: fmt(startDate),
-        endDate: fmt(endDate),
-        dimensions: ["query"],
-        rowLimit: limit,
-        ...(page && { dimensionFilterGroups: [{ filters: [{ dimension: "page", operator: "equals", expression: page }] }] }),
-      },
+    const res = await gscQuery({
+      startDate: fmt(startDate),
+      endDate: fmt(endDate),
+      dimensions: ["query"],
+      rowLimit: limit,
+      ...(page && { dimensionFilterGroups: [{ filters: [{ dimension: "page", operator: "equals", expression: page }] }] }),
     });
     const rows = res.data.rows ?? [];
     if (rows.length === 0) return text(`No search data for ${conn.siteUrl} in the last ${days} days.`);
@@ -61,9 +84,11 @@ export async function executeGscTool(
   }
 
   if (base === "top_pages") {
-    const res = await sc.searchanalytics.query({
-      siteUrl: conn.siteUrl,
-      requestBody: { startDate: fmt(startDate), endDate: fmt(endDate), dimensions: ["page"], rowLimit: limit },
+    const res = await gscQuery({
+      startDate: fmt(startDate),
+      endDate: fmt(endDate),
+      dimensions: ["page"],
+      rowLimit: limit,
     });
     const rows = res.data.rows ?? [];
     if (rows.length === 0) return text(`No page data for ${conn.siteUrl} in the last ${days} days.`);
@@ -77,15 +102,12 @@ export async function executeGscTool(
   if (base === "keyword_detail") {
     const keyword = typeof args.keyword === "string" ? args.keyword : "";
     if (!keyword) return text("keyword argument is required");
-    const res = await sc.searchanalytics.query({
-      siteUrl: conn.siteUrl,
-      requestBody: {
-        startDate: fmt(startDate),
-        endDate: fmt(endDate),
-        dimensions: ["page"],
-        dimensionFilterGroups: [{ filters: [{ dimension: "query", operator: "equals", expression: keyword }] }],
-        rowLimit: 10,
-      },
+    const res = await gscQuery({
+      startDate: fmt(startDate),
+      endDate: fmt(endDate),
+      dimensions: ["page"],
+      dimensionFilterGroups: [{ filters: [{ dimension: "query", operator: "equals", expression: keyword }] }],
+      rowLimit: 10,
     });
     const rows = res.data.rows ?? [];
     if (rows.length === 0) return text(`No data found for keyword "${keyword}" on ${conn.label ?? conn.siteUrl} in the last ${days} days.`);
