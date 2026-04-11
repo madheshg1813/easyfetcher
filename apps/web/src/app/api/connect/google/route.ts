@@ -50,7 +50,12 @@ export async function GET(request: NextRequest) {
       const clerkUser = await currentUser();
       const email = clerkUser?.emailAddresses?.[0]?.emailAddress ?? `${userId}@unknown.local`;
       const name = [clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(" ") || null;
-      dbUser = await prisma.user.create({ data: { clerkId: userId, email, name } });
+      // Email may already exist (webhook fired with different clerkId) — upsert to reconcile
+      dbUser = await prisma.user.upsert({
+        where: { email },
+        update: { clerkId: userId },
+        create: { clerkId: userId, email, name },
+      });
     }
 
     // Resolve active workspace
