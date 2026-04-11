@@ -99,11 +99,31 @@ export async function GET(request: NextRequest) {
     }
     if (platform === "GA4") {
       const analyticsAdmin = google.analyticsadmin({ version: "v1beta", auth: oauth2Client });
-      const res = await analyticsAdmin.properties.list({ filter: "parent:accounts/-" });
+      // List all GA4 properties the user has access to
+      const res = await analyticsAdmin.properties.list({
+        filter: "parent:accounts/-",
+        pageSize: 200,
+      });
       sites = (res.data.properties ?? []).map((p) => ({
-        siteUrl: p.name,           // e.g. "properties/123456"
-        displayName: p.displayName,
-      }));
+        siteUrl: p.name ?? "",      // e.g. "properties/123456"
+        displayName: p.displayName ?? p.name ?? "GA4 Property",
+      })).filter((s) => s.siteUrl !== "");
+      // If Admin API returned nothing, try fetching via account list
+      if (sites.length === 0) {
+        const accountsRes = await analyticsAdmin.accounts.list();
+        const accounts = accountsRes.data.accounts ?? [];
+        for (const account of accounts) {
+          const propsRes = await analyticsAdmin.properties.list({
+            filter: `parent:${account.name}`,
+            pageSize: 200,
+          });
+          const props = (propsRes.data.properties ?? []).map((p) => ({
+            siteUrl: p.name ?? "",
+            displayName: p.displayName ?? p.name ?? "GA4 Property",
+          })).filter((s) => s.siteUrl !== "");
+          sites.push(...props);
+        }
+      }
     }
     if (platform === "GOOGLE_ADS") {
       // No picker needed for Ads — auto-connect with placeholder
@@ -125,12 +145,16 @@ export async function GET(request: NextRequest) {
       }
     }
   } catch (err) {
-    console.warn(`Site list fetch failed for ${platform}:`, err);
-    return NextResponse.redirect(`${baseUrl}/dashboard/sources?error=site_fetch_failed`);
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error(`[callback/google] site list fetch failed for ${platform}:`, msg);
+    const url = new URL(`${baseUrl}/dashboard/sources`);
+    url.searchParams.set("error", "site_fetch_failed");
+    url.searchParams.set("detail", msg.slice(0, 200));
+    return NextResponse.redirect(url.toString());
   }
 
   if (sites.length === 0) {
-    return NextResponse.redirect(`${baseUrl}/dashboard/sources?error=no_sites_found`);
+    return NextResponse.redirect(`${baseUrl}/dashboard/sources?error=no_sites_found&platform=${platform}`);
   }
 
   // Save tokens in PendingConnection (expires in 15 min)

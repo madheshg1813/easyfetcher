@@ -98,7 +98,7 @@ const ALL_SOURCES: SourceConfig[] = [
 export default async function SourcesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ connected?: string; error?: string; requiredPlan?: string }>;
+  searchParams: Promise<{ connected?: string; error?: string; requiredPlan?: string; detail?: string }>;
 }) {
   const { userId } = await auth();
   if (!userId) redirect("/login");
@@ -180,9 +180,14 @@ export default async function SourcesPage({
         </div>
       )}
       {params.error && params.error !== "plan_limit" && (
-        <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
-          <span>⚠</span>
-          <span>Connection failed: {params.error.replace(/_/g, " ")}. Please try again.</span>
+        <div className="flex flex-col gap-1 px-4 py-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+          <div className="flex items-center gap-3">
+            <span>⚠</span>
+            <span>Connection failed: {params.error.replace(/_/g, " ")}. Please try again.</span>
+          </div>
+          {params.detail && (
+            <p className="text-xs text-destructive/80 pl-5 font-mono break-all">{params.detail}</p>
+          )}
         </div>
       )}
 
