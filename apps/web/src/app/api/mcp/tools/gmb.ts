@@ -24,7 +24,15 @@ async function gmbFetch(url: string, token: string, timeoutMs = 8000) {
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       signal: ctrl.signal,
     });
-    return res.json();
+    const data = await res.json();
+    if (!res.ok) {
+      const apiMsg = data?.error?.message ?? data?.error?.status ?? `HTTP ${res.status}`;
+      console.error(`[gmb] API error ${res.status} for ${url}:`, apiMsg);
+      if (res.status === 401) throw new Error(`GMB token expired or revoked (${res.status}). Re-connect Google My Business from your EasyFetcher dashboard.`);
+      if (res.status === 403) throw new Error(`Permission denied for GMB API (${res.status}). Make sure the connected Google account has a verified Business Profile.`);
+      throw new Error(`GMB API error ${res.status}: ${apiMsg}`);
+    }
+    return data;
   } catch (err) {
     if ((err as Error).name === "AbortError") throw new Error("GMB API timed out after 8s");
     throw err;
@@ -73,12 +81,23 @@ export async function executeGmbTool(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   makeOAuth2Client: (a: string, r: string | null, e: Date | null) => any
 ) {
-  const authClient = makeOAuth2Client(conn.accessToken, conn.refreshToken, conn.expiresAt);
+  let authClient: ReturnType<typeof makeOAuth2Client>;
+  try {
+    authClient = makeOAuth2Client(conn.accessToken, conn.refreshToken, conn.expiresAt);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    return text(`Token decryption failed: ${msg}. Re-connect Google My Business from your EasyFetcher dashboard.`);
+  }
+
   let token: string;
   try {
+    // getAccessToken() auto-refreshes if expired
     const tokenRes = await authClient.getAccessToken();
-    token = tokenRes.token ?? decrypt(conn.accessToken);
-  } catch {
+    if (!tokenRes.token) throw new Error("empty token returned");
+    token = tokenRes.token;
+  } catch (err) {
+    // Fallback to stored access token (may be expired — will surface a 401 from the API)
+    console.warn("[gmb] getAccessToken failed, using stored token:", (err as Error).message);
     token = decrypt(conn.accessToken);
   }
 
