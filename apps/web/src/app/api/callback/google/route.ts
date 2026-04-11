@@ -99,30 +99,22 @@ export async function GET(request: NextRequest) {
     }
     if (platform === "GA4") {
       const analyticsAdmin = google.analyticsadmin({ version: "v1beta", auth: oauth2Client });
-      // List all GA4 properties the user has access to
-      const res = await analyticsAdmin.properties.list({
-        filter: "parent:accounts/-",
-        pageSize: 200,
-      });
-      sites = (res.data.properties ?? []).map((p) => ({
-        siteUrl: p.name ?? "",      // e.g. "properties/123456"
-        displayName: p.displayName ?? p.name ?? "GA4 Property",
-      })).filter((s) => s.siteUrl !== "");
-      // If Admin API returned nothing, try fetching via account list
-      if (sites.length === 0) {
-        const accountsRes = await analyticsAdmin.accounts.list();
-        const accounts = accountsRes.data.accounts ?? [];
-        for (const account of accounts) {
-          const propsRes = await analyticsAdmin.properties.list({
-            filter: `parent:${account.name}`,
-            pageSize: 200,
-          });
-          const props = (propsRes.data.properties ?? []).map((p) => ({
-            siteUrl: p.name ?? "",
+      // List accounts first, then properties per account (wildcard filter not supported)
+      const accountsRes = await analyticsAdmin.accounts.list();
+      const accounts = accountsRes.data.accounts ?? [];
+      for (const account of accounts) {
+        if (!account.name) continue;
+        const propsRes = await analyticsAdmin.properties.list({
+          filter: `parent:${account.name}`,
+          pageSize: 200,
+        });
+        const props = (propsRes.data.properties ?? [])
+          .filter((p) => p.name)
+          .map((p) => ({
+            siteUrl: p.name!,           // e.g. "properties/123456"
             displayName: p.displayName ?? p.name ?? "GA4 Property",
-          })).filter((s) => s.siteUrl !== "");
-          sites.push(...props);
-        }
+          }));
+        sites.push(...props);
       }
     }
     if (platform === "GOOGLE_ADS") {
