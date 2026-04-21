@@ -439,23 +439,25 @@ export default function HomePage() {
       </section>
 
       {/* CTA Banner */}
-      <section className="py-20 px-6 bg-amber-500">
+      <section className="py-24 px-6 bg-gray-950">
         <div className="max-w-3xl mx-auto text-center">
-          <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center mx-auto mb-6">
-            <Zap className="w-6 h-6 text-white" />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold mb-8">
+            <Zap className="w-3.5 h-3.5" />
+            Get started in 30 seconds
           </div>
-          <h2 className="text-4xl font-extrabold text-white tracking-tight mb-4">
-            Start querying your data with AI today
+          <h2 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight mb-5">
+            Start querying your data<br />with AI today
           </h2>
-          <p className="text-amber-200 text-lg mb-10">
+          <p className="text-gray-400 text-lg mb-10 leading-relaxed">
             Free forever on Google Search Console. No credit card required.
           </p>
           <Link
             href={`${APP_URL}/signup`}
-            className="inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-white text-amber-600 font-bold text-base hover:bg-amber-50 transition-colors shadow-lg"
+            className="inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-amber-500 text-gray-900 font-bold text-base hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/20"
           >
             Get started free <ArrowRight className="w-4 h-4" />
           </Link>
+          <p className="text-gray-600 text-sm mt-5">No credit card · Cancel anytime</p>
         </div>
       </section>
 
