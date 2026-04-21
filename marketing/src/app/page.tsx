@@ -113,26 +113,26 @@ export default function HomePage() {
       <nav className="sticky top-0 z-50 bg-white border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
               <Zap className="w-4 h-4 text-white" />
             </div>
             <span className="font-bold text-lg text-gray-900 tracking-tight">EasyFetcher</span>
           </div>
 
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
-            <a href="#features" className="hover:text-blue-600 transition-colors">Features</a>
-            <a href="#connectors" className="hover:text-blue-600 transition-colors">Integrations</a>
-            <a href="#pricing" className="hover:text-blue-600 transition-colors">Pricing</a>
-            <a href="#testimonials" className="hover:text-blue-600 transition-colors">Customers</a>
+            <a href="#features" className="hover:text-amber-500 transition-colors">Features</a>
+            <a href="#connectors" className="hover:text-amber-500 transition-colors">Integrations</a>
+            <a href="#pricing" className="hover:text-amber-500 transition-colors">Pricing</a>
+            <a href="#testimonials" className="hover:text-amber-500 transition-colors">Customers</a>
           </div>
 
           <div className="flex items-center gap-3">
-            <Link href={`${APP_URL}/login`} className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors px-4 py-2">
+            <Link href={`${APP_URL}/login`} className="text-sm font-medium text-gray-700 hover:text-amber-500 transition-colors px-4 py-2">
               Sign in
             </Link>
             <Link
               href={`${APP_URL}/signup`}
-              className="px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm"
+              className="px-5 py-2.5 rounded-lg bg-amber-500 text-gray-900 text-sm font-semibold hover:bg-amber-600 transition-colors shadow-sm"
             >
               Get started free
             </Link>
@@ -141,16 +141,16 @@ export default function HomePage() {
       </nav>
 
       {/* Hero */}
-      <section className="pt-20 pb-24 px-6" style={{ background: "linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%)" }}>
+      <section className="pt-20 pb-24 px-6" style={{ background: "linear-gradient(180deg, #fffbeb 0%, #ffffff 100%)" }}>
         <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-200 bg-blue-50 text-blue-700 text-xs font-semibold mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-amber-200 bg-amber-50 text-amber-600 text-xs font-semibold mb-8">
             <Zap className="w-3.5 h-3.5" />
             Powered by Claude AI · Model Context Protocol
           </div>
 
           <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 leading-[1.1] tracking-tight mb-6">
             Your marketing data,<br />
-            <span className="text-blue-600">answered instantly by AI</span>
+            <span className="text-amber-500">answered instantly by AI</span>
           </h1>
 
           <p className="text-xl text-gray-500 max-w-2xl mx-auto mb-10 leading-relaxed font-normal">
@@ -161,7 +161,7 @@ export default function HomePage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
             <Link
               href={`${APP_URL}/signup`}
-              className="flex items-center gap-2 px-8 py-3.5 rounded-lg bg-blue-600 text-white font-semibold text-base hover:bg-blue-700 transition-colors shadow-md shadow-blue-100"
+              className="flex items-center gap-2 px-8 py-3.5 rounded-lg bg-amber-500 text-gray-900 font-semibold text-base hover:bg-amber-600 transition-colors shadow-md shadow-amber-100"
             >
               Start for free <ArrowRight className="w-4 h-4" />
             </Link>
@@ -194,11 +194,11 @@ export default function HomePage() {
                 </div>
               </div>
               <div className="flex gap-3 items-start flex-row-reverse">
-                <div className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
+                <div className="w-7 h-7 rounded-full bg-amber-500 flex items-center justify-center shrink-0">
                   <Zap className="w-3.5 h-3.5 text-white" />
                 </div>
-                <div className="bg-blue-50 border border-blue-100 rounded-2xl rounded-tr-none px-4 py-3 text-sm text-gray-700 max-w-sm">
-                  <p className="font-semibold text-blue-700 mb-2 text-xs uppercase tracking-wide">Fetching from Google Search Console</p>
+                <div className="bg-amber-50 border border-amber-100 rounded-2xl rounded-tr-none px-4 py-3 text-sm text-gray-700 max-w-sm">
+                  <p className="font-semibold text-amber-600 mb-2 text-xs uppercase tracking-wide">Fetching from Google Search Console</p>
                   <p className="text-gray-600 mb-2">Here are your top 10 landing pages by clicks (last 30 days):</p>
                   <ol className="space-y-1 text-xs text-gray-600 font-mono">
                     <li className="flex justify-between"><span>1. /blog/seo-tips</span><span className="font-semibold text-gray-800">4,821</span></li>
@@ -220,8 +220,8 @@ export default function HomePage() {
             const Icon = s.icon;
             return (
               <div key={s.label} className="text-center">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center mx-auto mb-3">
-                  <Icon className="w-5 h-5 text-blue-600" />
+                <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center mx-auto mb-3">
+                  <Icon className="w-5 h-5 text-amber-500" />
                 </div>
                 <p className="text-3xl font-extrabold text-gray-900 tracking-tight">{s.value}</p>
                 <p className="text-sm text-gray-500 mt-1">{s.label}</p>
@@ -235,7 +235,7 @@ export default function HomePage() {
       <section id="features" className="py-24 px-6 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-sm font-semibold text-blue-600 uppercase tracking-wider mb-3">Features</p>
+            <p className="text-sm font-semibold text-amber-500 uppercase tracking-wider mb-3">Features</p>
             <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight mb-4">
               Everything you need to query<br />your marketing data with AI
             </h2>
@@ -248,9 +248,9 @@ export default function HomePage() {
             {features.map((f) => {
               const Icon = f.icon;
               return (
-                <div key={f.title} className="group flex gap-5 p-7 rounded-2xl border border-gray-100 hover:border-blue-100 hover:shadow-lg hover:shadow-blue-50/50 transition-all bg-white">
-                  <div className="w-12 h-12 rounded-xl bg-blue-50 group-hover:bg-blue-100 flex items-center justify-center shrink-0 transition-colors">
-                    <Icon className="w-6 h-6 text-blue-600" />
+                <div key={f.title} className="group flex gap-5 p-7 rounded-2xl border border-gray-100 hover:border-amber-100 hover:shadow-lg hover:shadow-blue-50/50 transition-all bg-white">
+                  <div className="w-12 h-12 rounded-xl bg-amber-50 group-hover:bg-amber-100 flex items-center justify-center shrink-0 transition-colors">
+                    <Icon className="w-6 h-6 text-amber-500" />
                   </div>
                   <div>
                     <h3 className="text-lg font-bold text-gray-900 mb-2 tracking-tight">{f.title}</h3>
@@ -264,10 +264,10 @@ export default function HomePage() {
       </section>
 
       {/* How it works */}
-      <section className="py-24 px-6" style={{ background: "#f8faff" }}>
+      <section className="py-24 px-6" style={{ background: "#fffbeb" }}>
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-sm font-semibold text-blue-600 uppercase tracking-wider mb-3">How it works</p>
+            <p className="text-sm font-semibold text-amber-500 uppercase tracking-wider mb-3">How it works</p>
             <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight mb-4">Up and running in 3 steps</h2>
             <p className="text-lg text-gray-500">No technical setup. No API keys to manage. No code.</p>
           </div>
@@ -294,7 +294,7 @@ export default function HomePage() {
                 {i < 2 && (
                   <div className="hidden md:block absolute top-10 -right-4 w-8 h-px bg-gray-200 z-10" />
                 )}
-                <div className="text-4xl font-black text-blue-100 mb-4 tracking-tighter">{s.step}</div>
+                <div className="text-4xl font-black text-amber-100 mb-4 tracking-tighter">{s.step}</div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2 tracking-tight">{s.title}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed">{s.desc}</p>
               </div>
@@ -307,7 +307,7 @@ export default function HomePage() {
       <section id="connectors" className="py-24 px-6 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-sm font-semibold text-blue-600 uppercase tracking-wider mb-3">Integrations</p>
+            <p className="text-sm font-semibold text-amber-500 uppercase tracking-wider mb-3">Integrations</p>
             <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight mb-4">
               Connect your entire marketing stack
             </h2>
@@ -316,7 +316,7 @@ export default function HomePage() {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {connectors.map((c) => (
-              <div key={c.name} className="group flex flex-col items-center gap-3 p-5 rounded-2xl border border-gray-100 hover:border-blue-200 hover:shadow-md hover:shadow-blue-50/50 transition-all bg-white cursor-default">
+              <div key={c.name} className="group flex flex-col items-center gap-3 p-5 rounded-2xl border border-gray-100 hover:border-amber-200 hover:shadow-md hover:shadow-blue-50/50 transition-all bg-white cursor-default">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={c.logo} alt={c.name} className="w-10 h-10 object-contain" />
                 <span className="text-xs font-semibold text-gray-700 text-center leading-tight">{c.name}</span>
@@ -324,7 +324,7 @@ export default function HomePage() {
                   c.plan === "Free"
                     ? "bg-green-50 text-green-700 border border-green-100"
                     : c.plan === "Starter"
-                    ? "bg-blue-50 text-blue-700 border border-blue-100"
+                    ? "bg-amber-50 text-amber-600 border border-amber-100"
                     : "bg-violet-50 text-violet-700 border border-violet-100"
                 }`}>
                   {c.plan}
@@ -340,10 +340,10 @@ export default function HomePage() {
       </section>
 
       {/* Testimonials */}
-      <section id="testimonials" className="py-24 px-6" style={{ background: "#f8faff" }}>
+      <section id="testimonials" className="py-24 px-6" style={{ background: "#fffbeb" }}>
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-sm font-semibold text-blue-600 uppercase tracking-wider mb-3">Customers</p>
+            <p className="text-sm font-semibold text-amber-500 uppercase tracking-wider mb-3">Customers</p>
             <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight">Loved by marketers worldwide</h2>
           </div>
 
@@ -357,7 +357,7 @@ export default function HomePage() {
                 </div>
                 <p className="text-gray-600 leading-relaxed text-sm flex-1">&ldquo;{t.quote}&rdquo;</p>
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-600">
+                  <div className="w-9 h-9 rounded-full bg-amber-100 flex items-center justify-center text-sm font-bold text-amber-500">
                     {t.name[0]}
                   </div>
                   <div>
@@ -375,7 +375,7 @@ export default function HomePage() {
       <section id="pricing" className="py-24 px-6 bg-white">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-sm font-semibold text-blue-600 uppercase tracking-wider mb-3">Pricing</p>
+            <p className="text-sm font-semibold text-amber-500 uppercase tracking-wider mb-3">Pricing</p>
             <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight mb-4">Simple, transparent pricing</h2>
             <p className="text-lg text-gray-500">Start free. Upgrade when you need more. No surprises.</p>
           </div>
@@ -386,7 +386,7 @@ export default function HomePage() {
                 key={plan.name}
                 className={`relative rounded-2xl p-7 flex flex-col gap-6 ${
                   plan.highlight
-                    ? "bg-blue-600 text-white shadow-2xl shadow-blue-200 ring-2 ring-blue-600 scale-[1.03]"
+                    ? "bg-amber-500 text-gray-900 shadow-2xl shadow-amber-200 ring-2 ring-amber-500 scale-[1.03]"
                     : "border border-gray-200 bg-white hover:shadow-md transition-shadow"
                 }`}
               >
@@ -397,16 +397,16 @@ export default function HomePage() {
                 )}
 
                 <div>
-                  <p className={`text-xs font-bold uppercase tracking-widest mb-3 ${plan.highlight ? "text-blue-200" : "text-blue-600"}`}>
+                  <p className={`text-xs font-bold uppercase tracking-widest mb-3 ${plan.highlight ? "text-amber-200" : "text-amber-500"}`}>
                     {plan.name}
                   </p>
                   <div className="flex items-end gap-1 mb-2">
                     <span className={`text-4xl font-black tracking-tighter ${plan.highlight ? "text-white" : "text-gray-900"}`}>
                       {plan.price}
                     </span>
-                    <span className={`text-sm mb-1.5 ${plan.highlight ? "text-blue-200" : "text-gray-400"}`}>{plan.note}</span>
+                    <span className={`text-sm mb-1.5 ${plan.highlight ? "text-amber-200" : "text-gray-400"}`}>{plan.note}</span>
                   </div>
-                  <p className={`text-sm leading-relaxed ${plan.highlight ? "text-blue-100" : "text-gray-500"}`}>
+                  <p className={`text-sm leading-relaxed ${plan.highlight ? "text-amber-100" : "text-gray-500"}`}>
                     {plan.description}
                   </p>
                 </div>
@@ -414,10 +414,10 @@ export default function HomePage() {
                 <ul className="space-y-2.5 flex-1">
                   {plan.features.map((f) => (
                     <li key={f} className="flex items-start gap-2.5 text-sm">
-                      <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${plan.highlight ? "bg-blue-500" : "bg-blue-50"}`}>
-                        <Check className={`w-2.5 h-2.5 ${plan.highlight ? "text-white" : "text-blue-600"}`} />
+                      <div className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${plan.highlight ? "bg-amber-400" : "bg-amber-50"}`}>
+                        <Check className={`w-2.5 h-2.5 ${plan.highlight ? "text-white" : "text-amber-500"}`} />
                       </div>
-                      <span className={plan.highlight ? "text-blue-50" : "text-gray-600"}>{f}</span>
+                      <span className={plan.highlight ? "text-amber-50" : "text-gray-600"}>{f}</span>
                     </li>
                   ))}
                 </ul>
@@ -426,8 +426,8 @@ export default function HomePage() {
                   href={`${APP_URL}/signup`}
                   className={`w-full py-3 rounded-xl text-sm font-bold text-center transition-all ${
                     plan.highlight
-                      ? "bg-white text-blue-600 hover:bg-blue-50"
-                      : "bg-blue-600 text-white hover:bg-blue-700"
+                      ? "bg-white text-amber-600 hover:bg-amber-50"
+                      : "bg-amber-500 text-gray-900 hover:bg-amber-600"
                   }`}
                 >
                   {plan.cta}
@@ -439,7 +439,7 @@ export default function HomePage() {
       </section>
 
       {/* CTA Banner */}
-      <section className="py-20 px-6 bg-blue-600">
+      <section className="py-20 px-6 bg-amber-500">
         <div className="max-w-3xl mx-auto text-center">
           <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center mx-auto mb-6">
             <Zap className="w-6 h-6 text-white" />
@@ -447,12 +447,12 @@ export default function HomePage() {
           <h2 className="text-4xl font-extrabold text-white tracking-tight mb-4">
             Start querying your data with AI today
           </h2>
-          <p className="text-blue-200 text-lg mb-10">
+          <p className="text-amber-200 text-lg mb-10">
             Free forever on Google Search Console. No credit card required.
           </p>
           <Link
             href={`${APP_URL}/signup`}
-            className="inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-white text-blue-600 font-bold text-base hover:bg-blue-50 transition-colors shadow-lg"
+            className="inline-flex items-center gap-2 px-10 py-4 rounded-xl bg-white text-amber-600 font-bold text-base hover:bg-amber-50 transition-colors shadow-lg"
           >
             Get started free <ArrowRight className="w-4 h-4" />
           </Link>
@@ -465,7 +465,7 @@ export default function HomePage() {
           <div className="flex flex-col md:flex-row items-start justify-between gap-8 mb-10">
             <div>
               <div className="flex items-center gap-2.5 mb-3">
-                <div className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
+                <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center">
                   <Zap className="w-3.5 h-3.5 text-white" />
                 </div>
                 <span className="font-bold text-white tracking-tight">EasyFetcher</span>
@@ -499,7 +499,7 @@ export default function HomePage() {
             <p className="text-gray-500 text-sm">© {new Date().getFullYear()} EasyFetcher. All rights reserved.</p>
             <Link
               href={`${APP_URL}/signup`}
-              className="px-5 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 transition-colors"
+              className="px-5 py-2.5 rounded-lg bg-amber-500 text-gray-900 text-sm font-semibold hover:bg-amber-600 transition-colors"
             >
               Get started free →
             </Link>
