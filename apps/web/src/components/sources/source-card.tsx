@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle, Lock, Globe } from "lucide-react";
+import { CheckCircle, Lock, Globe, X } from "lucide-react";
 import Image from "next/image";
 import { ManageModal } from "./manage-modal";
 import type { Plan, Platform } from "@easyfetcher/db";
@@ -107,6 +107,76 @@ function DisconnectInline({ platform, connectionId }: { platform: string; connec
   );
 }
 
+function ShopifyModal({ workspaceId, onClose }: { workspaceId?: string; onClose: () => void }) {
+  const [shop, setShop] = useState("");
+  const [error, setError] = useState("");
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = shop.trim().replace(/^https?:\/\//, "").replace(/\/$/, "");
+    if (!trimmed) {
+      setError("Please enter your Shopify store URL.");
+      return;
+    }
+    const domain = trimmed.includes(".") ? trimmed : `${trimmed}.myshopify.com`;
+    const url = `/api/connect/shopify?shop=${encodeURIComponent(domain)}${workspaceId ? `&workspaceId=${workspaceId}` : ""}`;
+    window.location.href = url;
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-card border border-border rounded-2xl w-full max-w-md p-6 shadow-xl">
+        <div className="flex items-center justify-between mb-5">
+          <div>
+            <h2 className="text-base font-semibold text-foreground">Connect Shopify</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">Enter your Shopify store URL to continue</p>
+          </div>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="text-xs font-medium text-foreground block mb-1.5">Store URL</label>
+            <div className="flex items-center border border-input rounded-md overflow-hidden focus-within:ring-2 focus-within:ring-ring">
+              <span className="px-3 py-2 text-xs text-muted-foreground bg-muted border-r border-input shrink-0">https://</span>
+              <input
+                type="text"
+                value={shop}
+                onChange={(e) => { setShop(e.target.value); setError(""); }}
+                placeholder="your-store.myshopify.com"
+                className="flex-1 px-3 py-2 text-xs bg-transparent text-foreground placeholder:text-muted-foreground outline-none"
+                autoFocus
+              />
+            </div>
+            {error && <p className="text-xs text-destructive mt-1.5">{error}</p>}
+            <p className="text-[10px] text-muted-foreground mt-1.5">
+              You can also type just the store name (e.g. <span className="font-mono">mystore</span>) and we&apos;ll add .myshopify.com
+            </p>
+          </div>
+
+          <div className="flex gap-2 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2 px-4 rounded-md border border-border text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="flex-1 py-2 px-4 rounded-md bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors"
+            >
+              Connect →
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 interface SourceCardProps {
   source: SourceConfig;
   userPlan: Plan;
@@ -116,6 +186,7 @@ interface SourceCardProps {
 
 export function SourceCard({ source, userPlan, connections, workspaceId }: SourceCardProps) {
   const [modalConn, setModalConn] = useState<ConnectionRow | null>(null);
+  const [showShopifyModal, setShowShopifyModal] = useState(false);
 
   const connected = connections.filter((c) => c.status === "CONNECTED");
   const isConnected = connected.length > 0;
@@ -134,6 +205,11 @@ export function SourceCard({ source, userPlan, connections, workspaceId }: Sourc
       window.location.href = url;
     } else if (FREE_PLATFORMS.includes(source.platform as string)) {
       const url = `/api/connect/free?platform=${source.platform}${workspaceId ? `&workspaceId=${workspaceId}` : ""}`;
+      window.location.href = url;
+    } else if (source.id === "SHOPIFY") {
+      setShowShopifyModal(true);
+    } else if (META_PLATFORMS.includes(source.id as string)) {
+      const url = `/api/connect/meta?platform=${source.id}${workspaceId ? `&workspaceId=${workspaceId}` : ""}`;
       window.location.href = url;
     } else {
       alert(`${source.name} integration is coming soon!`);
@@ -242,6 +318,10 @@ export function SourceCard({ source, userPlan, connections, workspaceId }: Sourc
 
       {modalConn && (
         <ManageModal connection={modalConn} onClose={() => setModalConn(null)} />
+      )}
+
+      {showShopifyModal && (
+        <ShopifyModal workspaceId={workspaceId} onClose={() => setShowShopifyModal(false)} />
       )}
     </>
   );
