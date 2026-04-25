@@ -12,6 +12,8 @@ const isPublicRoute = createRouteMatcher([
   // MCP + OAuth endpoints — must be public so Claude can connect
   "/api/mcp(.*)",
   "/api/oauth/(.*)",
+  "/api/callback/(.*)",
+  "/api/connect/(.*)",
   "/.well-known/(.*)",
 ]);
 
