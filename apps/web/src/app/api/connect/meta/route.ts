@@ -5,6 +5,7 @@ import { checkConnectionAllowed } from "@/lib/plan-check";
 import type { Platform, Plan } from "@easyfetcher/db";
 
 const META_SCOPES = [
+  "ads_read",
   "pages_show_list",
   "pages_read_engagement",
   "instagram_basic",
