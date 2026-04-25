@@ -11,6 +11,7 @@ export const metadata = { title: "Data Sources" };
 const ALL_SOURCES: SourceConfig[] = [
   {
     id: "GOOGLE_TRENDS",
+    platform: "GOOGLE_TRENDS",
     name: "Google Trends",
     description: "Search interest over time, trending topics and related queries for any keyword. No login required.",
     logo: "/connectors/google-trends.svg",
@@ -18,6 +19,7 @@ const ALL_SOURCES: SourceConfig[] = [
   },
   {
     id: "GSC",
+    platform: "GSC",
     name: "Google Search Console",
     description: "Rankings, impressions, CTR and crawl data. Essential for SEO prompts.",
     logo: "/connectors/gsc.svg",
@@ -25,6 +27,7 @@ const ALL_SOURCES: SourceConfig[] = [
   },
   {
     id: "GA4",
+    platform: "GA4",
     name: "Google Analytics 4",
     description: "Traffic, conversions, events and audience data. Powers analytics prompts.",
     logo: "/connectors/google-analytics.svg",
@@ -32,6 +35,7 @@ const ALL_SOURCES: SourceConfig[] = [
   },
   {
     id: "GOOGLE_MY_BUSINESS",
+    platform: "GOOGLE_MY_BUSINESS",
     name: "Google My Business",
     description: "Local search visibility, reviews and customer actions data.",
     logo: "/connectors/google-my-business.svg",
@@ -39,27 +43,51 @@ const ALL_SOURCES: SourceConfig[] = [
   },
   {
     id: "GOOGLE_ADS",
+    platform: "GOOGLE_ADS",
     name: "Google Ads",
     description: "Campaigns, keywords, ROAS and budget performance analysis.",
     logo: "/connectors/icons8-google-ads.svg",
     requiredPlan: "PRO",
   },
+  // ─── Meta / Facebook / Instagram ────────────────────────────────────────────
   {
-    id: "META_ADS",
+    id: "FACEBOOK_ADS",
+    platform: "META_ADS",
     name: "Facebook Ads",
-    description: "Facebook & Instagram ad performance and audience analytics.",
+    description: "Facebook paid campaign performance — spend, reach, impressions, clicks and conversions.",
     logo: "/connectors/facebook.svg",
     requiredPlan: "PRO",
   },
   {
-    id: "INSTAGRAM",
+    id: "INSTAGRAM_ADS",
+    platform: "META_ADS",
+    name: "Instagram Ads",
+    description: "Instagram paid campaign performance — spend, reach, impressions, clicks and conversions.",
+    logo: "/connectors/instagram.svg",
+    requiredPlan: "PRO",
+    sharedNote: "Uses the same Meta Ads connection as Facebook Ads.",
+  },
+  {
+    id: "INSTAGRAM_INSIGHTS",
+    platform: "INSTAGRAM",
     name: "Instagram Insights",
-    description: "Follower growth, reach, impressions and content performance.",
+    description: "Organic Instagram performance — follower growth, reach, impressions and content engagement.",
     logo: "/connectors/instagram.svg",
     requiredPlan: "PRO",
   },
   {
+    id: "FACEBOOK_PAGE_INSIGHTS",
+    platform: "INSTAGRAM",
+    name: "Facebook Page Insights",
+    description: "Organic Facebook Page performance — reach, impressions, engagement and fan growth.",
+    logo: "/connectors/facebook.svg",
+    requiredPlan: "PRO",
+    sharedNote: "Uses the same Instagram connection — links to your Facebook Page automatically.",
+  },
+  // ─── Other platforms ─────────────────────────────────────────────────────────
+  {
     id: "SHOPIFY",
+    platform: "SHOPIFY",
     name: "Shopify",
     description: "Revenue, orders, product and customer acquisition data.",
     logo: "/connectors/shopify.svg",
@@ -67,6 +95,7 @@ const ALL_SOURCES: SourceConfig[] = [
   },
   {
     id: "BING_ADS",
+    platform: "BING_ADS",
     name: "Bing Ads",
     description: "Microsoft Advertising campaign performance and search impression data.",
     logo: "/connectors/bing.svg",
@@ -74,6 +103,7 @@ const ALL_SOURCES: SourceConfig[] = [
   },
   {
     id: "REDDIT_ADS",
+    platform: "REDDIT_ADS",
     name: "Reddit Ads",
     description: "Reddit campaign data and community engagement metrics.",
     logo: "/connectors/reddit.svg",
@@ -81,6 +111,7 @@ const ALL_SOURCES: SourceConfig[] = [
   },
   {
     id: "LINKEDIN_ADS",
+    platform: "LINKEDIN_ADS",
     name: "LinkedIn Ads",
     description: "B2B campaign performance, lead gen and audience insights.",
     logo: "/connectors/linkedin.svg",
@@ -88,6 +119,7 @@ const ALL_SOURCES: SourceConfig[] = [
   },
   {
     id: "TIKTOK_ADS",
+    platform: "TIKTOK_ADS",
     name: "TikTok Ads",
     description: "TikTok campaign performance, video metrics and audience analytics.",
     logo: "/connectors/tiktok.svg",
@@ -98,7 +130,7 @@ const ALL_SOURCES: SourceConfig[] = [
 export default async function SourcesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ connected?: string; error?: string; requiredPlan?: string; detail?: string }>;
+  searchParams: Promise<{ connected?: string; error?: string; requiredPlan?: string }>;
 }) {
   const { userId } = await auth();
   if (!userId) redirect("/login");
@@ -180,14 +212,9 @@ export default async function SourcesPage({
         </div>
       )}
       {params.error && params.error !== "plan_limit" && (
-        <div className="flex flex-col gap-1 px-4 py-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
-          <div className="flex items-center gap-3">
-            <span>⚠</span>
-            <span>Connection failed: {params.error.replace(/_/g, " ")}. Please try again.</span>
-          </div>
-          {params.detail && (
-            <p className="text-xs text-destructive/80 pl-5 font-mono break-all">{params.detail}</p>
-          )}
+        <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+          <span>⚠</span>
+          <span>Connection failed: {params.error.replace(/_/g, " ")}. Please try again.</span>
         </div>
       )}
 
