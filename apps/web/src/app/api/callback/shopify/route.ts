@@ -27,13 +27,14 @@ function verifyShopifyHmac(params: URLSearchParams): boolean {
 }
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
+  const requestUrl = new URL(request.url);
+  const { searchParams } = requestUrl;
   const code = searchParams.get("code");
   const shop = searchParams.get("shop");
   const state = searchParams.get("state");
   const error = searchParams.get("error");
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const baseUrl = requestUrl.origin;
 
   if (error || !code || !shop || !state) {
     return NextResponse.redirect(`${baseUrl}/dashboard/sources?error=oauth_cancelled`);

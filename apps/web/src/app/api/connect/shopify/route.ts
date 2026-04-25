@@ -11,10 +11,11 @@ export async function GET(request: NextRequest) {
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { searchParams } = new URL(request.url);
+    const requestUrl = new URL(request.url);
+    const { searchParams } = requestUrl;
     const rawShop = searchParams.get("shop");
     const workspaceId = searchParams.get("workspaceId");
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    const baseUrl = requestUrl.origin;
 
     if (!rawShop) {
       return NextResponse.redirect(`${baseUrl}/dashboard/sources?error=missing_shop`);
