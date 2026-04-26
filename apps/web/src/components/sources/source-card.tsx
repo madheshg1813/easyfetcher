@@ -38,6 +38,7 @@ const planColors: Record<Plan, string> = {
 
 const GOOGLE_PLATFORMS: string[] = ["GSC", "GA4", "GOOGLE_ADS", "GOOGLE_MY_BUSINESS"];
 const FREE_PLATFORMS: string[] = ["GOOGLE_TRENDS"];
+const META_PLATFORMS: string[] = ["META_ADS", "INSTAGRAM"];
 
 function siteLabel(conn: ConnectionRow): string {
   if (conn.label) return conn.label;
@@ -181,6 +182,9 @@ export function SourceCard({ source, userPlan, connections, workspaceId }: Sourc
       window.location.href = url;
     } else if (FREE_PLATFORMS.includes(source.id as string)) {
       const url = `/api/connect/free?platform=${source.id}${workspaceId ? `&workspaceId=${workspaceId}` : ""}`;
+      window.location.href = url;
+    } else if (META_PLATFORMS.includes(source.id as string)) {
+      const url = `/api/connect/meta?platform=${source.id}${workspaceId ? `&workspaceId=${workspaceId}` : ""}`;
       window.location.href = url;
     } else if (source.id === "SHOPIFY") {
       setShowShopifyModal(true);
