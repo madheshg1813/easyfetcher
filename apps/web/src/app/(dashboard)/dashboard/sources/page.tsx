@@ -10,13 +10,6 @@ export const metadata = { title: "Data Sources" };
 
 const ALL_SOURCES: SourceConfig[] = [
   {
-    id: "GOOGLE_TRENDS",
-    name: "Google Trends",
-    description: "Search interest over time, trending topics and related queries for any keyword. No login required.",
-    logo: "/connectors/google-trends.svg",
-    requiredPlan: "FREE",
-  },
-  {
     id: "GSC",
     name: "Google Search Console",
     description: "Rankings, impressions, CTR and crawl data. Essential for SEO prompts.",
@@ -31,66 +24,10 @@ const ALL_SOURCES: SourceConfig[] = [
     requiredPlan: "STARTER",
   },
   {
-    id: "GOOGLE_MY_BUSINESS",
-    name: "Google My Business",
-    description: "Local search visibility, reviews and customer actions data.",
-    logo: "/connectors/google-my-business.svg",
-    requiredPlan: "STARTER",
-  },
-  {
-    id: "GOOGLE_ADS",
-    name: "Google Ads",
-    description: "Campaigns, keywords, ROAS and budget performance analysis.",
-    logo: "/connectors/icons8-google-ads.svg",
-    requiredPlan: "PRO",
-  },
-  {
-    id: "META_ADS",
-    name: "Facebook Ads",
-    description: "Facebook & Instagram ad performance and audience analytics.",
-    logo: "/connectors/facebook.svg",
-    requiredPlan: "PRO",
-  },
-  {
-    id: "INSTAGRAM",
-    name: "Instagram Insights",
-    description: "Follower growth, reach, impressions and content performance.",
-    logo: "/connectors/instagram.svg",
-    requiredPlan: "PRO",
-  },
-  {
     id: "SHOPIFY",
     name: "Shopify",
     description: "Revenue, orders, product and customer acquisition data.",
     logo: "/connectors/shopify.svg",
-    requiredPlan: "PRO",
-  },
-  {
-    id: "BING_ADS",
-    name: "Bing Ads",
-    description: "Microsoft Advertising campaign performance and search impression data.",
-    logo: "/connectors/bing.svg",
-    requiredPlan: "PRO",
-  },
-  {
-    id: "REDDIT_ADS",
-    name: "Reddit Ads",
-    description: "Reddit campaign data and community engagement metrics.",
-    logo: "/connectors/reddit.svg",
-    requiredPlan: "PRO",
-  },
-  {
-    id: "LINKEDIN_ADS",
-    name: "LinkedIn Ads",
-    description: "B2B campaign performance, lead gen and audience insights.",
-    logo: "/connectors/linkedin.svg",
-    requiredPlan: "PRO",
-  },
-  {
-    id: "TIKTOK_ADS",
-    name: "TikTok Ads",
-    description: "TikTok campaign performance, video metrics and audience analytics.",
-    logo: "/connectors/tiktok.svg",
     requiredPlan: "PRO",
   },
 ];

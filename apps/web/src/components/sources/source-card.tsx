@@ -36,9 +36,7 @@ const planColors: Record<Plan, string> = {
   ENTERPRISE: "bg-blue-500/20 text-blue-600 dark:text-blue-400",
 };
 
-const GOOGLE_PLATFORMS: string[] = ["GSC", "GA4", "GOOGLE_ADS", "GOOGLE_MY_BUSINESS"];
-const FREE_PLATFORMS: string[] = ["GOOGLE_TRENDS"];
-const META_PLATFORMS: string[] = ["META_ADS", "INSTAGRAM"];
+const GOOGLE_PLATFORMS: string[] = ["GSC", "GA4"];
 
 function siteLabel(conn: ConnectionRow): string {
   if (conn.label) return conn.label;
@@ -180,16 +178,8 @@ export function SourceCard({ source, userPlan, connections, workspaceId }: Sourc
     if (isGooglePlatform) {
       const url = `/api/connect/google?platform=${source.id}${workspaceId ? `&workspaceId=${workspaceId}` : ""}`;
       window.location.href = url;
-    } else if (FREE_PLATFORMS.includes(source.id as string)) {
-      const url = `/api/connect/free?platform=${source.id}${workspaceId ? `&workspaceId=${workspaceId}` : ""}`;
-      window.location.href = url;
-    } else if (META_PLATFORMS.includes(source.id as string)) {
-      const url = `/api/connect/meta?platform=${source.id}${workspaceId ? `&workspaceId=${workspaceId}` : ""}`;
-      window.location.href = url;
     } else if (source.id === "SHOPIFY") {
       setShowShopifyModal(true);
-    } else {
-      alert(`${source.name} integration is coming soon!`);
     }
   };
 
