@@ -26,7 +26,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Already on a paid plan" }, { status: 400 });
   }
 
-  const productId = process.env.DODO_PRO_PRODUCT_ID;
+  const body = await request.json().catch(() => ({})) as { billing?: string };
+  const isAnnual = body.billing === "annual";
+
+  const productId = isAnnual
+    ? process.env.DODO_PRO_ANNUAL_PRODUCT_ID
+    : process.env.DODO_PRO_MONTHLY_PRODUCT_ID;
+
   if (!productId) return NextResponse.json({ error: "Dodo Payments not configured" }, { status: 500 });
 
   const subscription = await dodo.subscriptions.create({
@@ -36,7 +42,7 @@ export async function POST(request: NextRequest) {
     quantity: 1,
     payment_link: true,
     return_url: `${baseUrl}/dashboard/plan?success=true`,
-    metadata: { userId: dbUser.id },
+    metadata: { userId: dbUser.id, billing: isAnnual ? "annual" : "monthly" },
   });
 
   const url = (subscription as unknown as { payment_link: string }).payment_link;

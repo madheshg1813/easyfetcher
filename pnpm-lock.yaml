@@ -72,6 +72,9 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
+      dodopayments:
+        specifier: ^2.31.1
+        version: 2.31.1
       google-trends-api:
         specifier: ^4.9.2
         version: 4.9.2
@@ -1481,6 +1484,10 @@ packages:
   doctrine@2.1.0:
     resolution: {integrity: sha512-35mSku4ZXK0vfCuHEDAwt55dg2jNajHZ1odvF+8SSr82EsZY4QmXfuWso8oEd8zRhVObSN18aM0CjSdoBX7zIw==}
     engines: {node: '>=0.10.0'}
+
+  dodopayments@2.31.1:
+    resolution: {integrity: sha512-dtYplxE4HZzlXoINDxdMNMYMq5BHUbecPijT4yKeO2KEJuiwrMbzzDRsngi1Bk2oTFn1GVayS7Ty89xbtf1y/w==}
+    hasBin: true
 
   dom-serializer@2.0.0:
     resolution: {integrity: sha512-wIkAryiqt/nV5EQKqQpo3SToSOV9J0DnbJqwK7Wv/Trc92zIAYZ4FlMu+JPFW1DfGFt81ZTCGgDEabffXeLyJg==}
@@ -3025,6 +3032,7 @@ packages:
 
   uuid@10.0.0:
     resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   vary@1.1.2:
@@ -4276,6 +4284,10 @@ snapshots:
   doctrine@2.1.0:
     dependencies:
       esutils: 2.0.3
+
+  dodopayments@2.31.1:
+    dependencies:
+      standardwebhooks: 1.0.0
 
   dom-serializer@2.0.0:
     dependencies:
