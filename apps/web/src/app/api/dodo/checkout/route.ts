@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const subscription = await dodo.subscriptions.create({
-    billing: { city: "", country: "US" as any, state: "", street: "", zipcode: 0 },
+    billing: { city: "", country: "US" as any, state: "", street: "", zipcode: "00000" },
     customer: { email: dbUser.email, name: dbUser.name ?? dbUser.email },
     product_id: productId,
     quantity: 1,
