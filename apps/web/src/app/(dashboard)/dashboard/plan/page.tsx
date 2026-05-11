@@ -4,7 +4,11 @@ import { useState } from "react";
 import { Check, Zap } from "lucide-react";
 import Image from "next/image";
 
+export const metadata = { title: "Plan" };
+
 export default function PlanPage() {
+  const [annual, setAnnual] = useState(false);
+
   return (
     <div className="space-y-6 max-w-2xl">
       <div>
@@ -13,9 +17,24 @@ export default function PlanPage() {
           Connect your marketing data and run AI-powered prompts
         </p>
       </div>
+
+      {/* Billing toggle */}
+      <div className="flex items-center gap-3">
+        <span className={`text-xs font-medium ${!annual ? "text-foreground" : "text-muted-foreground"}`}>Monthly</span>
+        <button
+          onClick={() => setAnnual(!annual)}
+          className={`relative w-10 h-5 rounded-full transition-colors ${annual ? "bg-primary" : "bg-muted-foreground/30"}`}
+        >
+          <span className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform ${annual ? "translate-x-5" : ""}`} />
+        </button>
+        <span className={`text-xs font-medium ${annual ? "text-foreground" : "text-muted-foreground"}`}>
+          Annual <span className="ml-1 px-1.5 py-0.5 rounded bg-green-500/15 text-green-600 dark:text-green-400 text-[10px] font-semibold">Save $24</span>
+        </span>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FreePlanCard />
-        <ProPlanCard />
+        <ProPlanCard annual={annual} />
       </div>
     </div>
   );
@@ -48,7 +67,6 @@ function FreePlanCard() {
         {[
           "Google Search Console",
           "1 workspace · 1 site",
-          "1,000 MCP calls/month",
           "Claude & MCP compatible",
         ].map((f) => (
           <li key={f} className="flex items-start gap-1.5 text-xs text-foreground">
@@ -65,12 +83,16 @@ function FreePlanCard() {
   );
 }
 
-function ProPlanCard() {
+function ProPlanCard({ annual }: { annual: boolean }) {
   const [loading, setLoading] = useState(false);
 
   const handleUpgrade = async () => {
     setLoading(true);
-    const res = await fetch("/api/dodo/checkout", { method: "POST" });
+    const res = await fetch("/api/dodo/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ billing: annual ? "annual" : "monthly" }),
+    });
     const data = await res.json() as { url?: string; error?: string };
     if (data.url) {
       window.location.href = data.url;
@@ -91,9 +113,14 @@ function ProPlanCard() {
       <div>
         <p className="text-xs font-bold text-primary uppercase tracking-widest mb-2">Pro</p>
         <div className="flex items-end gap-1">
-          <span className="text-3xl font-bold text-foreground">$7</span>
+          <span className="text-3xl font-bold text-foreground">{annual ? "$5" : "$7"}</span>
           <span className="text-sm text-muted-foreground mb-1">/month</span>
         </div>
+        {annual ? (
+          <p className="text-xs text-green-600 dark:text-green-400 font-medium mt-0.5">Billed $60/year</p>
+        ) : (
+          <p className="text-xs text-muted-foreground mt-0.5">or $60/yr — save $24</p>
+        )}
         <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
           Unlock GA4 and Shopify alongside Search Console — all in one AI workspace.
         </p>
@@ -120,9 +147,8 @@ function ProPlanCard() {
           "Google Analytics 4",
           "Shopify",
           "Unlimited sites & accounts",
-          "3 workspaces",
-          "50,000 MCP calls/month",
           "Claude & MCP compatible",
+          "Priority email support",
         ].map((f) => (
           <li key={f} className="flex items-start gap-1.5 text-xs text-foreground">
             <Check className="w-3 h-3 text-primary shrink-0 mt-0.5" />
@@ -136,7 +162,7 @@ function ProPlanCard() {
         disabled={loading}
         className="w-full py-2.5 px-4 rounded-md bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        {loading ? "Redirecting…" : "Start Pro for $7/mo →"}
+        {loading ? "Redirecting…" : annual ? "Start Pro for $60/yr →" : "Start Pro for $7/mo →"}
       </button>
       <p className="text-[10px] text-muted-foreground text-center -mt-2">No credit card required to start</p>
     </div>
