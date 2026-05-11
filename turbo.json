@@ -36,6 +36,10 @@
     "typecheck": {
       "dependsOn": ["^typecheck"],
       "outputs": []
+    },
+    "@easyfetcher/db#build": {
+      "dependsOn": [],
+      "outputs": []
     }
   }
 }

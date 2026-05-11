@@ -35,8 +35,9 @@ export async function POST(request: NextRequest) {
 
   if (!productId) return NextResponse.json({ error: "Dodo Payments not configured" }, { status: 500 });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const subscription = await dodo.subscriptions.create({
-    billing: { city: "", country: "US", state: "", street: "", zipcode: 0 },
+    billing: { city: "", country: "US" as any, state: "", street: "", zipcode: 0 },
     customer: { email: dbUser.email, name: dbUser.name ?? dbUser.email },
     product_id: productId,
     quantity: 1,
