@@ -4,8 +4,6 @@ import { useState } from "react";
 import { Check, Zap } from "lucide-react";
 import Image from "next/image";
 
-export const metadata = { title: "Plan" };
-
 export default function PlanPage() {
   const [annual, setAnnual] = useState(false);
 
