@@ -8,6 +8,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/onboarding(.*)",
   "/api/favicon(.*)",
   "/api/stripe/webhook",
+  "/api/dodo/webhook",
   "/api/webhooks/clerk",
   // MCP + OAuth endpoints — must be public so Claude can connect
   "/api/mcp(.*)",

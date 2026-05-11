@@ -1,20 +1,20 @@
 import type { Plan, Platform } from "@easyfetcher/db";
 
-const ALL_PLATFORMS: Platform[] = ["GSC", "GA4", "GOOGLE_ADS", "META_ADS", "REDDIT_ADS", "SHOPIFY", "BING_ADS", "INSTAGRAM", "LINKEDIN_ADS", "GOOGLE_MY_BUSINESS", "TIKTOK_ADS"];
+const PRO_PLATFORMS: Platform[] = ["GSC", "GA4", "SHOPIFY"];
 
 // Which platforms each plan can access
 const PLAN_PLATFORMS: Record<Plan, Platform[]> = {
   FREE:       ["GSC"],
-  STARTER:    ["GSC", "GA4", "GOOGLE_MY_BUSINESS"],
-  PRO:        ALL_PLATFORMS,
-  AGENCY:     ALL_PLATFORMS,
-  ENTERPRISE: ALL_PLATFORMS,
+  STARTER:    PRO_PLATFORMS,
+  PRO:        PRO_PLATFORMS,
+  AGENCY:     PRO_PLATFORMS,
+  ENTERPRISE: PRO_PLATFORMS,
 };
 
 // Max connections per workspace
 const WORKSPACE_CONNECTION_LIMITS: Record<Plan, number> = {
   FREE:       1,
-  STARTER:    5,
+  STARTER:    999,
   PRO:        999,
   AGENCY:     999,
   ENTERPRISE: 999,
@@ -23,9 +23,9 @@ const WORKSPACE_CONNECTION_LIMITS: Record<Plan, number> = {
 // Max workspaces per user
 const WORKSPACE_LIMITS: Record<Plan, number> = {
   FREE:       1,
-  STARTER:    1,
+  STARTER:    3,
   PRO:        3,
-  AGENCY:     15,
+  AGENCY:     3,
   ENTERPRISE: 999,
 };
 
@@ -48,7 +48,6 @@ export function canCreateWorkspace(userPlan: Plan, currentCount: number): boolea
 // Which plan is required for a platform
 export function requiredPlanForPlatform(platform: Platform): Plan {
   if (platform === "GSC") return "FREE";
-  if (["GA4", "GOOGLE_MY_BUSINESS"].includes(platform)) return "STARTER";
   return "PRO";
 }
 

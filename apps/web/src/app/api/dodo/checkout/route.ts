@@ -1,0 +1,44 @@
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { NextRequest, NextResponse } from "next/server";
+import DodoPayments from "dodopayments";
+import { prisma } from "@/lib/db";
+
+const dodo = new DodoPayments({
+  bearerToken: process.env.DODO_API_KEY!,
+  environment: (process.env.DODO_ENV ?? "test_mode") as "test_mode" | "live_mode",
+});
+
+export async function POST(request: NextRequest) {
+  const { userId } = await auth();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const baseUrl = new URL(request.url).origin;
+
+  let dbUser = await prisma.user.findUnique({ where: { clerkId: userId } });
+  if (!dbUser) {
+    const clerkUser = await currentUser();
+    const email = clerkUser?.emailAddresses?.[0]?.emailAddress ?? `${userId}@unknown.local`;
+    const name = [clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(" ") || null;
+    dbUser = await prisma.user.create({ data: { clerkId: userId, email, name } });
+  }
+
+  if (dbUser.plan !== "FREE") {
+    return NextResponse.json({ error: "Already on a paid plan" }, { status: 400 });
+  }
+
+  const productId = process.env.DODO_PRO_PRODUCT_ID;
+  if (!productId) return NextResponse.json({ error: "Dodo Payments not configured" }, { status: 500 });
+
+  const subscription = await dodo.subscriptions.create({
+    billing: { city: "", country: "US", state: "", street: "", zipcode: 0 },
+    customer: { email: dbUser.email, name: dbUser.name ?? dbUser.email },
+    product_id: productId,
+    quantity: 1,
+    payment_link: true,
+    return_url: `${baseUrl}/dashboard/plan?success=true`,
+    metadata: { userId: dbUser.id },
+  });
+
+  const url = (subscription as unknown as { payment_link: string }).payment_link;
+  return NextResponse.json({ url });
+}

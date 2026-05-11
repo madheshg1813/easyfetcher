@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head><title>EasyFetcher Icon Generator</title></head>
+<body style="background:#111;display:flex;flex-direction:column;align-items:center;padding:40px;font-family:sans-serif;">
+  <canvas id="canvas" width="1024" height="1024" style="width:256px;height:256px;border-radius:16px;"></canvas>
+  <br><br>
+  <button onclick="download()" style="padding:12px 32px;background:#f59e0b;color:#1a1a1a;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;">
+    Download PNG (1024x1024)
+  </button>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const size = 1024;
+
+    // Background gradient
+    const grad = ctx.createLinearGradient(0, 0, size, size);
+    grad.addColorStop(0, '#1a1a2e');
+    grad.addColorStop(1, '#16213e');
+    ctx.fillStyle = grad;
+    ctx.roundRect(0, 0, size, size, 120);
+    ctx.fill();
+
+    // Amber glow
+    const glow = ctx.createRadialGradient(512, 480, 0, 512, 480, 400);
+    glow.addColorStop(0, 'rgba(245,158,11,0.25)');
+    glow.addColorStop(1, 'rgba(245,158,11,0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, size, size);
+
+    // Lightning bolt
+    ctx.beginPath();
+    ctx.moveTo(580, 120);   // top right
+    ctx.lineTo(380, 530);   // mid left
+    ctx.lineTo(490, 530);   // mid center
+    ctx.lineTo(440, 900);   // bottom
+    ctx.lineTo(680, 460);   // mid right
+    ctx.lineTo(560, 460);   // mid center
+    ctx.closePath();
+
+    // Bolt gradient
+    const boltGrad = ctx.createLinearGradient(440, 120, 580, 900);
+    boltGrad.addColorStop(0, '#fbbf24');
+    boltGrad.addColorStop(0.5, '#f59e0b');
+    boltGrad.addColorStop(1, '#d97706');
+    ctx.fillStyle = boltGrad;
+    ctx.fill();
+
+    // Glow effect on bolt
+    ctx.shadowColor = '#f59e0b';
+    ctx.shadowBlur = 60;
+    ctx.fillStyle = 'rgba(251,191,36,0.3)';
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    function download() {
+      const link = document.createElement('a');
+      link.download = 'easyfetcher-icon-1024.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+  </script>
+</body>
+</html>
