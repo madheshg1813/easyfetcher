@@ -1,12 +1,8 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
-import DodoPayments from "dodopayments";
 import { prisma } from "@/lib/db";
 
-const dodo = new DodoPayments({
-  bearerToken: process.env.DODO_API_KEY!,
-  environment: (process.env.DODO_ENV ?? "test_mode") as "test_mode" | "live_mode",
-});
+export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
@@ -35,8 +31,17 @@ export async function POST(request: NextRequest) {
 
   if (!productId) return NextResponse.json({ error: "Dodo Payments not configured" }, { status: 500 });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const apiKey = process.env.DODO_API_KEY;
+  if (!apiKey) return NextResponse.json({ error: "Dodo Payments not configured" }, { status: 500 });
+
+  const DodoPayments = (await import("dodopayments")).default;
+  const dodo = new DodoPayments({
+    bearerToken: apiKey,
+    environment: (process.env.DODO_ENV ?? "test_mode") as "test_mode" | "live_mode",
+  });
+
   const subscription = await dodo.subscriptions.create({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     billing: { city: "", country: "US" as any, state: "", street: "", zipcode: "00000" },
     customer: { email: dbUser.email, name: dbUser.name ?? dbUser.email },
     product_id: productId,
