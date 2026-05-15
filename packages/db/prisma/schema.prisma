@@ -30,6 +30,8 @@ enum Platform {
   GOOGLE_MY_BUSINESS
   TIKTOK_ADS
   GOOGLE_TRENDS
+  YOUTUBE
+  YOUTUBE_ADS
 }
 
 enum PromptCategory {

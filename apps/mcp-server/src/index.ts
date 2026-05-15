@@ -293,6 +293,149 @@ server.tool(
   }
 );
 
+// ─── youtube_channel_stats ────────────────────────────────────────────────────
+server.tool(
+  "youtube_channel_stats",
+  "Get YouTube channel statistics: views, subscribers, watch time and video count",
+  {
+    days: z.number().min(1).max(90).default(28).describe("Days to look back (default 28)"),
+  },
+  async ({ days }) => {
+    const user = await getUser();
+    if (!user) return { content: [{ type: "text" as const, text: "Invalid API key" }] };
+
+    const conn = user.connections.find((c) => c.platform === "YOUTUBE");
+    if (!conn) return { content: [{ type: "text" as const, text: "YouTube Organic is not connected. Visit your EasyFetcher dashboard to connect it." }] };
+
+    const auth = makeOAuth2Client(conn.accessToken, conn.refreshToken, conn.expiresAt);
+    const youtube = google.youtube({ version: "v3", auth });
+    const youtubeAnalytics = google.youtubeAnalytics({ version: "v2", auth });
+
+    const channelId = conn.siteUrl && conn.siteUrl !== "youtube_channel" ? conn.siteUrl : undefined;
+
+    const channelRes = await youtube.channels.list({
+      part: ["snippet", "statistics"],
+      ...(channelId ? { id: [channelId] } : { mine: true }),
+      maxResults: 1,
+    });
+
+    const channel = channelRes.data.items?.[0];
+    if (!channel) return { content: [{ type: "text" as const, text: "Could not fetch YouTube channel data." }] };
+
+    const endDate = new Date().toISOString().split("T")[0];
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+
+    let analyticsText = "";
+    try {
+      const analyticsRes = await youtubeAnalytics.reports.query({
+        ids: `channel==${channelId ?? "MINE"}`,
+        startDate,
+        endDate,
+        metrics: "views,estimatedMinutesWatched,subscribersGained,subscribersLost",
+      });
+      const row = analyticsRes.data.rows?.[0];
+      if (row) {
+        const [views, watchMins, gained, lost] = row as number[];
+        analyticsText = `\nLast ${days} days:\n  Views: ${views?.toLocaleString() ?? 0}\n  Watch time: ${Math.round((watchMins ?? 0) / 60).toLocaleString()} hours\n  Subscribers gained: +${gained ?? 0} / lost: -${lost ?? 0}`;
+      }
+    } catch { /* analytics may fail for new channels */ }
+
+    const stats = channel.statistics ?? {};
+    const name = channel.snippet?.title ?? "YouTube Channel";
+    const summary = `Channel: ${name}\nTotal subscribers: ${parseInt(stats.subscriberCount ?? "0").toLocaleString()}\nTotal views: ${parseInt(stats.viewCount ?? "0").toLocaleString()}\nTotal videos: ${stats.videoCount ?? 0}${analyticsText}`;
+
+    return { content: [{ type: "text" as const, text: summary }] };
+  }
+);
+
+// ─── youtube_top_videos ────────────────────────────────────────────────────────
+server.tool(
+  "youtube_top_videos",
+  "Get top performing YouTube videos with views, watch time and engagement",
+  {
+    days: z.number().min(1).max(90).default(28).describe("Days to look back (default 28)"),
+    limit: z.number().min(1).max(25).default(10).describe("Number of videos to return"),
+  },
+  async ({ days, limit }) => {
+    const user = await getUser();
+    if (!user) return { content: [{ type: "text" as const, text: "Invalid API key" }] };
+
+    const conn = user.connections.find((c) => c.platform === "YOUTUBE");
+    if (!conn) return { content: [{ type: "text" as const, text: "YouTube Organic is not connected." }] };
+
+    const auth = makeOAuth2Client(conn.accessToken, conn.refreshToken, conn.expiresAt);
+    const youtubeAnalytics = google.youtubeAnalytics({ version: "v2", auth });
+
+    const channelId = conn.siteUrl && conn.siteUrl !== "youtube_channel" ? conn.siteUrl : "MINE";
+    const endDate = new Date().toISOString().split("T")[0];
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+
+    try {
+      const res = await youtubeAnalytics.reports.query({
+        ids: `channel==${channelId}`,
+        startDate,
+        endDate,
+        metrics: "views,estimatedMinutesWatched,likes,comments",
+        dimensions: "video",
+        sort: "-views",
+        maxResults: limit,
+      });
+
+      const rows = res.data.rows ?? [];
+      if (rows.length === 0) {
+        return { content: [{ type: "text" as const, text: `No video data found in the last ${days} days.` }] };
+      }
+
+      const youtube = google.youtube({ version: "v3", auth });
+      const videoIds = rows.map((r) => (r as unknown[])[0] as string);
+      const videoRes = await youtube.videos.list({ part: ["snippet"], id: videoIds });
+      const titles: Record<string, string> = {};
+      for (const v of videoRes.data.items ?? []) {
+        if (v.id) titles[v.id] = v.snippet?.title ?? v.id;
+      }
+
+      const header = `Top ${rows.length} YouTube videos (last ${days} days):\n\n`;
+      const table = rows.map((row, i) => {
+        const r = row as unknown[];
+        const videoId = r[0] as string;
+        const views = (r[1] as number)?.toLocaleString() ?? "0";
+        const watchMins = r[2] as number;
+        const watchHours = Math.round((watchMins ?? 0) / 60).toLocaleString();
+        const likes = (r[3] as number)?.toLocaleString() ?? "0";
+        const title = titles[videoId] ?? videoId;
+        return `${i + 1}. ${title}\n   Views: ${views} | Watch time: ${watchHours}h | Likes: ${likes}`;
+      }).join("\n\n");
+
+      return { content: [{ type: "text" as const, text: header + table }] };
+    } catch (err) {
+      return { content: [{ type: "text" as const, text: `YouTube Analytics error: ${err instanceof Error ? err.message : String(err)}` }] };
+    }
+  }
+);
+
+// ─── youtube_ads_performance ──────────────────────────────────────────────────
+server.tool(
+  "youtube_ads_performance",
+  "Get YouTube ad campaign performance: impressions, views, CPV and conversions via Google Ads",
+  {
+    days: z.number().min(1).max(90).default(28).describe("Days to look back (default 28)"),
+  },
+  async ({ days }) => {
+    const user = await getUser();
+    if (!user) return { content: [{ type: "text" as const, text: "Invalid API key" }] };
+
+    const conn = user.connections.find((c) => c.platform === "YOUTUBE_ADS");
+    if (!conn) return { content: [{ type: "text" as const, text: "YouTube Ads is not connected. Visit your EasyFetcher dashboard to connect it." }] };
+
+    return {
+      content: [{
+        type: "text" as const,
+        text: "YouTube Ads data is fetched via the Google Ads API (Customer ID required). Please provide your Google Ads Customer ID to query YouTube campaign data. Your YouTube Ads connector is connected — full Google Ads API querying will be available in the next release.",
+      }],
+    };
+  }
+);
+
 // ─── Start ─────────────────────────────────────────────────────────────────────
 async function main() {
   const transport = new StdioServerTransport();

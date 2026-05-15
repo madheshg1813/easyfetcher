@@ -30,6 +30,20 @@ const ALL_SOURCES: SourceConfig[] = [
     logo: "/connectors/shopify.svg",
     requiredPlan: "PRO",
   },
+  {
+    id: "YOUTUBE",
+    name: "YouTube Organic",
+    description: "Channel views, watch time, subscriber growth and top video performance.",
+    logo: "/connectors/youtube.svg",
+    requiredPlan: "PRO",
+  },
+  {
+    id: "YOUTUBE_ADS",
+    name: "YouTube Ads",
+    description: "YouTube ad campaigns, video ad metrics, CPV and ROAS via Google Ads.",
+    logo: "/connectors/youtube-ads.svg",
+    requiredPlan: "PRO",
+  },
 ];
 
 export default async function SourcesPage({

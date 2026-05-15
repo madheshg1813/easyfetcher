@@ -36,7 +36,7 @@ const planColors: Record<Plan, string> = {
   ENTERPRISE: "bg-blue-500/20 text-blue-600 dark:text-blue-400",
 };
 
-const GOOGLE_PLATFORMS: string[] = ["GSC", "GA4"];
+const GOOGLE_PLATFORMS: string[] = ["GSC", "GA4", "YOUTUBE", "YOUTUBE_ADS"];
 
 function siteLabel(conn: ConnectionRow): string {
   if (conn.label) return conn.label;

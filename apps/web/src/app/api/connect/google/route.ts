@@ -27,6 +27,17 @@ const PLATFORM_SCOPES: Record<string, string[]> = {
     "openid",
     "email",
   ],
+  YOUTUBE: [
+    "https://www.googleapis.com/auth/youtube.readonly",
+    "https://www.googleapis.com/auth/yt-analytics.readonly",
+    "openid",
+    "email",
+  ],
+  YOUTUBE_ADS: [
+    "https://www.googleapis.com/auth/adwords",
+    "openid",
+    "email",
+  ],
 };
 
 export async function GET(request: NextRequest) {
@@ -39,7 +50,7 @@ export async function GET(request: NextRequest) {
     const workspaceId = searchParams.get("workspaceId");
 
     // Validate platform is a Google platform
-    const googlePlatforms: Platform[] = ["GSC", "GA4", "GOOGLE_ADS", "GOOGLE_MY_BUSINESS"];
+    const googlePlatforms: Platform[] = ["GSC", "GA4", "GOOGLE_ADS", "GOOGLE_MY_BUSINESS", "YOUTUBE", "YOUTUBE_ADS"];
     if (!googlePlatforms.includes(platform)) {
       return NextResponse.json({ error: "Invalid platform for Google OAuth" }, { status: 400 });
     }
