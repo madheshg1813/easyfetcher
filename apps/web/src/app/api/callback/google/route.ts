@@ -136,6 +136,24 @@ export async function GET(request: NextRequest) {
         sites = [{ siteUrl: "gmb_account", displayName: "Google My Business Account" }];
       }
     }
+    if (platform === "YOUTUBE") {
+      try {
+        const youtube = google.youtube({ version: "v3", auth: oauth2Client });
+        const res = await youtube.channels.list({ part: ["snippet"], mine: true, maxResults: 50 });
+        sites = (res.data.items ?? []).map((ch) => ({
+          siteUrl: ch.id ?? "",
+          displayName: ch.snippet?.title ?? ch.id ?? "YouTube Channel",
+        }));
+      } catch (ytErr) {
+        console.warn("YouTube channels.list failed, using placeholder:", ytErr);
+      }
+      if (sites.length === 0) {
+        sites = [{ siteUrl: "youtube_channel", displayName: "YouTube Channel" }];
+      }
+    }
+    if (platform === "YOUTUBE_ADS") {
+      sites = [{ siteUrl: "youtube_ads", displayName: "YouTube Ads Account" }];
+    }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error(`[callback/google] site list fetch failed for ${platform}:`, msg);

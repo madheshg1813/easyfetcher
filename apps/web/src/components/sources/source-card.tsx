@@ -36,7 +36,7 @@ const planColors: Record<Plan, string> = {
   ENTERPRISE: "bg-blue-500/20 text-blue-600 dark:text-blue-400",
 };
 
-const GOOGLE_PLATFORMS: string[] = ["GSC", "GA4", "GOOGLE_ADS", "GOOGLE_MY_BUSINESS"];
+const GOOGLE_PLATFORMS: string[] = ["GSC", "GA4", "GOOGLE_ADS", "GOOGLE_MY_BUSINESS", "YOUTUBE", "YOUTUBE_ADS"];
 const FREE_PLATFORMS: string[] = ["GOOGLE_TRENDS"];
 const META_PLATFORMS: string[] = ["META_ADS", "INSTAGRAM"];
 
