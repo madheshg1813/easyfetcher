@@ -50,6 +50,13 @@ enum SeoJobStatus {
   ERROR
 }
 
+enum CheckSchedule {
+  MANUAL
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+}
+
 enum CreditTxType {
   PLAN_GRANT
   PURCHASE
@@ -233,12 +240,15 @@ model KeywordList {
   name      String            // e.g. "Priority Keywords", "Brand Terms"
   keywords  String[]          // PostgreSQL native array
   tags      String[]          // e.g. ["brand", "competitor", "long-tail"]
-  location  String            @default("United States")
-  device    String            @default("desktop")
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  snapshots KeywordSnapshot[]
+  location      String        @default("United States")
+  device        String        @default("desktop")
+  schedule      CheckSchedule @default(MANUAL)
+  lastCheckedAt DateTime?
+  nextCheckAt   DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  snapshots     KeywordSnapshot[]
 
   @@index([userId, domain])
 }
