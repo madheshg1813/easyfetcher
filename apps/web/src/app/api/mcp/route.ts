@@ -7,6 +7,10 @@ import { gscTool, executeGscTool } from "./tools/gsc";
 import { ga4Tool, executeGa4Tool } from "./tools/ga4";
 import { gmbTool, executeGmbTool } from "./tools/gmb";
 import { trendsTool, executeTrendsTool } from "./tools/trends";
+import {
+  keywordListsTool, keywordRanksTool, checkKeywordRanksTool,
+  executeKeywordLists, executeKeywordRanks, executeCheckKeywordRanks,
+} from "./tools/rank-tracker";
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
@@ -56,6 +60,9 @@ const TOOLS = [
   gscTool,
   ga4Tool,
   gmbTool,
+  keywordListsTool,
+  keywordRanksTool,
+  checkKeywordRanksTool,
 ];
 
 // ─── Connection resolver ───────────────────────────────────────────────────────
@@ -168,6 +175,11 @@ async function executeTool(name: string, args: Record<string, unknown>, user: Us
     if ("error" in result) return text(result.error);
     return executeGmbTool(args.metric as "overview" | "reviews", args, result.conn, text, makeOAuth2Client);
   }
+
+  // Rank tracker
+  if (name === "keyword_lists") return executeKeywordLists(user.id, text);
+  if (name === "keyword_ranks") return executeKeywordRanks(args.list_id as string, user.id, text);
+  if (name === "check_keyword_ranks") return executeCheckKeywordRanks(args.list_id as string, user.id, text);
 
   return text(`Unknown tool: ${name}`);
 }
