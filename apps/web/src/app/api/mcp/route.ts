@@ -8,8 +8,8 @@ import { ga4Tool, executeGa4Tool } from "./tools/ga4";
 import { gmbTool, executeGmbTool } from "./tools/gmb";
 import { trendsTool, executeTrendsTool } from "./tools/trends";
 import {
-  keywordListsTool, keywordRanksTool, checkKeywordRanksTool,
-  executeKeywordLists, executeKeywordRanks, executeCheckKeywordRanks,
+  rankCheckDirectTool, keywordListsTool, keywordRanksTool, checkKeywordRanksTool,
+  executeRankCheckDirect, executeKeywordLists, executeKeywordRanks, executeCheckKeywordRanks,
 } from "./tools/rank-tracker";
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -60,6 +60,7 @@ const TOOLS = [
   gscTool,
   ga4Tool,
   gmbTool,
+  rankCheckDirectTool,
   keywordListsTool,
   keywordRanksTool,
   checkKeywordRanksTool,
@@ -177,6 +178,12 @@ async function executeTool(name: string, args: Record<string, unknown>, user: Us
   }
 
   // Rank tracker
+  if (name === "rank_check_direct") {
+    const domain = args.domain as string;
+    const keywords = args.keywords as string[];
+    const location = (args.location as string | undefined) ?? "United States";
+    return executeRankCheckDirect(domain, keywords, location, text);
+  }
   if (name === "keyword_lists") return executeKeywordLists(user.id, text);
   if (name === "keyword_ranks") return executeKeywordRanks(args.list_id as string, user.id, text);
   if (name === "check_keyword_ranks") return executeCheckKeywordRanks(args.list_id as string, user.id, text);
