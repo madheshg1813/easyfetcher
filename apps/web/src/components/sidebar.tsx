@@ -9,7 +9,14 @@ import {
   Settings,
   CreditCard,
   Zap,
+  Search,
+  Link2,
+  Globe,
+  ScanSearch,
+  BarChart2,
+  ChevronDown,
 } from "lucide-react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 import type { Plan } from "@easyfetcher/db";
@@ -20,6 +27,14 @@ const navItems = [
   { label: "Data Sources", href: "/dashboard/sources", icon: Database, exact: false },
   { label: "Settings", href: "/dashboard/settings", icon: Settings, exact: false },
   { label: "Plan", href: "/dashboard/plan", icon: CreditCard, exact: false },
+];
+
+const seoItems = [
+  { label: "Rank Tracker", href: "/dashboard/seo/rank-tracker", icon: Search, live: true },
+  { label: "Backlinks", href: "/dashboard/seo/backlinks", icon: Link2, live: false },
+  { label: "GEO Visibility", href: "/dashboard/seo/geo-visibility", icon: Globe, live: false },
+  { label: "Site Audit", href: "/dashboard/seo/site-audit", icon: ScanSearch, live: false },
+  { label: "Domain Rating", href: "/dashboard/seo/domain-rating", icon: BarChart2, live: false },
 ];
 
 interface Workspace {
@@ -43,6 +58,8 @@ interface SidebarProps {
 export function Sidebar({ userName, userEmail: _userEmail, userImageUrl, plan, workspaces, activeWorkspaceId }: SidebarProps) {
   const pathname = usePathname();
   const showSwitcher = workspaces.length >= 1;
+  const seoActive = pathname.startsWith("/dashboard/seo");
+  const [seoOpen, setSeoOpen] = useState(seoActive);
 
   return (
     <aside className="w-[220px] h-screen sticky top-0 flex flex-col bg-sidebar border-r border-sidebar-border shrink-0">
@@ -84,6 +101,57 @@ export function Sidebar({ userName, userEmail: _userEmail, userImageUrl, plan, w
             </Link>
           );
         })}
+
+        {/* SEO Tools group */}
+        <div className="pt-2">
+          <button
+            onClick={() => setSeoOpen((o) => !o)}
+            className={cn(
+              "w-full flex items-center justify-between px-3 py-2 rounded-md text-sm font-medium transition-colors",
+              seoActive
+                ? "bg-accent text-accent-foreground"
+                : "text-sidebar-foreground hover:bg-accent/60 hover:text-accent-foreground"
+            )}
+          >
+            <span className="flex items-center gap-3">
+              <Search className="w-4 h-4 shrink-0" />
+              SEO Tools
+            </span>
+            <ChevronDown className={cn("w-3.5 h-3.5 shrink-0 transition-transform", seoOpen && "rotate-180")} />
+          </button>
+
+          {seoOpen && (
+            <div className="mt-0.5 ml-3 pl-3 border-l border-sidebar-border space-y-0.5">
+              {seoItems.map((item) => {
+                const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.live ? item.href : "#"}
+                    className={cn(
+                      "flex items-center justify-between gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-colors",
+                      !item.live && "opacity-50 cursor-not-allowed",
+                      isActive
+                        ? "bg-accent text-accent-foreground"
+                        : "text-sidebar-foreground hover:bg-accent/60 hover:text-accent-foreground"
+                    )}
+                  >
+                    <span className="flex items-center gap-2">
+                      <Icon className="w-3.5 h-3.5 shrink-0" />
+                      {item.label}
+                    </span>
+                    {!item.live && (
+                      <span className="text-[9px] font-semibold bg-muted text-muted-foreground px-1 py-0.5 rounded">
+                        SOON
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </nav>
 
       {/* User footer */}

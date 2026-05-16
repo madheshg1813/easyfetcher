@@ -32,6 +32,33 @@ enum Platform {
   GOOGLE_TRENDS
   YOUTUBE
   YOUTUBE_ADS
+  PSI
+}
+
+enum SeoJobType {
+  KEYWORD_RANK
+  BACKLINK
+  GEO_VISIBILITY
+  SITE_AUDIT
+  DOMAIN_RATING
+}
+
+enum SeoJobStatus {
+  PENDING
+  RUNNING
+  DONE
+  ERROR
+}
+
+enum CreditTxType {
+  PLAN_GRANT
+  PURCHASE
+  KEYWORD_RANK
+  BACKLINK
+  GEO_VISIBILITY
+  SITE_AUDIT
+  DOMAIN_RATING
+  REFUND
 }
 
 enum PromptCategory {
@@ -60,13 +87,18 @@ model User {
   activeWorkspaceId String?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
-  workspaces         Workspace[]
-  connections        Connection[]
-  promptRuns         PromptRun[]
-  subscription       Subscription?
-  activityLogs       ActivityLog[]
-  oauthCodes         OAuthCode[]
-  pendingConnections PendingConnection[]
+  workspaces          Workspace[]
+  connections         Connection[]
+  promptRuns          PromptRun[]
+  subscription        Subscription?
+  activityLogs        ActivityLog[]
+  oauthCodes          OAuthCode[]
+  pendingConnections  PendingConnection[]
+  keywordLists        KeywordList[]
+  keywordSnapshots    KeywordSnapshot[]
+  seoJobs             SeoJob[]
+  userCredit          UserCredit?
+  creditTransactions  CreditTransaction[]
 }
 
 model Workspace {
@@ -189,4 +221,93 @@ model Subscription {
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
   user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── SEO Tools ────────────────────────────────────────────────────────────────
+
+// Saved keyword lists per domain — managed from /app/seo/rank-tracker dashboard
+model KeywordList {
+  id        String            @id @default(cuid())
+  userId    String
+  domain    String            // e.g. "easyfetcher.com" (no protocol)
+  name      String            // e.g. "Priority Keywords", "Brand Terms"
+  keywords  String[]          // PostgreSQL native array
+  tags      String[]          // e.g. ["brand", "competitor", "long-tail"]
+  location  String            @default("United States")
+  device    String            @default("desktop")
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  snapshots KeywordSnapshot[]
+
+  @@index([userId, domain])
+}
+
+// One row per keyword per check — drives rank history graphs and change detection
+model KeywordSnapshot {
+  id            String      @id @default(cuid())
+  userId        String
+  keywordListId String?
+  seoJobId      String?
+  domain        String
+  keyword       String
+  location      String      @default("United States")
+  device        String      @default("desktop")
+  rank          Int?        // null = not ranked in top 50
+  rankUrl       String?     // URL that ranked for this keyword
+  rankTitle     String?     // <title> of the ranking page
+  pagesChecked  Int         @default(1)  // 1–5 SERP pages checked
+  checkedAt     DateTime    @default(now())
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  keywordList   KeywordList? @relation(fields: [keywordListId], references: [id], onDelete: SetNull)
+  seoJob        SeoJob?     @relation(fields: [seoJobId], references: [id], onDelete: SetNull)
+
+  @@index([userId, domain, keyword, checkedAt])
+  @@index([userId, checkedAt])
+}
+
+// Tracks async Apify runs — MCP tool polls this until status = DONE
+model SeoJob {
+  id            String        @id @default(cuid())
+  userId        String
+  type          SeoJobType
+  status        SeoJobStatus  @default(PENDING)
+  domain        String
+  input         Json          // what was requested (keywords, location, device, etc.)
+  result        Json?         // filtered payload returned to Claude
+  creditsUsed   Int           @default(0)
+  apifyRunId    String?       // Apify run ID for polling
+  errorMsg      String?
+  startedAt     DateTime      @default(now())
+  completedAt   DateTime?
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  snapshots     KeywordSnapshot[]
+
+  @@index([userId, status])
+  @@index([userId, type, startedAt])
+}
+
+// ─── Credits ──────────────────────────────────────────────────────────────────
+
+// Current credit balance per user — single row, updated on each transaction
+model UserCredit {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  balance   Int      @default(0)
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Full audit trail — positive = grant/purchase, negative = spend
+model CreditTransaction {
+  id          String       @id @default(cuid())
+  userId      String
+  amount      Int          // positive = added, negative = spent
+  type        CreditTxType
+  referenceId String?      // SeoJob.id for spends
+  note        String?      // e.g. "Plan grant: PRO monthly reset"
+  createdAt   DateTime     @default(now())
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
 }
