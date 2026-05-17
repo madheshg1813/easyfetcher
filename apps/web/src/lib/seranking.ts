@@ -1,6 +1,23 @@
 const APIFY_TOKEN = process.env.APIFY_API_KEY;
 const ACTOR_ID = "radeance~seranking-scraper";
 
+// Country codes must be lowercase ISO for SE Ranking actor
+const LOCATION_TO_COUNTRY: Record<string, string> = {
+  "United States": "us",
+  "United Kingdom": "gb",
+  "India": "in",
+  "Canada": "ca",
+  "Australia": "au",
+  "Germany": "de",
+  "France": "fr",
+  "Singapore": "sg",
+  "Worldwide": "worldwide",
+};
+
+export function toCountryCode(country: string): string {
+  return LOCATION_TO_COUNTRY[country] ?? country.toLowerCase();
+}
+
 async function runActor(input: Record<string, unknown>): Promise<unknown[]> {
   if (!APIFY_TOKEN) throw new Error("APIFY_API_KEY not set");
 
@@ -35,103 +52,94 @@ async function runActor(input: Record<string, unknown>): Promise<unknown[]> {
   return Array.isArray(items) ? items : [];
 }
 
+function findByType(items: unknown[], type: string): Record<string, unknown> {
+  const found = (items as Record<string, unknown>[]).find((i) => i.type === type);
+  return found ?? {};
+}
+
 // ─── Backlinks ────────────────────────────────────────────────────────────────
 export interface BacklinkResult {
   domain: string;
   totalBacklinks: number | null;
   referringDomains: number | null;
   domainAuthority: number | null;
-  topReferrers: { domain: string; backlinks: number }[];
+  pageAuthority: number | null;
+  backlinksHistory: { date: string; backlinks: number; new: number; lost: number }[];
 }
 
-export async function checkBacklinks(domain: string, country = "US"): Promise<BacklinkResult> {
-  const items = await runActor({
-    urls: [domain],
-    country,
-    includeBacklinks: true,
-    includeDomainOverview: false,
-    includeTraffic: false,
-    includeKeywordOverview: false,
-  });
+export async function checkBacklinks(domain: string, country = "in"): Promise<BacklinkResult> {
+  const items = await runActor({ urls: [domain], country, includeBacklinks: true });
 
-  const data = (items[0] ?? {}) as Record<string, unknown>;
-  const backlinks = (data.backlinks ?? data.backlinkData ?? {}) as Record<string, unknown>;
-  const refs = (backlinks.topReferrers ?? backlinks.referrers ?? []) as { domain: string; backlinks: number }[];
+  const overview = findByType(items, "domain_overview");
+  const backlinks = findByType(items, "backlinks");
+  const history = (backlinks.backlinks_history ?? []) as { date: string; backlinks: number; new_backlinks: number; lost_backlinks: number }[];
 
   return {
     domain,
-    totalBacklinks: (backlinks.total ?? backlinks.totalBacklinks ?? null) as number | null,
-    referringDomains: (backlinks.referringDomains ?? backlinks.domains ?? null) as number | null,
-    domainAuthority: (data.domainAuthority ?? data.da ?? null) as number | null,
-    topReferrers: refs.slice(0, 10),
+    totalBacklinks: (overview.backlinks as number | null) ?? null,
+    referringDomains: (overview.referal_domains as number | null) ?? null,
+    domainAuthority: (overview.domain_authority_rank as number | null) ?? null,
+    pageAuthority: (overview.page_authority_rank as number | null) ?? null,
+    backlinksHistory: history.slice(0, 6).map((h) => ({
+      date: h.date.split("T")[0],
+      backlinks: h.backlinks,
+      new: h.new_backlinks,
+      lost: h.lost_backlinks,
+    })),
   };
 }
 
 // ─── AI Overviews & Citations ─────────────────────────────────────────────────
 export interface AiOverviewResult {
   domain: string;
-  keyword: string;
-  appearsInAiOverview: boolean | null;
-  aiTrafficEstimate: number | null;
-  citations: { keyword: string; url: string }[];
+  aiCitations: number | null;
+  aimodeCitations: number | null;
+  chatgptCitations: number | null;
+  perplexityCitations: number | null;
+  geminiCitations: number | null;
+  totalAiOverviewTraffic: number | null;
 }
 
-export async function checkAiOverviews(domain: string, keyword: string, country = "US"): Promise<AiOverviewResult> {
-  const items = await runActor({
-    urls: [domain],
-    keyword,
-    country,
-    includeDomainOverview: true,
-    includeTraffic: false,
-    includeBacklinks: false,
-    includeKeywordOverview: false,
-  });
-
-  const data = (items[0] ?? {}) as Record<string, unknown>;
-  const overview = (data.domainOverview ?? data.aiOverview ?? data) as Record<string, unknown>;
-  const citations = (overview.citations ?? overview.aiCitations ?? []) as { keyword: string; url: string }[];
+export async function checkAiOverviews(domain: string, country = "in"): Promise<AiOverviewResult> {
+  const items = await runActor({ urls: [domain], country, includeDomainOverview: true });
+  const overview = findByType(items, "domain_overview");
 
   return {
     domain,
-    keyword,
-    appearsInAiOverview: (overview.appearsInAi ?? overview.inAiOverview ?? null) as boolean | null,
-    aiTrafficEstimate: (overview.aiTraffic ?? overview.estimatedAiTraffic ?? null) as number | null,
-    citations: citations.slice(0, 10),
+    aiCitations: (overview.ai_citations as number | null) ?? null,
+    aimodeCitations: (overview.aimode_citations as number | null) ?? null,
+    chatgptCitations: (overview.chatgpt_citations as number | null) ?? null,
+    perplexityCitations: (overview.perplexity_citations as number | null) ?? null,
+    geminiCitations: (overview.gemini_citations as number | null) ?? null,
+    totalAiOverviewTraffic: (overview.total_ai_overview_traffic as number | null) ?? null,
   };
 }
 
 // ─── Traffic Data ─────────────────────────────────────────────────────────────
 export interface TrafficResult {
   domain: string;
-  monthlyVisits: number | null;
   organicTraffic: number | null;
   paidTraffic: number | null;
-  topCountries: { country: string; share: number }[];
-  topPages: { url: string; traffic: number }[];
+  organicKeywords: number | null;
+  topCountries: { country: string; traffic: number; share: number }[];
 }
 
-export async function checkTrafficData(domain: string, country = "US"): Promise<TrafficResult> {
-  const items = await runActor({
-    urls: [domain],
-    country,
-    includeTraffic: true,
-    includeDomainOverview: false,
-    includeBacklinks: false,
-    includeKeywordOverview: false,
-  });
-
-  const data = (items[0] ?? {}) as Record<string, unknown>;
-  const traffic = (data.traffic ?? data.trafficData ?? data) as Record<string, unknown>;
-  const topCountries = (traffic.topCountries ?? traffic.countries ?? []) as { country: string; share: number }[];
-  const topPages = (traffic.topPages ?? traffic.pages ?? []) as { url: string; traffic: number }[];
+export async function checkTrafficData(domain: string, country = "worldwide"): Promise<TrafficResult> {
+  const items = await runActor({ urls: [domain], country, includeTraffic: true });
+  const overview = findByType(items, "domain_overview");
+  const trafficItem = findByType(items, "traffic");
+  const topCountries = (trafficItem.top_countries_organic ?? []) as { country: string; traffic: number; traffic_share: number }[];
 
   return {
     domain,
-    monthlyVisits: (traffic.monthlyVisits ?? traffic.totalVisits ?? null) as number | null,
-    organicTraffic: (traffic.organic ?? traffic.organicTraffic ?? null) as number | null,
-    paidTraffic: (traffic.paid ?? traffic.paidTraffic ?? null) as number | null,
-    topCountries: topCountries.slice(0, 5),
-    topPages: topPages.slice(0, 10),
+    organicTraffic: (overview.organic_traffic as number | null) ?? null,
+    paidTraffic: (overview.paid_traffic as number | null) ?? null,
+    organicKeywords: (overview.organic_keywords as number | null) ?? null,
+    topCountries: topCountries.slice(0, 5).map((c) => ({
+      country: c.country,
+      traffic: c.traffic,
+      share: Math.round(c.traffic_share * 100),
+    })),
   };
 }
 
@@ -145,7 +153,7 @@ export interface KeywordVolumeResult {
   intent: string | null;
 }
 
-export async function checkKeywordVolumes(keywords: string[], country = "US"): Promise<KeywordVolumeResult[]> {
+export async function checkKeywordVolumes(keywords: string[], country = "in"): Promise<KeywordVolumeResult[]> {
   const results: KeywordVolumeResult[] = [];
 
   for (const keyword of keywords) {
@@ -154,21 +162,19 @@ export async function checkKeywordVolumes(keywords: string[], country = "US"): P
       keyword,
       country,
       includeKeywordOverview: true,
-      includeDomainOverview: false,
-      includeTraffic: false,
-      includeBacklinks: false,
     });
 
-    const data = (items[0] ?? {}) as Record<string, unknown>;
-    const kw = (data.keywordOverview ?? data.keyword ?? data) as Record<string, unknown>;
+    // Keyword overview data format TBD — extract best available fields
+    const kw = (items[0] ?? {}) as Record<string, unknown>;
+    const overview = (kw.keyword_overview ?? kw) as Record<string, unknown>;
 
     results.push({
       keyword,
-      searchVolume: (kw.searchVolume ?? kw.volume ?? null) as number | null,
-      cpc: (kw.cpc ?? kw.costPerClick ?? null) as number | null,
-      competition: (kw.competition ?? kw.competitionLevel ?? null) as number | null,
-      difficulty: (kw.difficulty ?? kw.keywordDifficulty ?? null) as number | null,
-      intent: (kw.intent ?? kw.searchIntent ?? null) as string | null,
+      searchVolume: (overview.search_volume ?? overview.volume ?? null) as number | null,
+      cpc: (overview.cpc ?? overview.cost_per_click ?? null) as number | null,
+      competition: (overview.competition ?? null) as number | null,
+      difficulty: (overview.difficulty ?? overview.keyword_difficulty ?? null) as number | null,
+      intent: (overview.intent ?? overview.search_intent ?? null) as string | null,
     });
   }
 

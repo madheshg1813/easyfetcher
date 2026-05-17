@@ -18,15 +18,14 @@ export const backlinkCheckTool: McpTool = {
 
 export const aiOverviewTool: McpTool = {
   name: "ai_overview_check",
-  description: "Check if a domain appears in Google AI Overviews and AI citations for a keyword. Use when user asks about AI visibility, AI citations, SGE presence, or AI-generated answers.",
+  description: "Check how many times a domain is cited in Google AI Overviews, Google AI Mode, ChatGPT, Perplexity, and Gemini. Use when user asks about AI visibility, AI citations, SGE presence, or brand mentions in AI answers.",
   inputSchema: {
     type: "object",
     properties: {
       domain: { type: "string", description: "Domain to check, e.g. 'amitservices.in'" },
-      keyword: { type: "string", description: "Keyword to check AI overview presence for" },
-      country: { type: "string", description: "Country code. Options: 'US', 'IN', 'GB', 'CA', 'AU'. Default: 'US'" },
+      country: { type: "string", description: "Country code. Options: 'us', 'in', 'gb', 'ca', 'au'. Default: 'in'" },
     },
-    required: ["domain", "keyword"],
+    required: ["domain"],
   },
 };
 
@@ -62,61 +61,56 @@ export const keywordVolumeTool: McpTool = {
 
 // ─── Executors ────────────────────────────────────────────────────────────────
 
-export async function executeBacklinkCheck(domain: string, country = "US", text: TextFn) {
+export async function executeBacklinkCheck(domain: string, country = "in", text: TextFn) {
   const result = await checkBacklinks(domain, country);
 
   let out = `**Backlink report for ${result.domain}**\n\n`;
   out += `• Total backlinks: ${result.totalBacklinks?.toLocaleString() ?? "N/A"}\n`;
   out += `• Referring domains: ${result.referringDomains?.toLocaleString() ?? "N/A"}\n`;
   out += `• Domain authority: ${result.domainAuthority ?? "N/A"}\n`;
+  out += `• Page authority: ${result.pageAuthority ?? "N/A"}\n`;
 
-  if (result.topReferrers.length > 0) {
-    out += `\n**Top referring domains:**\n`;
-    out += result.topReferrers.map((r) => `  • ${r.domain} (${r.backlinks} links)`).join("\n");
+  if (result.backlinksHistory.length > 0) {
+    out += `\n**Backlink history (last 6 months):**\n`;
+    out += result.backlinksHistory.map(
+      (h) => `  • ${h.date}: ${h.backlinks} total (+${h.new} new, -${h.lost} lost)`
+    ).join("\n");
   }
 
   return text(out.trim());
 }
 
-export async function executeAiOverviewCheck(domain: string, keyword: string, country = "US", text: TextFn) {
-  const result = await checkAiOverviews(domain, keyword, country);
+export async function executeAiOverviewCheck(domain: string, country = "in", text: TextFn) {
+  const result = await checkAiOverviews(domain, country);
 
-  let out = `**AI Overview check for "${result.keyword}" — ${result.domain}**\n\n`;
-  out += `• Appears in AI Overview: ${result.appearsInAiOverview === true ? "Yes" : result.appearsInAiOverview === false ? "No" : "Unknown"}\n`;
-  out += `• Estimated AI traffic: ${result.aiTrafficEstimate?.toLocaleString() ?? "N/A"} visits/month\n`;
-
-  if (result.citations.length > 0) {
-    out += `\n**AI citations found:**\n`;
-    out += result.citations.map((c) => `  • "${c.keyword}" → ${c.url}`).join("\n");
-  } else {
-    out += `\nNo AI citations found for this keyword.`;
-  }
+  let out = `**AI Overview & Citations for ${result.domain}**\n\n`;
+  out += `• Google AI citations: ${result.aiCitations ?? "N/A"}\n`;
+  out += `• Google AI Mode citations: ${result.aimodeCitations ?? "N/A"}\n`;
+  out += `• ChatGPT citations: ${result.chatgptCitations ?? "N/A"}\n`;
+  out += `• Perplexity citations: ${result.perplexityCitations ?? "N/A"}\n`;
+  out += `• Gemini citations: ${result.geminiCitations ?? "N/A"}\n`;
+  out += `• AI Overview traffic: ${result.totalAiOverviewTraffic?.toLocaleString() ?? "N/A"} visits/month\n`;
 
   return text(out.trim());
 }
 
-export async function executeTrafficData(domain: string, country = "US", text: TextFn) {
+export async function executeTrafficData(domain: string, country = "worldwide", text: TextFn) {
   const result = await checkTrafficData(domain, country);
 
   let out = `**Traffic data for ${result.domain}**\n\n`;
-  out += `• Monthly visits: ${result.monthlyVisits?.toLocaleString() ?? "N/A"}\n`;
-  out += `• Organic traffic: ${result.organicTraffic?.toLocaleString() ?? "N/A"}\n`;
-  out += `• Paid traffic: ${result.paidTraffic?.toLocaleString() ?? "N/A"}\n`;
+  out += `• Organic traffic: ${result.organicTraffic?.toLocaleString() ?? "N/A"} visits/month\n`;
+  out += `• Paid traffic: ${result.paidTraffic?.toLocaleString() ?? "N/A"} visits/month\n`;
+  out += `• Organic keywords: ${result.organicKeywords?.toLocaleString() ?? "N/A"}\n`;
 
   if (result.topCountries.length > 0) {
     out += `\n**Top countries:**\n`;
-    out += result.topCountries.map((c) => `  • ${c.country}: ${c.share}%`).join("\n");
-  }
-
-  if (result.topPages.length > 0) {
-    out += `\n\n**Top pages by traffic:**\n`;
-    out += result.topPages.map((p) => `  • ${p.url} — ${p.traffic?.toLocaleString() ?? "N/A"} visits`).join("\n");
+    out += result.topCountries.map((c) => `  • ${c.country}: ${c.traffic.toLocaleString()} visits (${c.share}%)`).join("\n");
   }
 
   return text(out.trim());
 }
 
-export async function executeKeywordVolume(keywords: string[], country = "US", text: TextFn) {
+export async function executeKeywordVolume(keywords: string[], country = "in", text: TextFn) {
   if (keywords.length === 0) return text("Please provide at least one keyword.");
   if (keywords.length > 5) return text("Maximum 5 keywords per call.");
 

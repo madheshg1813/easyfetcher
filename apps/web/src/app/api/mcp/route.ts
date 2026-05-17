@@ -191,7 +191,7 @@ async function executeTool(name: string, args: Record<string, unknown>, user: Us
   if (name === "backlink_check")
     return executeBacklinkCheck(args.domain as string, (args.country as string | undefined) ?? "US", text);
   if (name === "ai_overview_check")
-    return executeAiOverviewCheck(args.domain as string, args.keyword as string, (args.country as string | undefined) ?? "US", text);
+    return executeAiOverviewCheck(args.domain as string, (args.country as string | undefined) ?? "in", text);
   if (name === "traffic_data")
     return executeTrafficData(args.domain as string, (args.country as string | undefined) ?? "US", text);
   if (name === "keyword_volume")
