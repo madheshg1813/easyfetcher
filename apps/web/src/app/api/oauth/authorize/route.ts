@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import crypto from "crypto";
@@ -44,10 +44,21 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // Find the DB user
+  // Find the DB user — auto-provision on first OAuth if not yet in DB
   let dbUser = await prisma.user.findUnique({ where: { clerkId: userId } });
   if (!dbUser) {
-    return NextResponse.json({ error: "user_not_found" }, { status: 404 });
+    const clerkUser = await currentUser();
+    if (!clerkUser) return NextResponse.json({ error: "user_not_found" }, { status: 404 });
+    const email = clerkUser.emailAddresses[0]?.emailAddress ?? `${userId}@unknown.com`;
+    dbUser = await prisma.user.upsert({
+      where: { clerkId: userId },
+      update: {},
+      create: {
+        clerkId: userId,
+        email,
+        name: clerkUser.fullName ?? null,
+      },
+    });
   }
 
   // Issue a one-time authorization code (expires in 10 minutes)
