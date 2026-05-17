@@ -7,6 +7,7 @@ import { gscTool, executeGscTool } from "./tools/gsc";
 import { ga4Tool, executeGa4Tool } from "./tools/ga4";
 import { gmbTool, executeGmbTool } from "./tools/gmb";
 import { trendsTool, executeTrendsTool } from "./tools/trends";
+import { rankCheckDirectTool, executeRankCheckDirect } from "./tools/rank-tracker";
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
@@ -56,6 +57,7 @@ const TOOLS = [
   gscTool,
   ga4Tool,
   gmbTool,
+  rankCheckDirectTool,
 ];
 
 // ─── Connection resolver ───────────────────────────────────────────────────────
@@ -167,6 +169,14 @@ async function executeTool(name: string, args: Record<string, unknown>, user: Us
     const result = resolveConnection("GOOGLE_MY_BUSINESS", args.account_name as string | undefined, args.workspace_name as string | undefined, user);
     if ("error" in result) return text(result.error);
     return executeGmbTool(args.metric as "overview" | "reviews", args, result.conn, text, makeOAuth2Client);
+  }
+
+  // Rank tracker
+  if (name === "rank_check_direct") {
+    const domain = args.domain as string;
+    const keywords = args.keywords as string[];
+    const location = (args.location as string | undefined) ?? "United States";
+    return executeRankCheckDirect(domain, keywords, location, text);
   }
 
   return text(`Unknown tool: ${name}`);
