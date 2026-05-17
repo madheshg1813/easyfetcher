@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
       protocolVersion: "2025-06-18",
       capabilities: { tools: {} },
       serverInfo: { name: "easyfetcher", version: "2.0.0" },
-      instructions: "EasyFetcher provides marketing data from Google Search Console, Google Analytics 4, Google My Business, and Google Trends. WORKFLOW: 1) Call list_connections to see available workspaces and data sources. 2) Call the appropriate query tool. For trends_query no connection is needed — just provide a keyword.",
+      instructions: "EasyFetcher provides marketing data from Google Search Console, Google Analytics 4, Google My Business, Google Trends, and real-time Google SERP rank checking.\n\nTOOL SELECTION RULES:\n- User asks to check keyword rankings / positions / where a site ranks → use rank_check_direct (pass domain + keywords directly, no setup needed)\n- User asks about GSC traffic, impressions, clicks, CTR, top queries from Search Console → use gsc_query\n- User asks about website analytics, sessions, pageviews → use ga4_query\n- User asks about Google Business Profile / reviews / local listing → use gmb_query\n- User asks about search trends / interest over time → use trends_query\n\nWORKFLOW for GSC/GA4/GMB: 1) Call list_connections to see workspaces. 2) Call the query tool.\nrank_check_direct and trends_query need no connection — call them directly.",
     });
   }
 

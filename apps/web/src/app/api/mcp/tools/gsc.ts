@@ -3,7 +3,7 @@ import type { McpTool, Connection, TextFn } from "./types";
 
 export const gscTool: McpTool = {
   name: "gsc_query",
-  description: "Query Google Search Console data. metric='top_queries' for top keywords, 'top_pages' for best pages, 'keyword_detail' for pages ranking a specific keyword. Call list_connections first if unsure of workspace_name or site_url.",
+  description: "Query Google Search Console data for traffic, impressions, clicks, and CTR. Use for: 'top_queries' (which keywords bring traffic), 'top_pages' (best performing pages), 'keyword_detail' (impressions/clicks for a keyword). NOT for checking live Google search rank positions — use rank_check_direct for that. Requires a connected GSC account.",
   inputSchema: {
     type: "object",
     properties: {
