@@ -8,6 +8,10 @@ import { ga4Tool, executeGa4Tool } from "./tools/ga4";
 import { gmbTool, executeGmbTool } from "./tools/gmb";
 import { trendsTool, executeTrendsTool } from "./tools/trends";
 import { rankCheckDirectTool, executeRankCheckDirect } from "./tools/rank-tracker";
+import {
+  backlinkCheckTool, aiOverviewTool, trafficDataTool, keywordVolumeTool,
+  executeBacklinkCheck, executeAiOverviewCheck, executeTrafficData, executeKeywordVolume,
+} from "./tools/seranking";
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
@@ -58,6 +62,10 @@ const TOOLS = [
   ga4Tool,
   gmbTool,
   rankCheckDirectTool,
+  backlinkCheckTool,
+  aiOverviewTool,
+  trafficDataTool,
+  keywordVolumeTool,
 ];
 
 // ─── Connection resolver ───────────────────────────────────────────────────────
@@ -179,6 +187,16 @@ async function executeTool(name: string, args: Record<string, unknown>, user: Us
     return executeRankCheckDirect(domain, keywords, location, text);
   }
 
+  // SE Ranking tools
+  if (name === "backlink_check")
+    return executeBacklinkCheck(args.domain as string, (args.country as string | undefined) ?? "US", text);
+  if (name === "ai_overview_check")
+    return executeAiOverviewCheck(args.domain as string, args.keyword as string, (args.country as string | undefined) ?? "US", text);
+  if (name === "traffic_data")
+    return executeTrafficData(args.domain as string, (args.country as string | undefined) ?? "US", text);
+  if (name === "keyword_volume")
+    return executeKeywordVolume(args.keywords as string[], (args.country as string | undefined) ?? "US", text);
+
   return text(`Unknown tool: ${name}`);
 }
 
@@ -225,7 +243,7 @@ export async function POST(request: NextRequest) {
       protocolVersion: "2025-06-18",
       capabilities: { tools: {} },
       serverInfo: { name: "easyfetcher", version: "2.0.0" },
-      instructions: "EasyFetcher provides marketing data from Google Search Console, Google Analytics 4, Google My Business, Google Trends, and real-time Google SERP rank checking.\n\nTOOL SELECTION RULES:\n- User asks to check keyword rankings / positions / where a site ranks → use rank_check_direct (pass domain + keywords directly, no setup needed)\n- User asks about GSC traffic, impressions, clicks, CTR, top queries from Search Console → use gsc_query\n- User asks about website analytics, sessions, pageviews → use ga4_query\n- User asks about Google Business Profile / reviews / local listing → use gmb_query\n- User asks about search trends / interest over time → use trends_query\n\nWORKFLOW for GSC/GA4/GMB: 1) Call list_connections to see workspaces. 2) Call the query tool.\nrank_check_direct and trends_query need no connection — call them directly.",
+      instructions: "EasyFetcher provides marketing data from Google Search Console, Google Analytics 4, Google My Business, Google Trends, real-time SERP rank checking, and SE Ranking data (backlinks, AI overviews, traffic, keyword volumes).\n\nTOOL SELECTION RULES:\n- User asks to check keyword rankings / positions / where a site ranks → use rank_check_direct\n- User asks about backlinks / link profile / who links to a domain → use backlink_check\n- User asks about AI Overviews / AI citations / SGE presence → use ai_overview_check\n- User asks about website traffic / monthly visitors / audience → use traffic_data\n- User asks about keyword volume / search demand / CPC / difficulty → use keyword_volume\n- User asks about GSC traffic, impressions, clicks, CTR → use gsc_query\n- User asks about website analytics, sessions, pageviews → use ga4_query\n- User asks about Google Business Profile / reviews → use gmb_query\n- User asks about search trends → use trends_query\n\nIMPORTANT: Only call the tool that matches what the user asked. Do not call multiple tools unless explicitly asked.\nrank_check_direct, backlink_check, ai_overview_check, traffic_data, keyword_volume, and trends_query need no connection — call them directly.\nFor GSC/GA4/GMB: call list_connections first, then the query tool.",
     });
   }
 

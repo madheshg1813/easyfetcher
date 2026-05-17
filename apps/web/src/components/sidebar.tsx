@@ -9,6 +9,7 @@ import {
   Settings,
   CreditCard,
   Zap,
+  BarChart2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { WorkspaceSwitcher } from "@/components/workspace-switcher";
@@ -18,6 +19,7 @@ const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard, exact: true },
   { label: "Prompt Library", href: "/dashboard/prompts", icon: BookOpen, exact: false },
   { label: "Data Sources", href: "/dashboard/sources", icon: Database, exact: false },
+  { label: "SEO Features", href: "/dashboard/seo", icon: BarChart2, exact: false },
   { label: "Settings", href: "/dashboard/settings", icon: Settings, exact: false },
   { label: "Plan", href: "/dashboard/plan", icon: CreditCard, exact: false },
 ];
