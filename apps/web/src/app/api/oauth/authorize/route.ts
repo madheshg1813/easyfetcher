@@ -49,16 +49,19 @@ export async function GET(request: NextRequest) {
   if (!dbUser) {
     const clerkUser = await currentUser();
     if (!clerkUser) return NextResponse.json({ error: "user_not_found" }, { status: 404 });
-    const email = clerkUser.emailAddresses[0]?.emailAddress ?? `${userId}@unknown.com`;
-    dbUser = await prisma.user.upsert({
-      where: { clerkId: userId },
-      update: {},
-      create: {
-        clerkId: userId,
-        email,
-        name: clerkUser.fullName ?? null,
-      },
-    });
+    const email = clerkUser.emailAddresses[0]?.emailAddress;
+    if (!email) return NextResponse.json({ error: "user_not_found" }, { status: 404 });
+
+    // User may exist with same email but different clerkId (e.g. different Clerk app instance)
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) {
+      // Link this Clerk session to the existing account
+      dbUser = await prisma.user.update({ where: { id: existing.id }, data: { clerkId: userId } });
+    } else {
+      dbUser = await prisma.user.create({
+        data: { clerkId: userId, email, name: clerkUser.fullName ?? null },
+      });
+    }
   }
 
   // Issue a one-time authorization code (expires in 10 minutes)
