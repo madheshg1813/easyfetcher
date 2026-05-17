@@ -238,14 +238,9 @@ export function ConnectorsPage({ plan: _plan, connections, workspaceId, mcpConfi
                 <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                   <Sparkles className="w-4 h-4 text-primary" strokeWidth={1.75} />
                 </div>
-                <div className="flex items-center gap-1.5 ml-auto shrink-0">
-                  <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold bg-muted text-muted-foreground">
-                    {skill.tag}
-                  </span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded font-semibold bg-primary/10 text-primary">
-                    {skill.provider}
-                  </span>
-                </div>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold shrink-0 ${skill.credits == null ? "bg-green-500/15 text-green-600 dark:text-green-400" : "bg-primary/10 text-primary"}`}>
+                  {skill.tag}
+                </span>
               </div>
               <div>
                 <p className="text-xs font-semibold text-foreground">{skill.name}</p>

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Zap, Plug2, Sparkles, Terminal, CreditCard, Settings } from "lucide-react";
+import { Zap, Plug2, Sparkles, Terminal, CreditCard, Settings, Sun, Moon } from "lucide-react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import type { Plan } from "@easyfetcher/db";
 
@@ -53,6 +54,21 @@ export function Sidebar({ userName, userImageUrl, plan, mcpCallsUsed = 0 }: Side
   const pathname = usePathname();
   const limit = PLAN_LIMITS[plan];
   const progress = Math.min((mcpCallsUsed / limit) * 100, 100);
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const dark = saved === "dark" || (!saved && prefersDark);
+    document.documentElement.classList.toggle("dark", dark);
+    setIsDark(dark);
+  }, []);
+
+  const toggleDark = () => {
+    const nowDark = document.documentElement.classList.toggle("dark");
+    localStorage.setItem("theme", nowDark ? "dark" : "light");
+    setIsDark(nowDark);
+  };
 
   return (
     <aside className="w-[220px] h-screen sticky top-0 flex flex-col bg-sidebar border-r border-sidebar-border shrink-0">
@@ -88,10 +104,19 @@ export function Sidebar({ userName, userImageUrl, plan, mcpCallsUsed = 0 }: Side
           <p className="text-xs font-medium text-sidebar-foreground truncate flex-1">{userName}</p>
         </div>
 
-        {/* Plan row */}
+        {/* Plan row + dark mode toggle */}
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-semibold text-primary">{PLAN_LABELS[plan]}</span>
-          <span className="text-[10px] text-muted-foreground">{PLAN_PRICES[plan]}</span>
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] text-muted-foreground">{PLAN_PRICES[plan]}</span>
+            <button
+              onClick={toggleDark}
+              className="p-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors ml-1"
+              aria-label="Toggle dark mode"
+            >
+              {isDark ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+            </button>
+          </div>
         </div>
 
         {/* MCP calls */}

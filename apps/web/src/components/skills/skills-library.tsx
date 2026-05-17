@@ -164,14 +164,6 @@ const SKILLS: Skill[] = [
 const CATEGORIES = [...new Set(SKILLS.map((s) => s.category))];
 const PROVIDERS: Provider[] = ["GSC", "GA4", "Apify", "GMB", "PSI"];
 
-const PROVIDER_COLORS: Record<Provider | "Free", string> = {
-  GSC: "bg-blue-500/15 text-blue-600 dark:text-blue-400",
-  GA4: "bg-orange-500/15 text-orange-600 dark:text-orange-400",
-  Apify: "bg-purple-500/15 text-purple-600 dark:text-purple-400",
-  GMB: "bg-green-500/15 text-green-600 dark:text-green-400",
-  PSI: "bg-cyan-500/15 text-cyan-600 dark:text-cyan-400",
-  Free: "bg-primary/15 text-primary",
-};
 
 export function SkillsLibrary() {
   const [search, setSearch] = useState("");
@@ -248,7 +240,7 @@ export function SkillsLibrary() {
 function SkillCard({ skill }: { skill: Skill }) {
   const Icon = skill.icon;
   const creditLabel = skill.credits == null ? "Free" : `${skill.credits} cr`;
-  const creditStyle = skill.credits == null ? PROVIDER_COLORS.Free : "bg-muted text-muted-foreground";
+  const creditStyle = skill.credits == null ? "bg-green-500/15 text-green-600 dark:text-green-400" : "bg-primary/10 text-primary";
 
   return (
     <div className="rounded-xl border border-border bg-card p-4 flex flex-col gap-3">
@@ -256,14 +248,9 @@ function SkillCard({ skill }: { skill: Skill }) {
         <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
           <Icon className="w-4 h-4 text-primary" strokeWidth={1.75} />
         </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-          <span className={cn("text-[10px] px-1.5 py-0.5 rounded font-semibold", creditStyle)}>
-            {creditLabel}
-          </span>
-          <span className={cn("text-[10px] px-1.5 py-0.5 rounded font-semibold", PROVIDER_COLORS[skill.provider])}>
-            {skill.provider}
-          </span>
-        </div>
+        <span className={cn("text-[10px] px-1.5 py-0.5 rounded font-semibold shrink-0", creditStyle)}>
+          {creditLabel}
+        </span>
       </div>
 
       <div className="flex-1">
