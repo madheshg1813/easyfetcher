@@ -1,5 +1,6 @@
 const APIFY_TOKEN = process.env.APIFY_API_KEY;
 const ACTOR_ID = "radeance~seranking-scraper";
+const BACKLINKS_ACTOR_ID = "s-r~backlinks-checker";
 
 // Country codes must be lowercase ISO for SE Ranking actor
 const LOCATION_TO_COUNTRY: Record<string, string> = {
@@ -18,11 +19,11 @@ export function toCountryCode(country: string): string {
   return LOCATION_TO_COUNTRY[country] ?? country.toLowerCase();
 }
 
-async function runActor(input: Record<string, unknown>): Promise<unknown[]> {
+async function runActor(input: Record<string, unknown>, actorId = ACTOR_ID): Promise<unknown[]> {
   if (!APIFY_TOKEN) throw new Error("APIFY_API_KEY not set");
 
   const runRes = await fetch(
-    `https://api.apify.com/v2/acts/${ACTOR_ID}/runs?token=${APIFY_TOKEN}`,
+    `https://api.apify.com/v2/acts/${actorId}/runs?token=${APIFY_TOKEN}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -58,6 +59,16 @@ function findByType(items: unknown[], type: string): Record<string, unknown> {
 }
 
 // ─── Backlinks ────────────────────────────────────────────────────────────────
+export interface BacklinkEntry {
+  originDomain: string;
+  originUrl: string;
+  targetUrl: string;
+  anchorText: string;
+  rel: string;
+  status: string;
+  discoveredOn: string;
+}
+
 export interface BacklinkResult {
   domain: string;
   totalBacklinks: number | null;
@@ -65,14 +76,30 @@ export interface BacklinkResult {
   domainAuthority: number | null;
   pageAuthority: number | null;
   backlinksHistory: { date: string; backlinks: number; new: number; lost: number }[];
+  topBacklinks: BacklinkEntry[];
 }
 
 export async function checkBacklinks(domain: string, country = "in"): Promise<BacklinkResult> {
-  const items = await runActor({ urls: [domain], country, includeBacklinks: true });
+  const countryCode = country.toLowerCase();
+  const [serankingItems, backlinkItems] = await Promise.all([
+    runActor({ urls: [domain], country: countryCode, includeBacklinks: true }),
+    runActor({ domain, includePerLinkRecords: true, upstreamTimeout: 60 }, BACKLINKS_ACTOR_ID).catch(() => [] as unknown[]),
+  ]);
 
-  const overview = findByType(items, "domain_overview");
-  const backlinks = findByType(items, "backlinks");
-  const history = (backlinks.backlinks_history ?? []) as { date: string; backlinks: number; new_backlinks: number; lost_backlinks: number }[];
+  const overview = findByType(serankingItems, "domain_overview");
+  const backlinksItem = findByType(serankingItems, "backlinks");
+  const history = (backlinksItem.backlinks_history ?? []) as { date: string; backlinks: number; new_backlinks: number; lost_backlinks: number }[];
+
+  const rawBacklinks = ((backlinkItems[0] as Record<string, unknown>)?.backlinks ?? []) as Record<string, unknown>[];
+  const topBacklinks: BacklinkEntry[] = rawBacklinks.slice(0, 20).map((b) => ({
+    originDomain: (b.origin_domain as string) ?? "",
+    originUrl: (b.origin_url as string) ?? "",
+    targetUrl: (b.target_url as string) ?? "",
+    anchorText: (b.anchor_text as string) ?? "",
+    rel: (b.rel as string) ?? "follow",
+    status: (b.status as string) ?? "active",
+    discoveredOn: (b.discovered_on as string) ?? "",
+  }));
 
   return {
     domain,
@@ -86,6 +113,7 @@ export async function checkBacklinks(domain: string, country = "in"): Promise<Ba
       new: h.new_backlinks,
       lost: h.lost_backlinks,
     })),
+    topBacklinks,
   };
 }
 
@@ -101,7 +129,7 @@ export interface AiOverviewResult {
 }
 
 export async function checkAiOverviews(domain: string, country = "in"): Promise<AiOverviewResult> {
-  const items = await runActor({ urls: [domain], country, includeDomainOverview: true });
+  const items = await runActor({ urls: [domain], country: country.toLowerCase(), includeDomainOverview: true });
   const overview = findByType(items, "domain_overview");
 
   return {
@@ -125,7 +153,7 @@ export interface TrafficResult {
 }
 
 export async function checkTrafficData(domain: string, country = "worldwide"): Promise<TrafficResult> {
-  const items = await runActor({ urls: [domain], country, includeTraffic: true });
+  const items = await runActor({ urls: [domain], country: country.toLowerCase(), includeTraffic: true });
   const overview = findByType(items, "domain_overview");
   const trafficItem = findByType(items, "traffic");
   const topCountries = (trafficItem.top_countries_organic ?? []) as { country: string; traffic: number; traffic_share: number }[];
@@ -160,7 +188,7 @@ export async function checkKeywordVolumes(keywords: string[], country = "in"): P
     const items = await runActor({
       urls: [],
       keyword,
-      country,
+      country: country.toLowerCase(),
       includeKeywordOverview: true,
     });
 

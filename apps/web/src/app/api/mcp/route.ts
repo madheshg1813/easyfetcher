@@ -189,13 +189,13 @@ async function executeTool(name: string, args: Record<string, unknown>, user: Us
 
   // SE Ranking tools
   if (name === "backlink_check")
-    return executeBacklinkCheck(args.domain as string, (args.country as string | undefined) ?? "US", text);
+    return executeBacklinkCheck(args.domain as string, ((args.country as string | undefined) ?? "us").toLowerCase(), text);
   if (name === "ai_overview_check")
-    return executeAiOverviewCheck(args.domain as string, (args.country as string | undefined) ?? "in", text);
+    return executeAiOverviewCheck(args.domain as string, ((args.country as string | undefined) ?? "in").toLowerCase(), text);
   if (name === "traffic_data")
-    return executeTrafficData(args.domain as string, (args.country as string | undefined) ?? "US", text);
+    return executeTrafficData(args.domain as string, ((args.country as string | undefined) ?? "us").toLowerCase(), text);
   if (name === "keyword_volume")
-    return executeKeywordVolume(args.keywords as string[], (args.country as string | undefined) ?? "US", text);
+    return executeKeywordVolume(args.keywords as string[], ((args.country as string | undefined) ?? "us").toLowerCase(), text);
 
   return text(`Unknown tool: ${name}`);
 }

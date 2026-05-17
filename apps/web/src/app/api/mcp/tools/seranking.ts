@@ -77,6 +77,16 @@ export async function executeBacklinkCheck(domain: string, country = "in", text:
     ).join("\n");
   }
 
+  if (result.topBacklinks.length > 0) {
+    out += `\n\n**Top referring domains (${result.topBacklinks.length} links):**\n`;
+    out += result.topBacklinks.map((b) => {
+      const rel = b.rel === "nofollow" ? " [nofollow]" : "";
+      const status = b.status === "lost" ? " ❌ lost" : "";
+      const anchor = b.anchorText ? ` — "${b.anchorText}"` : "";
+      return `  • ${b.originDomain}${rel}${status}${anchor}\n    ↳ ${b.originUrl}`;
+    }).join("\n");
+  }
+
   return text(out.trim());
 }
 
