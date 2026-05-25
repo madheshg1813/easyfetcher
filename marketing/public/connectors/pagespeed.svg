@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <!-- Speedometer/gauge icon representing PageSpeed Insights -->
+  <circle cx="24" cy="24" r="22" fill="#4285F4" opacity="0.1"/>
+  <!-- Gauge arc background -->
+  <path d="M8 30 A16 16 0 0 1 40 30" fill="none" stroke="#E0E0E0" stroke-width="4" stroke-linecap="round"/>
+  <!-- Green segment (good) -->
+  <path d="M8 30 A16 16 0 0 1 16.7 16.7" fill="none" stroke="#0CCE6B" stroke-width="4" stroke-linecap="round"/>
+  <!-- Orange segment (needs improvement) -->
+  <path d="M16.7 16.7 A16 16 0 0 1 31.3 16.7" fill="none" stroke="#FFA400" stroke-width="4" stroke-linecap="round"/>
+  <!-- Red segment (poor) -->
+  <path d="M31.3 16.7 A16 16 0 0 1 40 30" fill="none" stroke="#FF4E42" stroke-width="4" stroke-linecap="round"/>
+  <!-- Needle pointing to green/good area -->
+  <line x1="24" y1="30" x2="14" y2="19" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+  <!-- Center dot -->
+  <circle cx="24" cy="30" r="2.5" fill="#1A1A1A"/>
+  <!-- Score text -->
+  <text x="24" y="41" text-anchor="middle" font-family="Arial, sans-serif" font-size="7" font-weight="bold" fill="#0CCE6B">PSI</text>
+</svg>
