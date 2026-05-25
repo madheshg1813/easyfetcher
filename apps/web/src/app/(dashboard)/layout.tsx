@@ -31,10 +31,6 @@ export default async function DashboardLayout({
   const userEmail = clerkUser?.emailAddresses[0]?.emailAddress ?? "";
   const userImageUrl = clerkUser?.imageUrl ?? "";
 
-  if (dbUser && !dbUser.onboarded) {
-    redirect("/onboarding");
-  }
-
   const plan: Plan = dbUser?.plan ?? "FREE";
 
   return (

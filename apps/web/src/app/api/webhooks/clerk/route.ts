@@ -2,6 +2,20 @@ import { Webhook } from "svix";
 import { headers } from "next/headers";
 import type { WebhookEvent } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
+import { randomBytes } from "crypto";
+
+function generateApiKey(): string {
+  return "ef_" + randomBytes(24).toString("hex");
+}
+
+function toSlug(email: string): string {
+  const local = email.split("@")[0] ?? "workspace";
+  return local
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_|_$/g, "")
+    .slice(0, 30) || "workspace";
+}
 
 export async function POST(req: Request) {
   const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
@@ -58,12 +72,30 @@ export async function POST(req: Request) {
     const name = [first_name, last_name].filter(Boolean).join(" ") || null;
 
     try {
-      await prisma.user.create({
+      const apiKey = generateApiKey();
+      const slug = toSlug(email);
+      const newUser = await prisma.user.create({
         data: {
           clerkId: id,
           email,
           name,
+          apiKey,
+          onboarded: true,
         },
+      });
+      // Create a default workspace so the dashboard is ready immediately
+      const ws = await prisma.workspace.create({
+        data: {
+          userId: newUser.id,
+          name: name || email.split("@")[0] || "My Workspace",
+          slug,
+          isDefault: true,
+          sortOrder: 0,
+        },
+      });
+      await prisma.user.update({
+        where: { id: newUser.id },
+        data: { activeWorkspaceId: ws.id },
       });
       console.log(`✅ User created in DB: ${email} (${id})`);
     } catch (err) {
