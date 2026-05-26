@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Zap, BarChart2, Globe, Shield, ArrowRight, Check, Star, TrendingUp, Users, Clock } from "lucide-react";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
@@ -30,10 +31,10 @@ const features = [
 ];
 
 const connectors = [
-  { name: "Google Search Console", logo: "/connectors/gsc.svg", plan: "Free" },
-  { name: "Google Analytics 4", logo: "/connectors/google-analytics.svg", plan: "Pro" },
-  { name: "Google My Business", logo: "/connectors/google-my-business.svg", plan: "Pro" },
-  { name: "PageSpeed Insights", logo: "/connectors/pagespeed.svg", plan: "Pro" },
+  { name: "Google Search Console", logo: "/connectors/gsc.svg" },
+  { name: "Google Analytics 4", logo: "/connectors/google-analytics.svg" },
+  { name: "Google My Business", logo: "/connectors/google-my-business.svg" },
+  { name: "PageSpeed Insights", logo: "/connectors/pagespeed.svg" },
 ];
 
 const stats = [
@@ -43,26 +44,6 @@ const stats = [
   { icon: Zap, value: "99.9%", label: "Uptime SLA" },
 ];
 
-const plans = [
-  {
-    name: "Free",
-    price: "$0",
-    note: "Forever free",
-    description: "Try EasyFetcher with Google Search Console.",
-    features: ["Google Search Console", "1 workspace", "1 site", "1,000 MCP calls/month", "3 prompt templates"],
-    cta: "Get started free",
-    highlight: false,
-  },
-  {
-    name: "Pro",
-    price: "$7",
-    note: "/month",
-    description: "For solo marketers who need more data sources.",
-    features: ["GSC + GA4 + Shopify", "1 workspace", "Up to 5 sites", "10,000 MCP calls/month", "Full prompt library"],
-    cta: "Start Pro for $7/mo",
-    highlight: true,
-  },
-];
 
 const testimonials = [
   {
@@ -86,6 +67,8 @@ const testimonials = [
 ];
 
 export default function HomePage() {
+  const [isYearly, setIsYearly] = useState(true);
+
   return (
     <div className="min-h-screen bg-white text-gray-900" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
       <SiteNav />
@@ -113,16 +96,16 @@ export default function HomePage() {
               href={SIGNUP_URL}
               className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg bg-amber-500 text-gray-900 font-semibold text-base hover:bg-amber-600 transition-colors shadow-md shadow-amber-100"
             >
-              Start for free <ArrowRight className="w-4 h-4" />
+              Get started now <ArrowRight className="w-4 h-4" />
             </Link>
             <a
-              href="#features"
+              href="#pricing"
               className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg border border-gray-200 bg-white text-gray-700 font-semibold text-base hover:border-gray-300 hover:shadow-sm transition-all"
             >
-              See how it works
+              View pricing
             </a>
           </div>
-          <p className="text-sm text-gray-400">No credit card required · Free plan available</p>
+          <p className="text-sm text-gray-400">Cancel anytime · Simple transparent pricing</p>
         </div>
 
         {/* Hero mockup */}
@@ -270,13 +253,6 @@ export default function HomePage() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={c.logo} alt={c.name} className="w-10 h-10 sm:w-12 sm:h-12 object-contain" />
                 <span className="text-xs font-semibold text-center leading-tight text-gray-700">{c.name}</span>
-                <span className={`text-[10px] px-2.5 py-1 rounded-full font-semibold tracking-wide ${
-                  c.plan === "Free"
-                    ? "bg-green-50 text-green-700 border border-green-100"
-                    : "bg-violet-50 text-violet-700 border border-violet-100"
-                }`}>
-                  {c.plan}
-                </span>
               </div>
             ))}
           </div>
@@ -316,68 +292,99 @@ export default function HomePage() {
       </section>
 
       {/* Pricing */}
-      <section id="pricing" className="py-16 sm:py-24 px-4 sm:px-6 bg-white">
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-12">
+      <section id="pricing" className="py-16 sm:py-24 px-4 sm:px-6 bg-gray-50/50">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-10">
             <p className="text-sm font-semibold text-amber-500 uppercase tracking-wider mb-3">Pricing</p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight mb-4">Simple, transparent pricing</h2>
-            <p className="text-base sm:text-lg text-gray-500">Start free. Upgrade when you need more. No surprises.</p>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight mb-4">One plan. Everything included.</h2>
+            <p className="text-base sm:text-lg text-gray-500 max-w-xl mx-auto">
+              Get all Google SEO integrations and AI features. Choose the billing period that suits you.
+            </p>
+
+            {/* Billing toggle */}
+            <div className="flex items-center justify-center gap-4 mt-8">
+              <span className={`text-sm font-medium ${!isYearly ? "text-gray-900" : "text-gray-400"}`}>Billed Monthly</span>
+              <button
+                onClick={() => setIsYearly(!isYearly)}
+                className="w-12 h-6 rounded-full bg-amber-100 border border-amber-200 p-0.5 transition-colors relative focus:outline-none"
+                aria-label="Toggle billing period"
+              >
+                <div
+                  className={`w-5 h-5 rounded-full bg-amber-500 shadow-sm transition-transform absolute top-0.5 left-0.5 ${
+                    isYearly ? "translate-x-6" : ""
+                  }`}
+                />
+              </button>
+              <div className="flex items-center gap-2">
+                <span className={`text-sm font-medium ${isYearly ? "text-gray-900" : "text-gray-400"}`}>Billed Yearly</span>
+                <span className="text-[10px] font-bold text-amber-600 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-full">
+                  Save 35%
+                </span>
+              </div>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6 items-center">
-            {plans.map((plan) => (
-              <div
-                key={plan.name}
-                className={`relative rounded-2xl p-6 sm:p-8 flex flex-col gap-6 ${
-                  plan.highlight
-                    ? "border-2 border-amber-400 bg-white shadow-xl shadow-amber-100"
-                    : "border border-gray-200 bg-white hover:shadow-md transition-shadow"
-                }`}
+          {/* Pricing Card */}
+          <div className="max-w-3xl mx-auto bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden hover:border-amber-400/50 transition-all flex flex-col md:flex-row">
+            {/* Price section */}
+            <div className="p-8 sm:p-10 bg-amber-50/20 border-b md:border-b-0 md:border-r border-gray-100 flex flex-col justify-center items-center text-center md:w-2/5">
+              <span className="px-3 py-1 rounded-full bg-amber-100 border border-amber-200 text-amber-600 text-[10px] font-extrabold uppercase tracking-wider mb-4">
+                Pro Access
+              </span>
+              <div className="flex items-baseline justify-center gap-1.5 mb-2">
+                <span className="text-6xl font-black tracking-tighter text-gray-900">
+                  {isYearly ? "$9" : "$14"}
+                </span>
+                <span className="text-sm text-gray-400 font-semibold">/month</span>
+              </div>
+              <p className="text-xs text-gray-500 font-medium mb-8">
+                {isYearly ? "Billed annually ($108/year)" : "Billed month-to-month"}
+              </p>
+              
+              <Link
+                href={SIGNUP_URL}
+                className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold text-sm shadow-md shadow-amber-200 transition-all hover:scale-[1.02]"
               >
-                {plan.highlight && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-amber-500 text-white text-[11px] font-bold whitespace-nowrap tracking-wide">
-                    MOST POPULAR
-                  </div>
-                )}
+                Get EasyFetcher Pro <ArrowRight className="w-4 h-4" />
+              </Link>
+              
+              <p className="text-[11px] text-gray-400 mt-4">
+                Secure checkout via Dodo Payments
+              </p>
+            </div>
 
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-widest mb-3 text-amber-500">
-                    {plan.name}
-                  </p>
-                  <div className="flex items-end gap-1 mb-2">
-                    <span className="text-4xl font-black tracking-tighter text-gray-900">
-                      {plan.price}
-                    </span>
-                    <span className="text-sm mb-1.5 text-gray-400">{plan.note}</span>
-                  </div>
-                  <p className="text-sm leading-relaxed text-gray-500">
-                    {plan.description}
-                  </p>
-                </div>
-
-                <ul className="space-y-2.5 flex-1">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2.5 text-sm">
-                      <div className="w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-0.5 bg-amber-50">
-                        <Check className="w-2.5 h-2.5 text-amber-500" />
+            {/* Features section */}
+            <div className="p-8 sm:p-10 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-6">Everything you need to query your data with AI</h3>
+                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[
+                    "Google Search Console",
+                    "Google Analytics 4",
+                    "Google My Business",
+                    "PageSpeed Insights",
+                    "Up to 5 sites / domains",
+                    "1 Workspace included",
+                    "10,000 MCP calls / month",
+                    "Full pre-built AI prompt library",
+                    "Premium Email support",
+                    "Works with Claude Desktop & Cursor"
+                  ].map((feature) => (
+                    <li key={feature} className="flex items-start gap-2.5 text-sm">
+                      <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 bg-amber-50 border border-amber-100">
+                        <Check className="w-3 h-3 text-amber-500" />
                       </div>
-                      <span className="text-gray-600">{f}</span>
+                      <span className="text-gray-600 font-medium">{feature}</span>
                     </li>
                   ))}
                 </ul>
-
-                <Link
-                  href={SIGNUP_URL}
-                  className={`w-full py-3 rounded-xl text-sm font-bold text-center transition-all ${
-                    plan.highlight
-                      ? "bg-amber-500 text-white hover:bg-amber-600 shadow-md shadow-amber-200"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
-                >
-                  {plan.cta}
-                </Link>
               </div>
-            ))}
+              
+              <div className="mt-8 pt-6 border-t border-gray-50 text-xs text-gray-400 flex items-center justify-between">
+                <span>Cancel anytime. No lock-in contract.</span>
+                <span className="font-semibold text-amber-600">30-day guarantee</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -393,15 +400,15 @@ export default function HomePage() {
             Start querying your data<br />with AI today
           </h2>
           <p className="text-gray-400 text-base sm:text-lg mb-8 sm:mb-10 leading-relaxed">
-            Free forever on Google Search Console. No credit card required.
+            Get instant insights from Google Search Console, GA4, GMB and PageSpeed.
           </p>
           <Link
             href={SIGNUP_URL}
             className="inline-flex items-center gap-2 px-8 sm:px-10 py-3.5 sm:py-4 rounded-xl bg-amber-500 text-gray-900 font-bold text-base hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/20"
           >
-            Get started free <ArrowRight className="w-4 h-4" />
+            Start Pro Plan <ArrowRight className="w-4 h-4" />
           </Link>
-          <p className="text-gray-600 text-sm mt-5">No credit card · Cancel anytime</p>
+          <p className="text-gray-600 text-sm mt-5">Cancel anytime · Secure checkout</p>
         </div>
       </section>
 
