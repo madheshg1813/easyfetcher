@@ -29,7 +29,7 @@ const CONNECTORS = [
     name: "Search Console",
     description: "GSC clicks, impressions, keywords",
     logo: "/connectors/gsc.svg",
-    connectUrl: "/api/oauth/start?platform=GSC",
+    connectUrl: "/api/connect/google?platform=GSC",
     comingSoon: false,
   },
   {
@@ -37,7 +37,7 @@ const CONNECTORS = [
     name: "Google Analytics 4",
     description: "Sessions, events, conversions",
     logo: "/connectors/google-analytics.svg",
-    connectUrl: "/api/oauth/start?platform=GA4",
+    connectUrl: "/api/connect/google?platform=GA4",
     comingSoon: false,
   },
   {
@@ -53,7 +53,7 @@ const CONNECTORS = [
     name: "Google My Business",
     description: "Reviews, local visibility",
     logo: "/connectors/google-my-business.svg",
-    connectUrl: "/api/oauth/start?platform=GOOGLE_MY_BUSINESS",
+    connectUrl: "/api/connect/google?platform=GOOGLE_MY_BUSINESS",
     comingSoon: true,
   },
 ] as const;
