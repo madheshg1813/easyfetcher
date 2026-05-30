@@ -3,7 +3,8 @@ import crypto from "crypto";
 const ALGORITHM = "aes-256-gcm";
 
 function getKey(): Buffer {
-  const keyHex = process.env.TOKEN_ENCRYPTION_KEY;
+  // Accept TOKEN_ENCRYPTION_KEY (canonical) or ENCRYPTION_KEY (legacy alias)
+  const keyHex = process.env.TOKEN_ENCRYPTION_KEY ?? process.env.ENCRYPTION_KEY;
   if (!keyHex) throw new Error("TOKEN_ENCRYPTION_KEY env var is not set");
   return Buffer.from(keyHex, "hex");
 }
