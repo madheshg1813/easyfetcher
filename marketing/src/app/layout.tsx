@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "EasyFetcher — AI-Powered Marketing Data",
   description: "Connect your marketing data sources and run AI-powered prompts via the Model Context Protocol. GSC, GA4, Meta Ads, and more.",
   verification: {
-    google: "grscMWyaSD91J6kvLO14kuxAUjeIzJpQfKA9GzP2oEk",
+    google: "Min0s8qFCj-c7WOXBIulq2pmAZyfn0jKljlW4QbN6uY",
   },
 };
 

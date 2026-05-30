@@ -29,8 +29,8 @@ export default function SiteFooter() {
             <div>
               <p className="text-white font-semibold text-sm mb-4">Company</p>
               <ul className="space-y-2.5 text-sm text-gray-400">
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
+                <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
+                <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
                 <li><Link href={LOGIN_URL} className="hover:text-white transition-colors">Sign in</Link></li>
               </ul>
             </div>
