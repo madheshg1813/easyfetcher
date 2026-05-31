@@ -82,6 +82,7 @@ export async function POST(req: Request) {
           name,
           apiKey,
           onboarded: true,
+          trialPlan: "PRO", // all new users start on a 7-day PRO trial, not FREE
           trialEndsAt,
         },
       });
