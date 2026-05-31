@@ -12,6 +12,7 @@ import {
   backlinkCheckTool, aiOverviewTool, trafficDataTool, keywordVolumeTool,
   executeBacklinkCheck, executeAiOverviewCheck, executeTrafficData, executeKeywordVolume,
 } from "./tools/seranking";
+import { urlInspectionTool, executeUrlInspection } from "./tools/url-inspection";
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
@@ -77,6 +78,7 @@ const TOOLS = [
     inputSchema: { type: "object", properties: {} },
   },
   gscTool,
+  urlInspectionTool,
   ga4Tool,
   gmbTool,
   rankCheckDirectTool,
@@ -183,6 +185,13 @@ async function executeTool(name: string, args: Record<string, unknown>, user: Us
     return executeGscTool(args.metric as "top_queries" | "top_pages" | "keyword_detail", args, result.conn, text, makeOAuth2Client);
   }
 
+  // GSC URL Inspection
+  if (name === "gsc_url_inspect") {
+    const result = resolveConnection("GSC", args.site_url as string | undefined, args.workspace_name as string | undefined, user);
+    if ("error" in result) return text(result.error);
+    return executeUrlInspection(args, result.conn, text, makeOAuth2Client);
+  }
+
   // GA4
   if (name === "ga4_query") {
     const result = resolveConnection("GA4", args.property_name as string | undefined, args.workspace_name as string | undefined, user);
@@ -261,7 +270,7 @@ export async function POST(request: NextRequest) {
       protocolVersion: "2025-06-18",
       capabilities: { tools: {} },
       serverInfo: { name: "easyfetcher", version: "2.0.0" },
-      instructions: "EasyFetcher provides marketing data from Google Search Console, Google Analytics 4, Google My Business, Google Trends, real-time SERP rank checking, and SE Ranking data (backlinks, AI overviews, traffic, keyword volumes).\n\nTOOL SELECTION RULES:\n- User asks to check keyword rankings / positions / where a site ranks → use rank_check_direct\n- User asks about backlinks / link profile / who links to a domain → use backlink_check\n- User asks about AI Overviews / AI citations / SGE presence → use ai_overview_check\n- User asks about website traffic / monthly visitors / audience → use traffic_data\n- User asks about keyword volume / search demand / CPC / difficulty → use keyword_volume\n- User asks about GSC traffic, impressions, clicks, CTR → use gsc_query\n- User asks about website analytics, sessions, pageviews → use ga4_query\n- User asks about Google Business Profile / reviews → use gmb_query\n- User asks about search trends → use trends_query\n\nIMPORTANT: Only call the tool that matches what the user asked. Do not call multiple tools unless explicitly asked.\nrank_check_direct, backlink_check, ai_overview_check, traffic_data, keyword_volume, and trends_query need no connection — call them directly.\nFor GSC/GA4/GMB: call list_connections first, then the query tool.",
+      instructions: "EasyFetcher provides marketing data from Google Search Console, Google Analytics 4, Google My Business, Google Trends, real-time SERP rank checking, and SE Ranking data (backlinks, AI overviews, traffic, keyword volumes).\n\nTOOL SELECTION RULES:\n- User asks to check keyword rankings / positions / where a site ranks → use rank_check_direct\n- User asks about backlinks / link profile / who links to a domain → use backlink_check\n- User asks about AI Overviews / AI citations / SGE presence → use ai_overview_check\n- User asks about website traffic / monthly visitors / audience → use traffic_data\n- User asks about keyword volume / search demand / CPC / difficulty → use keyword_volume\n- User asks about GSC traffic, impressions, clicks, CTR → use gsc_query\n- User asks if a URL is indexed / indexing status / why a page isn't in Google / URL inspection → use gsc_url_inspect\n- User asks about website analytics, sessions, pageviews → use ga4_query\n- User asks about Google Business Profile / reviews → use gmb_query\n- User asks about search trends → use trends_query\n\nIMPORTANT: Only call the tool that matches what the user asked. Do not call multiple tools unless explicitly asked.\nrank_check_direct, backlink_check, ai_overview_check, traffic_data, keyword_volume, and trends_query need no connection — call them directly.\nFor GSC/GA4/GMB: call list_connections first, then the query tool.",
     });
   }
 
