@@ -10,6 +10,19 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return [
+      // Clean MCP URL: mcp.easyfetcher.com/mcp → /api/mcp
+      {
+        source: "/mcp",
+        destination: "/api/mcp",
+      },
+      {
+        source: "/mcp/:path*",
+        destination: "/api/mcp/:path*",
+      },
+    ];
+  },
 };
 
 export default nextConfig;

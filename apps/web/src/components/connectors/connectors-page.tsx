@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Check, Copy, X, Lock, Gauge, Sparkles, ChevronRight } from "lucide-react";
 import type { Plan } from "@easyfetcher/db";
@@ -18,7 +18,6 @@ interface ConnectorsPageProps {
   plan: Plan;
   connections: Connection[];
   workspaceId?: string;
-  mcpConfig: string;
   apiKey: string;
   params: { connected?: string; error?: string; requiredPlan?: string; detail?: string };
 }
@@ -64,15 +63,30 @@ const PREVIEW_SKILLS = [
   { name: "SEO audit", tag: "5 cr", provider: "Apify", credits: 5, description: "Crawl any site for technical, on-page, and content issues." },
 ];
 
-export function ConnectorsPage({ plan: _plan, connections, workspaceId, mcpConfig, params }: ConnectorsPageProps) {
+export function ConnectorsPage({ plan: _plan, connections, workspaceId, apiKey, params }: ConnectorsPageProps) {
   const [copiedConfig, setCopiedConfig] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(true);
+  const [origin, setOrigin] = useState("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setOrigin(window.location.origin);
+    }
+  }, []);
+
+  const mcpUrl = (() => {
+    if (origin.includes("hub-beta")) {
+      return `https://hub-beta.easyfetcher.com/mcp`;
+    }
+    return `https://mcp.easyfetcher.com/mcp`;
+  })();
 
   const connectedSet = new Set(connections.map((c) => c.platform));
   const connectedCount = CONNECTORS.filter((c) => connectedSet.has(c.id)).length;
 
   const copyConfig = async () => {
-    await navigator.clipboard.writeText(mcpConfig);
+    if (!mcpUrl) return;
+    await navigator.clipboard.writeText(mcpUrl);
     setCopiedConfig(true);
     setTimeout(() => setCopiedConfig(false), 2000);
   };
@@ -117,7 +131,7 @@ export function ConnectorsPage({ plan: _plan, connections, workspaceId, mcpConfi
               <Connector done />
               <Step num={2} done label="Choose plan" />
               <Connector done={false} />
-              <Step num={3} done={step3Done} active={!step3Done} label="Copy MCP config" />
+              <Step num={3} done={step3Done} active={!step3Done} label="Copy MCP URL" />
               <Connector done={false} />
               <Step num={4} done={hasFirstSource} label="Connect first source" />
             </div>
@@ -127,7 +141,7 @@ export function ConnectorsPage({ plan: _plan, connections, workspaceId, mcpConfi
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors"
               >
                 {copiedConfig ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                {copiedConfig ? "Copied!" : "Copy config →"}
+                {copiedConfig ? "Copied!" : "Copy URL →"}
               </button>
               <button onClick={() => setShowOnboarding(false)} className="text-muted-foreground hover:text-foreground transition-colors">
                 <X className="w-4 h-4" />
@@ -143,18 +157,18 @@ export function ConnectorsPage({ plan: _plan, connections, workspaceId, mcpConfi
                   <span className="text-[10px] font-mono text-muted-foreground">&gt;_</span>
                 </div>
                 <div>
-                  <p className="text-xs font-semibold text-foreground">Your MCP connection</p>
+                  <p className="text-xs font-semibold text-foreground">Your MCP Server URL</p>
                   <p className="text-[10px] text-muted-foreground">STEP 3</p>
                 </div>
               </div>
               <p className="text-[11px] text-muted-foreground">
-                Paste this into Claude Desktop → Settings → Developer. Takes 30 seconds.{" "}
-                <button className="text-primary hover:underline">Full instructions →</button>
+                Paste this into Claude.ai Projects (Custom Integration) or Cursor (SSE).{" "}
+                <Link href="/dashboard/mcp-config" className="text-primary hover:underline">Full instructions →</Link>
               </p>
             </div>
             <div className="relative">
-              <pre className="text-[11px] font-mono leading-relaxed bg-background border border-border rounded-lg p-4 overflow-x-auto text-foreground">
-                {mcpConfig}
+              <pre className="text-[11px] font-mono leading-relaxed bg-background border border-border rounded-lg p-4 overflow-x-auto text-foreground select-all">
+                {mcpUrl || "Loading..."}
               </pre>
               <button
                 onClick={copyConfig}

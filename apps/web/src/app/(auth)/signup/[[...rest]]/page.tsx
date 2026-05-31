@@ -15,11 +15,11 @@ export default function SignUpPage() {
           <span className="text-xl font-bold text-primary">EasyFetcher</span>
         </Link>
         <p className="text-sm text-muted-foreground">
-          Create your free account
+          Start your 7-day free trial
         </p>
       </div>
       <SignUp
-        forceRedirectUrl="/dashboard/sources"
+        forceRedirectUrl="/onboarding"
         appearance={{
           elements: {
             rootBox: "w-full max-w-md",

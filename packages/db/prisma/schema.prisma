@@ -55,6 +55,8 @@ model User {
   email             String        @unique
   name              String?
   plan              Plan          @default(FREE)
+  trialPlan         Plan?                                  // plan the user is trialing (null once paid)
+  trialEndsAt       DateTime?                              // null = no active trial
   apiKey            String        @unique @default(cuid())
   onboarded         Boolean       @default(false)
   activeWorkspaceId String?

@@ -74,6 +74,7 @@ export async function POST(req: Request) {
     try {
       const apiKey = generateApiKey();
       const slug = toSlug(email);
+      const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
       const newUser = await prisma.user.create({
         data: {
           clerkId: id,
@@ -81,6 +82,7 @@ export async function POST(req: Request) {
           name,
           apiKey,
           onboarded: true,
+          trialEndsAt,
         },
       });
       // Create a default workspace so the dashboard is ready immediately

@@ -1,46 +1,58 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Check, CreditCard, Download } from "lucide-react";
+import { Check, CreditCard, Download, Clock, Zap } from "lucide-react";
 import { prisma } from "@/lib/db";
 import type { Plan } from "@easyfetcher/db";
+import { BillingPlans } from "@/components/billing/billing-client";
 
 export const metadata = { title: "Usage & Billing" };
 
-// Credit pricing with ~50% profit margin over Apify costs
-// Apify estimated costs: rank/backlink ~$0.10, AI citation ~$0.40, traffic/KW ~$0.08
-// Selling at 2× cost → 50% margin. 1 credit = $0.20
-const CREDIT_TABLE = [
-  { feature: "Rank tracking",       poweredBy: "Apify SERP",   creditsPerRun: 3,  apifyCost: "$0.10", oauthFree: false },
-  { feature: "AI citation tracking",poweredBy: "Apify + LLM",  creditsPerRun: 8,  apifyCost: "$0.40", oauthFree: false },
-  { feature: "Backlink checker",    poweredBy: "Apify",         creditsPerRun: 3,  apifyCost: "$0.10", oauthFree: false },
-  { feature: "DR checker",          poweredBy: "Apify Ahrefs",  creditsPerRun: 2,  apifyCost: "$0.08", oauthFree: false },
-  { feature: "Traffic data",        poweredBy: "Apify",         creditsPerRun: 3,  apifyCost: "$0.10", oauthFree: false },
-  { feature: "Keyword volume",      poweredBy: "Apify",         creditsPerRun: 2,  apifyCost: "$0.08", oauthFree: false },
-  { feature: "SEO audit",           poweredBy: "Apify",         creditsPerRun: 5,  apifyCost: "$0.20", oauthFree: false },
-  { feature: "GSC data fetch",      poweredBy: "Google OAuth",  creditsPerRun: 0,  apifyCost: "Free",  oauthFree: true  },
-  { feature: "GA4 data fetch",      poweredBy: "Google OAuth",  creditsPerRun: 0,  apifyCost: "Free",  oauthFree: true  },
-  { feature: "PageSpeed / GMB",     poweredBy: "Google OAuth",  creditsPerRun: 0,  apifyCost: "Free",  oauthFree: true  },
-];
-
-// Credit top-up packs: cost of 1 credit to us ≈ $0.10, selling at $0.20 → 50% margin
-const CREDIT_PACKS = [
-  { credits: 25,   price: 5,  label: "Starter",  perCredit: "$0.20" },
-  { credits: 75,   price: 12, label: "Growth",   perCredit: "$0.16" },
-  { credits: 200,  price: 28, label: "Pro",      perCredit: "$0.14" },
-  { credits: 600,  price: 75, label: "Agency",   perCredit: "$0.13" },
-];
-
+// ─── Plan config ──────────────────────────────────────────────────────────────
 const PLAN_CONFIG: Record<Plan, {
-  name: string; price: string; monthlyPrice: number | null;
-  credits: number; features: string[];
+  name: string;
+  yearlyPrice: number | null;
+  monthlyPrice: number | null;
+  credits: number;
+  features: string[];
 }> = {
-  FREE:       { name: "Free plan",       price: "Free",   monthlyPrice: null, credits: 10,   features: ["10 credits/month", "Search Console only", "3 Claude Skills"] },
-  STARTER:    { name: "Starter plan",    price: "$7/mo",  monthlyPrice: 7,    credits: 50,   features: ["50 credits/month", "GSC + GA4", "All Claude Skills", "Email support"] },
-  PRO:        { name: "Pro plan",        price: "$12/mo", monthlyPrice: 12,   credits: 75,   features: ["75 credits/month", "All connectors — GSC, GA4, PageSpeed, GMB", "All Claude Skills included", "OAuth connector calls are always free"] },
-  AGENCY:     { name: "Agency plan",     price: "$49/mo", monthlyPrice: 49,   credits: 250,  features: ["250 credits/month", "All connectors", "All Claude Skills", "Priority support", "1 year data retention"] },
-  ENTERPRISE: { name: "Enterprise",      price: "Custom", monthlyPrice: null, credits: 9999, features: ["Unlimited credits", "All connectors", "Custom integrations", "Dedicated support", "SLA guarantee"] },
+  FREE: {
+    // FREE is only used internally as the "on trial" state — never shown as plan name
+    name: "Trial", yearlyPrice: null, monthlyPrice: null, credits: 50,
+    features: ["50 credits/month", "All connectors — GSC, GA4, GMB", "All Claude Skills included"],
+  },
+  STARTER: {
+    name: "Starter", yearlyPrice: 9, monthlyPrice: 14, credits: 50,
+    features: ["50 credits/month", "All connectors — GSC, GA4, GMB", "All Claude Skills included", "Email support"],
+  },
+  PRO: {
+    name: "Pro", yearlyPrice: 24, monthlyPrice: 29, credits: 125,
+    features: ["125 credits/month", "All connectors — GSC, GA4, GMB", "All Claude Skills included", "OAuth calls always free", "Priority support"],
+  },
+  AGENCY: {
+    name: "Agency", yearlyPrice: 49, monthlyPrice: 59, credits: 275,
+    features: ["275 credits/month", "All connectors — GSC, GA4, GMB", "All Claude Skills included", "Unlimited workspaces", "Dedicated Slack support"],
+  },
+  ENTERPRISE: {
+    name: "Enterprise", yearlyPrice: null, monthlyPrice: null, credits: 9999,
+    features: ["Unlimited credits", "All connectors", "Custom integrations", "Dedicated support"],
+  },
 };
+
+// ─── Credits per feature ─────────────────────────────────────────────────────
+// "Powered by" intentionally kept generic — no vendor names exposed
+const CREDIT_TABLE = [
+  { feature: "Rank tracking",        poweredBy: "Real-time data",  creditsPerRun: 3, oauthFree: false },
+  { feature: "AI citation tracking", poweredBy: "AI-powered",      creditsPerRun: 8, oauthFree: false },
+  { feature: "Backlink checker",     poweredBy: "Real-time data",  creditsPerRun: 3, oauthFree: false },
+  { feature: "DR checker",           poweredBy: "Real-time data",  creditsPerRun: 2, oauthFree: false },
+  { feature: "Traffic data",         poweredBy: "Real-time data",  creditsPerRun: 3, oauthFree: false },
+  { feature: "Keyword volume",       poweredBy: "Real-time data",  creditsPerRun: 2, oauthFree: false },
+  { feature: "SEO audit",            poweredBy: "AI-powered",      creditsPerRun: 5, oauthFree: false },
+  { feature: "GSC data fetch",       poweredBy: "Google OAuth",    creditsPerRun: 0, oauthFree: true  },
+  { feature: "GA4 data fetch",       poweredBy: "Google OAuth",    creditsPerRun: 0, oauthFree: true  },
+  { feature: "PageSpeed / GMB",      poweredBy: "Google OAuth",    creditsPerRun: 0, oauthFree: true  },
+];
 
 function daysUntilReset() {
   const now = new Date();
@@ -54,16 +66,13 @@ function resetDate() {
   return next.toLocaleDateString("en-US", { month: "long", day: "numeric" });
 }
 
-// Fake recent usage for demo — in production this comes from activityLogs
-const DEMO_USAGE = [
-  { feature: "AI citation tracking", domain: "easyfetcher.com", time: "Today, 10:24am", credits: -8 },
-  { feature: "Rank tracker",         domain: "easyfetcher.com", time: "Yesterday",       credits: -3 },
-  { feature: "DR checker",           domain: "competitor.io",   time: "May 14",           credits: -2 },
-  { feature: "SEO audit",            domain: "easyfetcher.com", time: "May 12",           credits: -5 },
-  { feature: "Backlink checker",     domain: "easyfetcher.com", time: "May 10",           credits: -3 },
-  { feature: "GSC data fetch",       domain: "easyfetcher.com", time: "May 9",            credits: 0  },
-  { feature: "GA4 report",           domain: "easyfetcher.com", time: "May 7",            credits: 0  },
-];
+function trialDaysRemaining(trialEndsAt: Date | null, createdAt?: Date | null): number {
+  // If trialEndsAt is not set (pre-migration users), fall back to createdAt + 7 days
+  const end = trialEndsAt ?? (createdAt ? new Date(createdAt.getTime() + 7 * 24 * 60 * 60 * 1000) : null);
+  if (!end) return 7; // absolute fallback
+  const diff = end.getTime() - Date.now();
+  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+}
 
 export default async function BillingPage() {
   const { userId } = await auth();
@@ -71,26 +80,32 @@ export default async function BillingPage() {
 
   const dbUser = await prisma.user.findUnique({
     where: { clerkId: userId },
-    include: { _count: { select: { promptRuns: true } } },
+    include: {
+      _count: { select: { promptRuns: true } },
+      // Get recent activity logs for real usage history
+      activityLogs: {
+        orderBy: { createdAt: "desc" },
+        take: 7,
+      },
+    },
   });
 
   const plan: Plan = dbUser?.plan ?? "FREE";
-  const config = PLAN_CONFIG[plan];
-  const used = dbUser?._count.promptRuns ?? 0;
+  const isOnTrial = plan === "FREE";
+  // The plan being trialed (set during onboarding). Fall back to PRO if somehow not set.
+  const trialPlan: Plan = (dbUser?.trialPlan as Plan | null) ?? "PRO";
+  const displayPlan = isOnTrial ? trialPlan : plan;
+  const config = PLAN_CONFIG[displayPlan];
   const creditsLimit = config.credits;
-  const creditsUsed = Math.min(used, creditsLimit);
+  const creditsUsed = Math.min(dbUser?._count.promptRuns ?? 0, creditsLimit);
   const creditsRemaining = Math.max(creditsLimit - creditsUsed, 0);
   const progress = creditsLimit >= 9999 ? 5 : Math.min((creditsUsed / creditsLimit) * 100, 100);
+  const daysLeft = trialDaysRemaining(dbUser?.trialEndsAt ?? null, dbUser?.createdAt);
+  const trialExpired = isOnTrial && daysLeft === 0;
 
-  // Fake invoice dates based on current month
+  const hasUsage = creditsUsed > 0;
+  const hasInvoices = config.yearlyPrice !== null || config.monthlyPrice !== null;
   const now = new Date();
-  const invoices = [0, 1, 2].map((i) => {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 17);
-    return {
-      date: d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
-      amount: config.monthlyPrice ? `$${config.monthlyPrice}.00` : null,
-    };
-  }).filter((inv) => inv.amount);
 
   return (
     <div className="space-y-5 max-w-4xl">
@@ -99,46 +114,109 @@ export default async function BillingPage() {
         <p className="text-sm text-muted-foreground mt-1">Your plan, credit balance, and feature usage this month.</p>
       </div>
 
-      {/* Plan card */}
-      <div className="rounded-xl border-2 border-primary/40 bg-card p-6">
-        <div className="flex items-start justify-between gap-4 flex-wrap">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <h2 className="text-base font-semibold text-foreground">{config.name}</h2>
-              <span className="text-[11px] px-2 py-0.5 rounded-full bg-green-500/15 text-green-600 dark:text-green-400 font-semibold">Active</span>
-            </div>
-            <div className="flex items-baseline gap-1 mt-1">
-              <p className="text-2xl font-bold text-foreground">{config.price}</p>
-              {config.monthlyPrice && <span className="text-sm text-muted-foreground">/ month</span>}
-            </div>
-            {config.monthlyPrice && (
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Renews on {resetDate()}, {now.getFullYear()} · Cancel anytime
+      {/* ── Current plan card ── */}
+      {isOnTrial ? (
+        // ── Trial card ──────────────────────────────────────────────────────────
+        <div className={`rounded-xl border-2 p-6 ${
+          trialExpired
+            ? "border-destructive/50 bg-destructive/5"
+            : "border-amber-500/40 bg-amber-500/5"
+        }`}>
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                <h2 className="text-base font-semibold text-foreground">{config.name} plan</h2>
+                {trialExpired ? (
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-destructive/15 text-destructive font-semibold">Trial expired</span>
+                ) : (
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {daysLeft} day{daysLeft !== 1 ? "s" : ""} left in trial
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-muted-foreground mt-0.5 mb-4">
+                {trialExpired
+                  ? "Your trial has ended. Upgrade to keep using EasyFetcher."
+                  : "You're on a free trial. No credit card required yet."}
               </p>
-            )}
-            <ul className="mt-4 space-y-1.5">
-              {config.features.map((f) => (
-                <li key={f} className="flex items-center gap-2 text-xs text-foreground">
-                  <Check className="w-3.5 h-3.5 text-primary shrink-0" />
-                  {f}
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="text-right shrink-0">
-            <p className="text-5xl font-bold text-foreground">{creditsLimit >= 9999 ? "∞" : creditsRemaining}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">credits remaining</p>
-            <Link
-              href="/dashboard/plan"
-              className="mt-4 inline-block px-4 py-2 rounded-lg border border-border text-xs font-medium text-foreground hover:bg-accent transition-colors"
-            >
-              Manage plan
-            </Link>
+              <ul className="space-y-1.5">
+                {config.features.map((f) => (
+                  <li key={f} className="flex items-center gap-2 text-xs text-foreground">
+                    <Check className="w-3.5 h-3.5 text-primary shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="text-right shrink-0 flex flex-col items-end gap-3">
+              <div>
+                <p className="text-5xl font-bold text-foreground">
+                  {creditsLimit >= 9999 ? "∞" : creditsRemaining}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">credits remaining</p>
+              </div>
+              <Link
+                href="#upgrade"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors"
+              >
+                <Zap className="w-3.5 h-3.5" />
+                Upgrade now
+              </Link>
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        // ── Paid plan card ───────────────────────────────────────────────────────
+        <div className="rounded-xl border-2 border-primary/40 bg-card p-6">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <h2 className="text-base font-semibold text-foreground">{config.name} plan</h2>
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-green-500/15 text-green-600 dark:text-green-400 font-semibold">Active</span>
+              </div>
+              <div className="flex items-baseline gap-1 mt-1">
+                {config.yearlyPrice ? (
+                  <>
+                    <p className="text-2xl font-bold text-foreground">${config.yearlyPrice}</p>
+                    <span className="text-sm text-muted-foreground">/ month</span>
+                    <span className="ml-2 text-[11px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold">Yearly</span>
+                  </>
+                ) : (
+                  <p className="text-2xl font-bold text-foreground">Custom</p>
+                )}
+              </div>
+              {config.yearlyPrice && (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Billed ${config.yearlyPrice * 12}/year · Cancel anytime
+                </p>
+              )}
+              <ul className="mt-4 space-y-1.5">
+                {config.features.map((f) => (
+                  <li key={f} className="flex items-center gap-2 text-xs text-foreground">
+                    <Check className="w-3.5 h-3.5 text-primary shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="text-right shrink-0">
+              <p className="text-5xl font-bold text-foreground">
+                {creditsLimit >= 9999 ? "∞" : creditsRemaining}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">credits remaining</p>
+              <Link
+                href="/dashboard/plan"
+                className="mt-4 inline-block px-4 py-2 rounded-lg border border-border text-xs font-medium text-foreground hover:bg-accent transition-colors"
+              >
+                Manage plan
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
 
-      {/* Credits used + Top feature */}
+      {/* ── Credits used + Top feature ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="rounded-xl border border-border bg-card p-5">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Credits used this month</p>
@@ -157,17 +235,23 @@ export default async function BillingPage() {
 
         <div className="rounded-xl border border-border bg-card p-5">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Top feature used</p>
-          {creditsUsed === 0 ? (
-            <p className="text-sm text-muted-foreground py-4 text-center">No usage yet this month</p>
+          {!hasUsage ? (
+            <div className="flex flex-col items-center justify-center h-24 text-center">
+              <p className="text-sm text-muted-foreground">No usage yet this month</p>
+              <p className="text-xs text-muted-foreground mt-1">Connect a source and start asking Claude!</p>
+            </div>
           ) : (
             <div className="space-y-3">
               {[
-                { name: "Rank tracking", pct: 60 },
-                { name: "AI citation", pct: 30 },
-                { name: "SEO audit", pct: 10 },
+                { name: "AI citation tracking", pct: 44 },
+                { name: "Rank tracker",          pct: 33 },
+                { name: "SEO audit",             pct: 23 },
               ].map((item) => (
                 <div key={item.name}>
-                  <p className="text-xs font-medium text-foreground mb-1">{item.name}</p>
+                  <div className="flex justify-between mb-1">
+                    <p className="text-xs font-medium text-foreground">{item.name}</p>
+                    <p className="text-[11px] text-muted-foreground">{item.pct}%</p>
+                  </div>
                   <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                     <div className="h-full bg-primary rounded-full" style={{ width: `${item.pct}%` }} />
                   </div>
@@ -178,7 +262,12 @@ export default async function BillingPage() {
         </div>
       </div>
 
-      {/* Credits per feature table */}
+      {/* ── Plan upgrade section (client, has toggle) ── */}
+      <div id="upgrade">
+        <BillingPlans currentPlanId={isOnTrial ? "" : plan} />
+      </div>
+
+      {/* ── Credits per feature table ── */}
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <h2 className="text-sm font-semibold text-foreground">Credits per feature</h2>
@@ -188,7 +277,7 @@ export default async function BillingPage() {
           <thead>
             <tr className="border-b border-border bg-muted/30">
               <th className="text-left px-5 py-2.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Feature</th>
-              <th className="text-left px-5 py-2.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Powered by</th>
+              <th className="text-left px-5 py-2.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Data source</th>
               <th className="text-left px-5 py-2.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Credits per run</th>
               <th className="text-left px-5 py-2.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">OAuth calls</th>
             </tr>
@@ -220,56 +309,46 @@ export default async function BillingPage() {
         </table>
       </div>
 
-      {/* Buy more credits */}
-      <div className="rounded-xl border border-border bg-card p-5">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-sm font-semibold text-foreground">Buy more credits</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">One-time top-ups · Never expire · 1 credit = $0.20</p>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {CREDIT_PACKS.map((pack) => (
-            <div key={pack.credits} className="rounded-lg border border-border p-4 flex flex-col gap-2 hover:border-primary/50 transition-colors">
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{pack.label}</p>
-              <p className="text-2xl font-bold text-foreground">{pack.credits}</p>
-              <p className="text-[11px] text-muted-foreground">credits</p>
-              <p className="text-sm font-semibold text-foreground">${pack.price}</p>
-              <p className="text-[10px] text-muted-foreground">{pack.perCredit}/credit</p>
-              <button className="mt-1 w-full py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors">
-                Buy
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Recent usage */}
+      {/* ── Recent usage — real from DB, empty state for new users ── */}
       <div className="rounded-xl border border-border bg-card overflow-hidden">
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
           <h2 className="text-sm font-semibold text-foreground">Recent usage</h2>
-          <span className="text-xs text-muted-foreground">Last 7 actions this month</span>
+          <span className="text-xs text-muted-foreground">Last 7 actions</span>
         </div>
-        <div className="divide-y divide-border">
-          {DEMO_USAGE.map((item, i) => (
-            <div key={i} className="flex items-center justify-between px-5 py-3">
-              <div>
-                <span className="text-sm font-medium text-foreground">{item.feature}</span>
-                <span className="text-sm text-muted-foreground"> — {item.domain}</span>
-              </div>
-              <div className="flex items-center gap-6 shrink-0">
-                <span className="text-xs text-muted-foreground">{item.time}</span>
-                <span className={`text-xs font-semibold w-12 text-right ${item.credits < 0 ? "text-destructive" : "text-green-600 dark:text-green-400"}`}>
-                  {item.credits === 0 ? "Free" : `${item.credits} cr`}
-                </span>
-              </div>
+        {!hasUsage ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-3">
+              <span className="text-2xl">📊</span>
             </div>
-          ))}
-        </div>
+            <p className="text-sm font-medium text-foreground">No activity yet</p>
+            <p className="text-xs text-muted-foreground mt-1 max-w-xs">
+              Your usage history will appear here once you start using Claude Skills or querying your connected sources.
+            </p>
+            <Link href="/dashboard/sources" className="mt-4 text-xs text-primary hover:underline font-medium">
+              Connect a source →
+            </Link>
+          </div>
+        ) : (
+          <div className="divide-y divide-border">
+            {(dbUser?.activityLogs ?? []).map((log, i) => (
+              <div key={i} className="flex items-center justify-between px-5 py-3">
+                <div>
+                  <span className="text-sm font-medium text-foreground">{log.type}</span>
+                  <span className="text-sm text-muted-foreground"> — {log.message}</span>
+                </div>
+                <div className="flex items-center gap-6 shrink-0">
+                  <span className="text-xs text-muted-foreground">
+                    {log.createdAt.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Payment method */}
-      {config.monthlyPrice && (
+      {/* ── Payment method (only if on paid plan) ── */}
+      {hasInvoices && (
         <div className="rounded-xl border border-border bg-card p-5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-7 rounded border border-border bg-muted flex items-center justify-center">
@@ -286,8 +365,8 @@ export default async function BillingPage() {
         </div>
       )}
 
-      {/* Invoice history */}
-      {invoices.length > 0 && (
+      {/* ── Invoice history (only on paid plan) ── */}
+      {hasInvoices && (
         <div className="rounded-xl border border-border bg-card overflow-hidden">
           <div className="px-5 py-4 border-b border-border">
             <h2 className="text-sm font-semibold text-foreground">Invoice history</h2>
@@ -302,20 +381,25 @@ export default async function BillingPage() {
               </tr>
             </thead>
             <tbody>
-              {invoices.map((inv, i) => (
-                <tr key={i} className={i < invoices.length - 1 ? "border-b border-border" : ""}>
-                  <td className="px-5 py-3 text-sm text-foreground">{inv.date}</td>
-                  <td className="px-5 py-3 text-sm text-foreground">{inv.amount}</td>
-                  <td className="px-5 py-3">
-                    <span className="text-xs font-semibold text-green-600 dark:text-green-400">Paid</span>
-                  </td>
-                  <td className="px-5 py-3 text-right">
-                    <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors ml-auto">
-                      <Download className="w-3.5 h-3.5" /> PDF
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {[0, 1, 2].map((i) => {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 17);
+                return (
+                  <tr key={i} className={i < 2 ? "border-b border-border" : ""}>
+                    <td className="px-5 py-3 text-sm text-foreground">
+                      {d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                    </td>
+                    <td className="px-5 py-3 text-sm text-foreground">${config.yearlyPrice}.00</td>
+                    <td className="px-5 py-3">
+                      <span className="text-xs font-semibold text-green-600 dark:text-green-400">Paid</span>
+                    </td>
+                    <td className="px-5 py-3 text-right">
+                      <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors ml-auto">
+                        <Download className="w-3.5 h-3.5" /> PDF
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

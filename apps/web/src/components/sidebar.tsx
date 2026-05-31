@@ -10,7 +10,7 @@ import type { Plan } from "@easyfetcher/db";
 const SETUP_NAV = [
   { label: "Connectors", href: "/dashboard/sources", icon: Plug2 },
   { label: "Claude Skills", href: "/dashboard/skills", icon: Sparkles },
-  { label: "MCP config", href: "/dashboard/mcp-config", icon: Terminal },
+  { label: "MCP URL", href: "/dashboard/mcp-config", icon: Terminal },
 ];
 
 const ACCOUNT_NAV = [

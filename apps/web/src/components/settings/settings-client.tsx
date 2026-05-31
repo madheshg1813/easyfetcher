@@ -1,59 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, EyeOff, Copy, Check, RefreshCw } from "lucide-react";
 
 interface SettingsClientProps {
   workspaceName: string;
   email: string;
   displayName: string;
-  maskedKey: string;
-  keyCreatedAt: string;
 }
 
-export function SettingsClient({ workspaceName, email, displayName, maskedKey, keyCreatedAt }: SettingsClientProps) {
-  const [revealed, setRevealed] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [confirmRotate, setConfirmRotate] = useState(false);
-  const [rotating, setRotating] = useState(false);
-  const [newKey, setNewKey] = useState<string | null>(null);
-
+export function SettingsClient({ workspaceName, email, displayName }: SettingsClientProps) {
   const [notifs, setNotifs] = useState({
     lowCredit: true,
     weeklyDigest: true,
     productUpdates: false,
   });
-
-  const handleRotate = async () => {
-    setRotating(true);
-    setConfirmRotate(false);
-    try {
-      const res = await fetch("/api/keys", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "rotate" }),
-      });
-      const data = await res.json() as { newKey: string };
-      setNewKey(data.newKey);
-      setRevealed(true);
-      setTimeout(() => {
-        setNewKey(null);
-        setRevealed(false);
-        window.location.reload();
-      }, 10000);
-    } finally {
-      setRotating(false);
-    }
-  };
-
-  const copyKey = async () => {
-    const key = newKey ?? maskedKey;
-    await navigator.clipboard.writeText(key);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const displayKey = newKey ?? maskedKey;
 
   return (
     <div className="space-y-4">
@@ -67,67 +27,6 @@ export function SettingsClient({ workspaceName, email, displayName, maskedKey, k
         </div>
       </section>
 
-      {/* API Token */}
-      <section className="rounded-xl border border-border bg-card p-5">
-        <div className="flex items-start justify-between mb-4">
-          <h2 className="text-sm font-semibold text-foreground">API token</h2>
-          <span className="text-[11px] text-muted-foreground">Used in your MCP config</span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <code className="flex-1 text-xs bg-muted px-3 py-2.5 rounded-lg font-mono text-foreground truncate border border-border">
-            {revealed || newKey ? displayKey : maskedKey}
-          </code>
-          <button
-            onClick={() => setRevealed(!revealed)}
-            className="p-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent transition-colors shrink-0"
-          >
-            {revealed ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-          </button>
-          <button
-            onClick={copyKey}
-            className="p-2 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent transition-colors shrink-0"
-          >
-            {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
-          </button>
-        </div>
-
-        {newKey && (
-          <p className="mt-2 text-[11px] text-amber-600 dark:text-amber-400">
-            ⚠ Copy this key now — it won&apos;t be shown again. Hides in 10s.
-          </p>
-        )}
-
-        {keyCreatedAt && (
-          <p className="text-[11px] text-muted-foreground mt-2">Created {keyCreatedAt}</p>
-        )}
-
-        <div className="mt-3 pt-3 border-t border-border">
-          {!confirmRotate ? (
-            <button
-              onClick={() => setConfirmRotate(true)}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              Regenerate token
-            </button>
-          ) : (
-            <div className="flex items-center gap-3">
-              <span className="text-xs text-destructive">This will invalidate your current token.</span>
-              <button
-                onClick={handleRotate}
-                disabled={rotating}
-                className="text-xs text-destructive underline disabled:opacity-50"
-              >
-                {rotating ? "Regenerating…" : "Confirm"}
-              </button>
-              <button onClick={() => setConfirmRotate(false)} className="text-xs text-muted-foreground">
-                Cancel
-              </button>
-            </div>
-          )}
-        </div>
-      </section>
 
       {/* Notifications */}
       <section className="rounded-xl border border-border bg-card p-5">

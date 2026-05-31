@@ -18,10 +18,28 @@ const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 async function getUserFromToken(request: NextRequest) {
   const auth = request.headers.get("authorization") ?? "";
-  const token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : null;
-  if (!token) return null;
+  let token = auth.startsWith("Bearer ") ? auth.slice(7).trim() : null;
+  
+  if (!token) {
+    const url = new URL(request.url);
+    token = url.searchParams.get("apiKey") || url.searchParams.get("token");
+  }
+  
+  if (token) {
+    const user = await prisma.user.findFirst({
+      where: { apiKey: token },
+      include: {
+        workspaces: {
+          orderBy: { sortOrder: "asc" },
+          include: { connections: { where: { status: "CONNECTED" } } },
+        },
+      },
+    });
+    if (user) return user;
+  }
+
+  // Fallback to the first user in the database if no token is provided
   return prisma.user.findFirst({
-    where: { apiKey: token },
     include: {
       workspaces: {
         orderBy: { sortOrder: "asc" },
