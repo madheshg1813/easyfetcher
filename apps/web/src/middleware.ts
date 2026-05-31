@@ -9,6 +9,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/webhooks/clerk",
   // MCP + OAuth endpoints — must be public so Claude can connect
   "/api/mcp(.*)",
+  "/mcp(.*)",
   "/api/oauth/(.*)",
   "/api/callback/(.*)",
   "/api/connect/(.*)",
