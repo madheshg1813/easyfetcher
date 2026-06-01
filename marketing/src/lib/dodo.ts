@@ -24,9 +24,22 @@ export function getDodoCheckoutUrl(productId: string): string {
 
 // ─── Plan metadata ─────────────────────────────────────────────────────────────
 
-export const PLANS = [
+export interface PlanInfo {
+  readonly id: "STARTER" | "PRO" | "AGENCY";
+  readonly name: string;
+  readonly yearlyPrice: number;
+  readonly monthlyPrice: number;
+  readonly yearlyTotal: number;
+  readonly yearlyProductId: string;
+  readonly monthlyProductId: string;
+  readonly highlight?: boolean;
+  readonly description: string;
+  readonly features: readonly string[];
+}
+
+export const PLANS: readonly PlanInfo[] = [
   {
-    id: "STARTER" as const,
+    id: "STARTER",
     name: "Starter",
     yearlyPrice: 9,
     monthlyPrice: 14,
@@ -43,7 +56,7 @@ export const PLANS = [
     ],
   },
   {
-    id: "PRO" as const,
+    id: "PRO",
     name: "Pro",
     yearlyPrice: 24,
     monthlyPrice: 29,
@@ -62,7 +75,7 @@ export const PLANS = [
     ],
   },
   {
-    id: "AGENCY" as const,
+    id: "AGENCY",
     name: "Agency",
     yearlyPrice: 49,
     monthlyPrice: 59,
@@ -79,4 +92,4 @@ export const PLANS = [
       "1 year data retention",
     ],
   },
-] as const;
+];
