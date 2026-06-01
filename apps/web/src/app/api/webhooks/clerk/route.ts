@@ -74,7 +74,6 @@ export async function POST(req: Request) {
     try {
       const apiKey = generateApiKey();
       const slug = toSlug(email);
-      const trialEndsAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
       const newUser = await prisma.user.create({
         data: {
           clerkId: id,
@@ -82,8 +81,7 @@ export async function POST(req: Request) {
           name,
           apiKey,
           onboarded: true,
-          trialPlan: "PRO", // all new users start on a 7-day PRO trial, not FREE
-          trialEndsAt,
+          // plan defaults to FREE — Dodo webhook will upgrade it after payment
         },
       });
       // Create a default workspace so the dashboard is ready immediately
@@ -105,6 +103,7 @@ export async function POST(req: Request) {
       console.error("Failed to create user in DB:", err);
       return new Response("Failed to create user", { status: 500 });
     }
+
   }
 
   if (eventType === "user.updated") {

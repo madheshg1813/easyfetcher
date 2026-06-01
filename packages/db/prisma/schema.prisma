@@ -55,8 +55,6 @@ model User {
   email             String        @unique
   name              String?
   plan              Plan          @default(FREE)
-  trialPlan         Plan?                                  // plan the user is trialing (null once paid)
-  trialEndsAt       DateTime?                              // null = no active trial
   apiKey            String        @unique @default(cuid())
   onboarded         Boolean       @default(false)
   activeWorkspaceId String?
@@ -181,14 +179,14 @@ model ActivityLog {
 }
 
 model Subscription {
-  id                 String   @id @default(cuid())
-  userId             String   @unique
-  stripeCustomerId   String   @unique
-  stripePriceId      String
-  stripeSubId        String   @unique
-  status             String
-  currentPeriodEnd   DateTime
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  dodoCustomerId   String   @unique
+  dodoProductId    String
+  dodoSubId        String   @unique
+  status           String
+  currentPeriodEnd DateTime
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

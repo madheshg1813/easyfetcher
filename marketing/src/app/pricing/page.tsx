@@ -1,32 +1,35 @@
 "use client";
 
 import { useState } from "react";
-import { Check, X, ArrowRight, Zap, ChevronDown } from "lucide-react";
-import Link from "next/link";
+import { Check, ArrowRight, Zap, ChevronDown, Shield, RefreshCw } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import { SIGNUP_URL } from "@/lib/constants";
+import { PLANS, getDodoCheckoutUrl } from "@/lib/dodo";
 
 const faqs = [
   {
     q: "Can I switch between monthly and yearly billing?",
-    a: "Yes, you can upgrade from monthly to yearly billing at any time from your billing settings. The change will take effect immediately, and your billing will be prorated.",
+    a: "Yes, you can switch billing periods at any time from your Dodo Payments customer portal. The change will take effect at the end of your current billing cycle.",
   },
   {
-    q: "What counts as an MCP call?",
-    a: "Each time Claude or another AI client queries one of your connected data sources through EasyFetcher (e.g. fetching GSC keyword data or GA4 traffic metrics) counts as one MCP call.",
+    q: "What counts as a credit?",
+    a: "Each time you run an AI-powered feature (rank tracking, citation tracking, SEO audit, etc.) through EasyFetcher, it costs credits. Direct OAuth data fetches from GSC, GA4, and GMB are always free and don't count against your credits.",
   },
   {
     q: "Do you offer a money-back guarantee?",
-    a: "Absolutely! We want you to love EasyFetcher. We offer a 30-day money-back guarantee on all subscriptions. If you're not satisfied, just email us for a full refund.",
+    a: "Absolutely! We offer a 30-day money-back guarantee on all subscriptions. If you're not satisfied, just email us for a full refund — no questions asked.",
   },
   {
     q: "What is a workspace?",
-    a: "A workspace groups your connected Google SEO accounts and your AI prompt library. The Pro plan includes 1 workspace with up to 5 different sites or domains.",
+    a: "A workspace groups your connected accounts and your AI prompt library. Starter gets 1 workspace, Pro gets 3, and Agency gets 15 — perfect for managing multiple clients.",
   },
   {
     q: "Which AI clients does EasyFetcher support?",
-    a: "EasyFetcher supports any client that implements the Model Context Protocol (MCP). This includes Claude Desktop, Cursor, and other compatible developer tools.",
+    a: "EasyFetcher supports any client that implements the Model Context Protocol (MCP). This includes Claude Desktop, Cursor, Windsurf, and other compatible AI tools.",
+  },
+  {
+    q: "Can I upgrade or downgrade my plan?",
+    a: "Yes, you can change your plan at any time via the Dodo Payments customer portal. Upgrades take effect immediately; downgrades apply at the next billing cycle.",
   },
 ];
 
@@ -63,16 +66,17 @@ export default function PricingPage() {
             Simple, transparent pricing
           </div>
           <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 tracking-tight leading-[1.1] mb-4">
-            One plan.<br />
-            <span className="text-amber-500">Choose how you pay.</span>
+            Pick the plan<br />
+            <span className="text-amber-500">that fits your scale.</span>
           </h1>
           <p className="text-base sm:text-lg text-gray-500 leading-relaxed">
-            Get complete access to all SEO connectors, MCP skills, and prompt library. No setup fees.
+            Every plan includes all connectors, all Claude Skills, and the full AI prompt library.
+            No hidden fees.
           </p>
 
           {/* Billing toggle */}
           <div className="flex items-center justify-center gap-4 mt-8">
-            <span className={`text-sm font-medium ${!isYearly ? "text-gray-900" : "text-gray-400"}`}>Billed Monthly</span>
+            <span className={`text-sm font-medium ${!isYearly ? "text-gray-900" : "text-gray-400"}`}>Monthly</span>
             <button
               onClick={() => setIsYearly(!isYearly)}
               className="w-12 h-6 rounded-full bg-amber-100 border border-amber-200 p-0.5 transition-colors relative focus:outline-none"
@@ -85,126 +89,140 @@ export default function PricingPage() {
               />
             </button>
             <div className="flex items-center gap-2">
-              <span className={`text-sm font-medium ${isYearly ? "text-gray-900" : "text-gray-400"}`}>Billed Yearly</span>
+              <span className={`text-sm font-medium ${isYearly ? "text-gray-900" : "text-gray-400"}`}>Yearly</span>
               <span className="text-[10px] font-bold text-amber-600 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-full">
-                Save 35%
+                Save ~35%
               </span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Plan Card */}
-      <section className="pb-16 px-4 sm:px-6">
-        <div className="max-w-4xl mx-auto bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden hover:border-amber-400/50 transition-all flex flex-col md:flex-row">
-          {/* Price section */}
-          <div className="p-8 sm:p-10 bg-amber-50/20 border-b md:border-b-0 md:border-r border-gray-100 flex flex-col justify-center items-center text-center md:w-2/5">
-            <span className="px-3 py-1 rounded-full bg-amber-100 border border-amber-200 text-amber-600 text-[10px] font-extrabold uppercase tracking-wider mb-4">
-              Pro Access
-            </span>
-            <div className="flex items-baseline justify-center gap-1.5 mb-2">
-              <span className="text-6xl font-black tracking-tighter text-gray-900">
-                {isYearly ? "$9" : "$14"}
-              </span>
-              <span className="text-sm text-gray-400 font-semibold">/month</span>
-            </div>
-            <p className="text-xs text-gray-500 font-medium mb-8">
-              {isYearly ? "Billed annually ($108/year)" : "Billed month-to-month"}
-            </p>
-            
-            <Link
-              href={SIGNUP_URL}
-              className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-gray-900 font-bold text-sm shadow-md shadow-amber-200 transition-all hover:scale-[1.02]"
-            >
-              Get EasyFetcher Pro <ArrowRight className="w-4 h-4" />
-            </Link>
-            
-            <p className="text-[11px] text-gray-400 mt-4">
-              Secure checkout via Dodo Payments
-            </p>
-          </div>
-
-          {/* Features section */}
-          <div className="p-8 sm:p-10 flex-1 flex flex-col justify-between">
-            <div>
-              <h3 className="text-lg font-bold text-gray-900 mb-6">Everything you need to query your data with AI</h3>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {[
-                  "Google Search Console",
-                  "Google Analytics 4",
-                  "Google My Business",
-                  "PageSpeed Insights",
-                  "Up to 5 sites / domains",
-                  "1 Workspace included",
-                  "10,000 MCP calls / month",
-                  "Full pre-built AI prompt library",
-                  "Premium Email support",
-                  "Works with Claude Desktop & Cursor"
-                ].map((feature) => (
-                  <li key={feature} className="flex items-start gap-2.5 text-sm">
-                    <div className="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 bg-amber-50 border border-amber-100">
-                      <Check className="w-3 h-3 text-amber-500" />
+      {/* Plan Cards */}
+      <section className="pb-20 px-4 sm:px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {PLANS.map((plan) => {
+              const price = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
+              const productId = isYearly ? plan.yearlyProductId : plan.monthlyProductId;
+              const checkoutUrl = getDodoCheckoutUrl(productId);
+              return (
+                <div
+                  key={plan.id}
+                  className={`relative rounded-3xl border bg-white flex flex-col p-8 transition-all hover:shadow-2xl ${
+                    plan.highlight
+                      ? "border-amber-400 ring-2 ring-amber-400/30 shadow-xl shadow-amber-100"
+                      : "border-gray-100 shadow-sm hover:border-amber-200"
+                  }`}
+                >
+                  {plan.highlight && (
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                      <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500 text-gray-900 text-[10px] font-extrabold whitespace-nowrap shadow-md shadow-amber-200">
+                        <Zap className="w-3 h-3" /> Most popular
+                      </span>
                     </div>
-                    <span className="text-gray-600 font-medium">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            
-            <div className="mt-8 pt-6 border-t border-gray-50 text-xs text-gray-400 flex items-center justify-between">
-              <span>Cancel anytime. No lock-in contract.</span>
-              <span className="font-semibold text-amber-600">30-day guarantee</span>
-            </div>
+                  )}
+
+                  <div className="mb-6">
+                    <h2 className="text-lg font-extrabold text-gray-900 mb-1">{plan.name}</h2>
+                    <p className="text-sm text-gray-500 leading-snug mb-5">{plan.description}</p>
+                    <div className="flex items-end gap-1.5">
+                      <span className="text-5xl font-black tracking-tighter text-gray-900">${price}</span>
+                      <span className="text-base text-gray-400 font-semibold mb-1">/mo</span>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1.5">
+                      {isYearly
+                        ? `Billed $${plan.yearlyTotal}/year — save $${(plan.monthlyPrice * 12) - plan.yearlyTotal}/yr`
+                        : "Billed month-to-month"}
+                    </p>
+                  </div>
+
+                  <a
+                    href={checkoutUrl}
+                    className={`w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-bold text-sm transition-all hover:scale-[1.02] mb-7 ${
+                      plan.highlight
+                        ? "bg-amber-500 hover:bg-amber-600 text-gray-900 shadow-lg shadow-amber-200"
+                        : "border-2 border-amber-400 text-amber-600 hover:bg-amber-50"
+                    }`}
+                  >
+                    Get {plan.name} <ArrowRight className="w-4 h-4" />
+                  </a>
+
+                  <div className="border-t border-gray-100 pt-6">
+                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-3">What&apos;s included</p>
+                    <ul className="space-y-3">
+                      {plan.features.map((f) => (
+                        <li key={f} className="flex items-start gap-2.5 text-sm">
+                          <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
+                            plan.highlight ? "bg-amber-50 border border-amber-200" : "bg-gray-50 border border-gray-100"
+                          }`}>
+                            <Check className={`w-3 h-3 ${plan.highlight ? "text-amber-500" : "text-gray-400"}`} />
+                          </div>
+                          <span className="text-gray-600">{f}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Trust badges */}
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm text-gray-400">
+            <span className="flex items-center gap-1.5">
+              <Shield className="w-4 h-4 text-amber-500" />
+              Secure checkout via Dodo Payments
+            </span>
+            <span className="flex items-center gap-1.5">
+              <RefreshCw className="w-4 h-4 text-amber-500" />
+              30-day money-back guarantee
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Check className="w-4 h-4 text-amber-500" />
+              Cancel anytime
+            </span>
           </div>
         </div>
       </section>
 
-      {/* Detailed Features */}
+      {/* Feature comparison */}
       <section className="py-16 px-4 sm:px-6 bg-gray-50/50 border-t border-gray-100">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight text-center mb-12">
-            What you get with EasyFetcher Pro
+        <div className="max-w-3xl mx-auto">
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight text-center mb-10">
+            Compare plans
           </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-              <span className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center mb-4">
-                <Zap className="w-5 h-5 text-amber-500" />
-              </span>
-              <h3 className="text-base font-bold text-gray-900 mb-2">4 SEO Integrations</h3>
-              <p className="text-sm text-gray-500 leading-relaxed mb-4">
-                Connect your Google SEO platforms in seconds and query them via MCP.
-              </p>
-              <div className="flex items-center gap-1.5 flex-wrap">
-                {["/connectors/gsc.svg", "/connectors/google-analytics.svg", "/connectors/google-my-business.svg", "/connectors/pagespeed.svg"].map((logo, idx) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <div key={idx} className="w-8 h-8 rounded-lg border border-gray-100 flex items-center justify-center p-1.5 bg-white shadow-xs">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={logo} alt="Connector logo" className="w-full h-full object-contain" />
-                  </div>
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50/50">
+                  <th className="text-left px-6 py-4 font-semibold text-gray-700">Feature</th>
+                  <th className="px-4 py-4 font-semibold text-gray-700 text-center">Starter</th>
+                  <th className="px-4 py-4 font-bold text-amber-600 text-center">Pro</th>
+                  <th className="px-4 py-4 font-semibold text-gray-700 text-center">Agency</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {[
+                  ["Credits / month", "50", "125", "275"],
+                  ["Workspaces", "1", "3", "15"],
+                  ["Sites / accounts", "Up to 5", "Unlimited", "Unlimited"],
+                  ["All connectors (10+)", "✓", "✓", "✓"],
+                  ["Claude Skills", "✓", "✓", "✓"],
+                  ["Full prompt library", "✓", "✓", "✓"],
+                  ["OAuth calls (GSC/GA4/GMB)", "Free", "Free", "Free"],
+                  ["Support", "Email", "Priority email", "Dedicated Slack"],
+                  ["Data retention", "90 days", "90 days", "1 year"],
+                ].map(([feature, starter, pro, agency]) => (
+                  <tr key={feature} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="px-6 py-3.5 font-medium text-gray-700">{feature}</td>
+                    <td className="px-4 py-3.5 text-center text-gray-500">{starter}</td>
+                    <td className="px-4 py-3.5 text-center font-semibold text-amber-600">{pro}</td>
+                    <td className="px-4 py-3.5 text-center text-gray-500">{agency}</td>
+                  </tr>
                 ))}
-              </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-              <span className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center mb-4 flex-col">
-                <Check className="w-5 h-5 text-amber-500" />
-              </span>
-              <h3 className="text-base font-bold text-gray-900 mb-2">AI Prompts & Skills</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">
-                Unlock our full pre-built AI prompt library and custom Claude Desktop skills to analyze keywords, traffic, and site speed.
-              </p>
-            </div>
-
-            <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-              <span className="w-10 h-10 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center mb-4">
-                <Check className="w-5 h-5 text-amber-500" />
-              </span>
-              <h3 className="text-base font-bold text-gray-900 mb-2">Limits built for growth</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">
-                Connect up to 5 sites or domains per workspace, and run up to 10,000 AI calls/month. Premium email support included.
-              </p>
-            </div>
+              </tbody>
+            </table>
           </div>
         </div>
       </section>
@@ -235,17 +253,23 @@ export default function PricingPage() {
             Your SEO data, answered by AI
           </h2>
           <p className="text-gray-400 text-base sm:text-lg mb-8 leading-relaxed">
-            Get instant insights from GSC, GA4, GMB and PageSpeed. Start for just $9/month.
+            Start with Starter at $9/mo, or go straight to Pro. 30-day money-back guarantee on every plan.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <Link
-              href={SIGNUP_URL}
+            <a
+              href={getDodoCheckoutUrl(PLANS[1].yearlyProductId)}
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-amber-500 text-gray-900 font-bold text-base hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/20"
             >
-              Get started now <ArrowRight className="w-4 h-4" />
-            </Link>
+              Start with Pro <ArrowRight className="w-4 h-4" />
+            </a>
+            <a
+              href={getDodoCheckoutUrl(PLANS[0].yearlyProductId)}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl border border-white/10 text-gray-300 font-semibold text-base hover:border-white/20 hover:text-white transition-colors"
+            >
+              Try Starter
+            </a>
           </div>
-          <p className="text-gray-600 text-sm mt-5">Cancel anytime · Secure checkout</p>
+          <p className="text-gray-600 text-sm mt-5">Cancel anytime · Secure checkout via Dodo Payments</p>
         </div>
       </section>
 
