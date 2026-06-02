@@ -83,8 +83,8 @@ export default function HomePage() {
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 leading-[1.1] tracking-tight mb-5">
-            Your marketing data,<br />
-            <span className="text-amber-500">answered instantly by AI</span>
+            Turn Claude Into Your<br />
+            <span className="text-amber-500">SEO Expert</span>
           </h1>
 
           <p className="text-base sm:text-xl text-gray-500 max-w-2xl mx-auto mb-8 leading-relaxed font-normal">
