@@ -51,35 +51,72 @@ export async function GET(request: NextRequest) {
         .replace("http://", "")
         .replace(/\/$/, "");
 
-      await prisma.connection.upsert({
-        where: {
-          workspaceId_platform_siteUrl: {
-            workspaceId: workspaceId!,
-            platform: pending.platform,
-            siteUrl,
+      // Prisma compound unique where requires all fields to be non-null.
+      // When workspaceId is null, fall back to a find-then-upsert-by-id approach.
+      if (workspaceId) {
+        await prisma.connection.upsert({
+          where: {
+            workspaceId_platform_siteUrl: {
+              workspaceId,
+              platform: pending.platform,
+              siteUrl,
+            },
           },
-        },
-        create: {
-          userId: dbUser.id,
-          workspaceId,
-          platform: pending.platform,
-          accessToken: pending.accessToken,
-          refreshToken: pending.refreshToken,
-          expiresAt: pending.tokenExpiry,
-          status: "CONNECTED",
-          siteUrl,
-          label,
-          metadata: { email: pending.userEmail },
-        },
-        update: {
-          accessToken: pending.accessToken,
-          refreshToken: pending.refreshToken ?? undefined,
-          expiresAt: pending.tokenExpiry,
-          status: "CONNECTED",
-          label,
-          metadata: { email: pending.userEmail },
-        },
-      });
+          create: {
+            userId: dbUser.id,
+            workspaceId,
+            platform: pending.platform,
+            accessToken: pending.accessToken,
+            refreshToken: pending.refreshToken,
+            expiresAt: pending.tokenExpiry,
+            status: "CONNECTED",
+            siteUrl,
+            label,
+            metadata: { email: pending.userEmail },
+          },
+          update: {
+            accessToken: pending.accessToken,
+            refreshToken: pending.refreshToken ?? undefined,
+            expiresAt: pending.tokenExpiry,
+            status: "CONNECTED",
+            label,
+            metadata: { email: pending.userEmail },
+          },
+        });
+      } else {
+        // No workspace — find by userId+platform+siteUrl (workspaceId IS NULL)
+        const existing = await prisma.connection.findFirst({
+          where: { userId: dbUser.id, platform: pending.platform, siteUrl, workspaceId: null },
+        });
+        if (existing) {
+          await prisma.connection.update({
+            where: { id: existing.id },
+            data: {
+              accessToken: pending.accessToken,
+              refreshToken: pending.refreshToken ?? undefined,
+              expiresAt: pending.tokenExpiry,
+              status: "CONNECTED",
+              label,
+              metadata: { email: pending.userEmail },
+            },
+          });
+        } else {
+          await prisma.connection.create({
+            data: {
+              userId: dbUser.id,
+              workspaceId: null,
+              platform: pending.platform,
+              accessToken: pending.accessToken,
+              refreshToken: pending.refreshToken,
+              expiresAt: pending.tokenExpiry,
+              status: "CONNECTED",
+              siteUrl,
+              label,
+              metadata: { email: pending.userEmail },
+            },
+          });
+        }
+      }
 
       await prisma.activityLog.create({
         data: {
@@ -96,13 +133,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${baseUrl}/dashboard/sources?connected=${pending.platform}`);
   } catch (err: any) {
     console.error("Confirm connection error:", err);
-    return NextResponse.json(
-      {
-        error: "Internal Server Error",
-        message: err.message || String(err),
-        stack: err.stack,
-      },
-      { status: 500 }
-    );
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+    // Redirect with error so browser shows our app's error UI, not a blank page
+    const detail = encodeURIComponent((err?.message ?? String(err)).slice(0, 200));
+    return NextResponse.redirect(`${baseUrl}/dashboard/sources?error=confirm_failed&detail=${detail}`);
   }
 }
