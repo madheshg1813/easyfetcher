@@ -32,7 +32,6 @@ enum Platform {
   GOOGLE_TRENDS
   YOUTUBE
   YOUTUBE_ADS
-  PAGESPEED
 }
 
 enum PromptCategory {

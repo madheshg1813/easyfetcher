@@ -44,7 +44,7 @@ const CONNECTORS = [
     name: "PageSpeed Insights",
     description: "Core Web Vitals, performance scores",
     logo: "/connectors/pagespeed.svg",
-    connectUrl: "/api/connect/free?platform=PAGESPEED",
+    connectUrl: "",
     comingSoon: false,
   },
   {

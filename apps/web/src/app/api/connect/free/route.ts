@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import type { Platform } from "@easyfetcher/db";
 
 // No-auth platforms that connect instantly with no OAuth
-const FREE_PLATFORMS: Platform[] = ["GOOGLE_TRENDS", "PAGESPEED"];
+const FREE_PLATFORMS: Platform[] = ["GOOGLE_TRENDS"];
 
 export async function GET(request: NextRequest) {
   const { userId } = await auth();
@@ -33,10 +33,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${baseUrl}/dashboard/sources?error=no_workspace`);
   }
 
-  const label =
-    platform === "GOOGLE_TRENDS" ? "Google Trends" :
-    platform === "PAGESPEED" ? "PageSpeed Insights" :
-    platform;
+  const label = platform === "GOOGLE_TRENDS" ? "Google Trends" : platform;
 
   await prisma.connection.upsert({
     where: {
