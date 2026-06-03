@@ -13,10 +13,8 @@ export async function GET(request: NextRequest) {
   const state = searchParams.get("state");
   const error = searchParams.get("error");
 
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-
   if (error || !code || !state) {
-    return NextResponse.redirect(`${baseUrl}/dashboard/sources?error=oauth_cancelled`);
+    return NextResponse.redirect(new URL("/dashboard/sources?error=oauth_cancelled", request.url));
   }
 
   let userId: string;
@@ -28,7 +26,7 @@ export async function GET(request: NextRequest) {
     platform = decoded.platform;
     workspaceId = decoded.workspaceId ?? null;
   } catch {
-    return NextResponse.redirect(`${baseUrl}/dashboard/sources?error=invalid_state`);
+    return NextResponse.redirect(new URL("/dashboard/sources?error=invalid_state", request.url));
   }
 
   // Find DB user — auto-create if webhook hasn't fired yet
@@ -45,7 +43,7 @@ export async function GET(request: NextRequest) {
         create: { clerkId: userId, email, name },
       });
     } catch {
-      return NextResponse.redirect(`${baseUrl}/dashboard/sources?error=user_not_found`);
+      return NextResponse.redirect(new URL("/dashboard/sources?error=user_not_found", request.url));
     }
   }
 
@@ -58,7 +56,7 @@ export async function GET(request: NextRequest) {
   }
 
   // Exchange code for tokens
-  const redirectUri = `${baseUrl}/api/callback/google`;
+  const redirectUri = new URL("/api/callback/google", request.url).toString();
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
@@ -71,7 +69,7 @@ export async function GET(request: NextRequest) {
     tokenData = await oauth2Client.getToken(code);
   } catch (err) {
     console.error("Google token exchange failed:", err);
-    return NextResponse.redirect(`${baseUrl}/dashboard/sources?error=token_exchange_failed`);
+    return NextResponse.redirect(new URL("/dashboard/sources?error=token_exchange_failed", request.url));
   }
 
   const tokens = (tokenData?.tokens ?? tokenData) as {
@@ -81,7 +79,7 @@ export async function GET(request: NextRequest) {
   };
 
   if (!tokens?.access_token) {
-    return NextResponse.redirect(`${baseUrl}/dashboard/sources?error=no_access_token`);
+    return NextResponse.redirect(new URL("/dashboard/sources?error=no_access_token", request.url));
   }
 
   oauth2Client.setCredentials(tokens);
@@ -174,14 +172,14 @@ export async function GET(request: NextRequest) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error(`[callback/google] site list fetch failed for ${platform}:`, msg);
-    const url = new URL(`${baseUrl}/dashboard/sources`);
+    const url = new URL("/dashboard/sources", request.url);
     url.searchParams.set("error", "site_fetch_failed");
     url.searchParams.set("detail", msg.slice(0, 200));
-    return NextResponse.redirect(url.toString());
+    return NextResponse.redirect(url);
   }
 
   if (sites.length === 0) {
-    return NextResponse.redirect(`${baseUrl}/dashboard/sources?error=no_sites_found&platform=${platform}`);
+    return NextResponse.redirect(new URL(`/dashboard/sources?error=no_sites_found&platform=${platform}`, request.url));
   }
 
   // ── Single site: write Connection directly here — no confirm redirect needed ─
@@ -203,11 +201,11 @@ export async function GET(request: NextRequest) {
         label,
       );
 
-      return NextResponse.redirect(`${baseUrl}/dashboard/sources?connected=${platform}`);
+      return NextResponse.redirect(new URL(`/dashboard/sources?connected=${platform}`, request.url));
     } catch (err: any) {
       console.error("[callback/google] single-site save failed:", err);
       const detail = encodeURIComponent((err?.message ?? String(err)).slice(0, 200));
-      return NextResponse.redirect(`${baseUrl}/dashboard/sources?error=save_failed&detail=${detail}`);
+      return NextResponse.redirect(new URL(`/dashboard/sources?error=save_failed&detail=${detail}`, request.url));
     }
   }
 
@@ -226,10 +224,10 @@ export async function GET(request: NextRequest) {
         expiresAt: new Date(Date.now() + 15 * 60 * 1000),
       },
     });
-    return NextResponse.redirect(`${baseUrl}/dashboard/sources/pick-site?pendingId=${pending.id}`);
+    return NextResponse.redirect(new URL(`/dashboard/sources/pick-site?pendingId=${pending.id}`, request.url));
   } catch (err: any) {
     console.error("[callback/google] pending save failed:", err);
     const detail = encodeURIComponent((err?.message ?? String(err)).slice(0, 200));
-    return NextResponse.redirect(`${baseUrl}/dashboard/sources?error=pending_failed&detail=${detail}`);
+    return NextResponse.redirect(new URL(`/dashboard/sources?error=pending_failed&detail=${detail}`, request.url));
   }
 }

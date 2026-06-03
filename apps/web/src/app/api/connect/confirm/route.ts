@@ -6,7 +6,6 @@ import { saveConnection } from "@/lib/save-connection";
 // Called from the site-picker page when a user has multiple GSC sites or GA4 properties.
 // For single-site OAuth flows, the connection is now written directly in /api/callback/google.
 export async function GET(request: NextRequest) {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   try {
     const { userId } = await auth();
     if (!userId) return NextResponse.redirect(new URL("/login", request.url));
@@ -17,18 +16,18 @@ export async function GET(request: NextRequest) {
     const selectedSites = siteUrlsParam.split(",").map((s) => s.trim()).filter(Boolean);
 
     if (!pendingId || selectedSites.length === 0) {
-      return NextResponse.redirect(`${baseUrl}/dashboard/sources?error=invalid_confirm`);
+      return NextResponse.redirect(new URL("/dashboard/sources?error=invalid_confirm", request.url));
     }
 
     const dbUser = await prisma.user.findUnique({ where: { clerkId: userId } });
-    if (!dbUser) return NextResponse.redirect(`${baseUrl}/dashboard/sources?error=user_not_found`);
+    if (!dbUser) return NextResponse.redirect(new URL("/dashboard/sources?error=user_not_found", request.url));
 
     const pending = await prisma.pendingConnection.findFirst({
       where: { id: pendingId, userId: dbUser.id },
     });
 
     if (!pending || pending.expiresAt < new Date()) {
-      return NextResponse.redirect(`${baseUrl}/dashboard/sources?error=session_expired`);
+      return NextResponse.redirect(new URL("/dashboard/sources?error=session_expired", request.url));
     }
 
     // Resolve workspace
@@ -40,7 +39,7 @@ export async function GET(request: NextRequest) {
       workspaceId = ws?.id ?? null;
     }
 
-    const sites = pending.sites as Array<{ siteUrl: string; displayName?: string }>;
+    const sites = (pending.sites as Array<{ siteUrl: string; displayName?: string }>) || [];
 
     for (const siteUrl of selectedSites) {
       const site = sites.find((s) => s.siteUrl === siteUrl);
@@ -68,10 +67,10 @@ export async function GET(request: NextRequest) {
     }
 
     await prisma.pendingConnection.delete({ where: { id: pendingId } });
-    return NextResponse.redirect(`${baseUrl}/dashboard/sources?connected=${pending.platform}`);
+    return NextResponse.redirect(new URL(`/dashboard/sources?connected=${pending.platform}`, request.url));
   } catch (err: any) {
     console.error("[confirm] error:", err);
     const detail = encodeURIComponent((err?.message ?? String(err)).slice(0, 200));
-    return NextResponse.redirect(`${baseUrl}/dashboard/sources?error=confirm_failed&detail=${detail}`);
+    return NextResponse.redirect(new URL(`/dashboard/sources?error=confirm_failed&detail=${detail}`, request.url));
   }
 }
