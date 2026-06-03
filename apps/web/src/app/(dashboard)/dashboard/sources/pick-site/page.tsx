@@ -53,7 +53,7 @@ export default function PickSitePage() {
     if (selected.size === 0) return;
     setSaving(true);
     const siteUrl = [...selected].map(encodeURIComponent).join(",");
-    router.push(`/api/connect/confirm?pendingId=${pendingId}&siteUrl=${siteUrl}`);
+    window.location.href = `/api/connect/confirm?pendingId=${pendingId}&siteUrl=${siteUrl}`;
   }
 
   if (loading) {
