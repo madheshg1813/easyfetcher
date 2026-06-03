@@ -1,232 +1,191 @@
 "use client";
 
 import { useState } from "react";
-import { Search, BarChart2, Bot, Link2, Globe, TrendingUp, FileSearch, Download } from "lucide-react";
+import {
+  Search,
+  Download,
+  ChevronDown,
+  ChevronUp,
+  Sparkles,
+  Copy,
+  Check,
+  Zap,
+  BarChart2,
+  MapPin,
+  Trophy,
+  FileText,
+  Wrench,
+  Coins,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  SKILL_TEMPLATES,
+  SKILL_CATEGORIES,
+  type SkillCategory,
+  type SkillTemplate,
+} from "@/lib/skills/templates";
+import type { Plan } from "@easyfetcher/db";
 
-type Provider = "GSC" | "GA4" | "Apify" | "GMB" | "PSI" | "Free";
+// ─── Icon mapping for categories ──────────────────────────────────────────────
+const CATEGORY_ICONS: Record<SkillCategory, React.ComponentType<{ className?: string }>> = {
+  SEO: Zap,
+  Analytics: BarChart2,
+  "Local Business": MapPin,
+  "Competitor Analysis": Trophy,
+  Content: FileText,
+  "Technical SEO": Wrench,
+};
 
-interface Skill {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-  credits: number | null;
-  provider: Provider;
-  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
-  requiresConnection?: string;
+const PLAN_ORDER: Plan[] = ["FREE", "STARTER", "PRO", "AGENCY", "ENTERPRISE"];
+
+const CONNECTOR_LOGOS: Record<string, { logo: string; name: string }> = {
+  GSC: { logo: "/connectors/gsc.svg", name: "Search Console" },
+  GA4: { logo: "/connectors/google-analytics.svg", name: "Google Analytics 4" },
+  GMB: { logo: "/connectors/google-my-business.svg", name: "Google My Business" },
+  PAGESPEED: { logo: "/connectors/pagespeed.svg", name: "PageSpeed Insights" },
+};
+
+// ─── Props ────────────────────────────────────────────────────────────────────
+interface SkillsLibraryProps {
+  userPlan: Plan;
+  apiKey: string;
 }
 
-const SKILLS: Skill[] = [
-  // Rankings
-  {
-    id: "rank-tracker",
-    name: "Rank tracker",
-    description: "Track keyword positions across Google with daily refreshes.",
-    category: "Rankings",
-    credits: null,
-    provider: "GSC",
-    icon: BarChart2,
-    requiresConnection: "Search Console connected",
-  },
-  {
-    id: "serp-snapshot",
-    name: "SERP snapshot",
-    description: "Capture the top 10 results and SERP features for any query.",
-    category: "Rankings",
-    credits: 3,
-    provider: "Apify",
-    icon: BarChart2,
-  },
-  {
-    id: "competitor-rank-watch",
-    name: "Competitor rank watch",
-    description: "Compare your ranks against a list of competitor domains.",
-    category: "Rankings",
-    credits: 4,
-    provider: "Apify",
-    icon: BarChart2,
-  },
-  {
-    id: "share-of-voice",
-    name: "Share of voice",
-    description: "Weighted ranking share across a keyword cluster.",
-    category: "Rankings",
-    credits: 5,
-    provider: "Apify",
-    icon: BarChart2,
-  },
-  // Citations
-  {
-    id: "ai-citation-tracker",
-    name: "AI citation tracker",
-    description: "See when ChatGPT, Perplexity, and Claude cite your domain.",
-    category: "Citations",
-    credits: 8,
-    provider: "Apify",
-    icon: Bot,
-  },
-  {
-    id: "brand-mention-monitor",
-    name: "Brand mention monitor",
-    description: "Track unlinked brand mentions across the open web.",
-    category: "Citations",
-    credits: 4,
-    provider: "Apify",
-    icon: Bot,
-  },
-  // Backlinks
-  {
-    id: "backlink-profile",
-    name: "Backlink profile",
-    description: "Full backlink and referring domain overview with history.",
-    category: "Backlinks",
-    credits: 3,
-    provider: "Apify",
-    icon: Link2,
-  },
-  {
-    id: "dr-checker",
-    name: "DR checker",
-    description: "Domain rating and authority score for any URL.",
-    category: "Backlinks",
-    credits: 2,
-    provider: "Apify",
-    icon: Link2,
-  },
-  {
-    id: "link-gap-analysis",
-    name: "Link gap analysis",
-    description: "Find domains linking to competitors but not you.",
-    category: "Backlinks",
-    credits: 5,
-    provider: "Apify",
-    icon: Link2,
-  },
-  // Traffic
-  {
-    id: "traffic-overview",
-    name: "Traffic overview",
-    description: "Monthly visits, organic/paid split, top countries, and top pages.",
-    category: "Traffic",
-    credits: 3,
-    provider: "Apify",
-    icon: Globe,
-  },
-  {
-    id: "ga4-traffic-report",
-    name: "GA4 traffic report",
-    description: "Sessions, users, bounce rate, and conversion data from GA4.",
-    category: "Traffic",
-    credits: null,
-    provider: "GA4",
-    icon: Globe,
-  },
-  {
-    id: "top-pages",
-    name: "Top pages report",
-    description: "Highest-traffic pages with their impressions and average position.",
-    category: "Traffic",
-    credits: null,
-    provider: "GSC",
-    icon: Globe,
-  },
-  // Content
-  {
-    id: "content-gap",
-    name: "Content gap",
-    description: "Keywords competitors rank for that you don't cover yet.",
-    category: "Content",
-    credits: 4,
-    provider: "Apify",
-    icon: FileSearch,
-  },
-  {
-    id: "seo-audit",
-    name: "SEO audit",
-    description: "Crawl any site for technical, on-page, and content issues.",
-    category: "Content",
-    credits: 5,
-    provider: "Apify",
-    icon: FileSearch,
-  },
-  {
-    id: "keyword-volume",
-    name: "Keyword volume",
-    description: "Search volume, CPC, competition, and difficulty for any keyword.",
-    category: "Content",
-    credits: 2,
-    provider: "Apify",
-    icon: TrendingUp,
-  },
-];
-
-const CATEGORIES = [...new Set(SKILLS.map((s) => s.category))];
-const PROVIDERS: Provider[] = ["GSC", "GA4", "Apify", "GMB", "PSI"];
-
-
-export function SkillsLibrary() {
+export function SkillsLibrary({ userPlan, apiKey }: SkillsLibraryProps) {
   const [search, setSearch] = useState("");
-  const [activeProvider, setActiveProvider] = useState<Provider | "All">("All");
+  const [activeCategory, setActiveCategory] = useState<SkillCategory | "All">("All");
+  const [expandedSkill, setExpandedSkill] = useState<string | null>(null);
+  const [setupOpen, setSetupOpen] = useState(false);
 
-  const filtered = SKILLS.filter((s) => {
+  const userPlanIndex = PLAN_ORDER.indexOf(userPlan);
+
+  const filtered = SKILL_TEMPLATES.filter((s) => {
     const matchesSearch =
       !search ||
       s.name.toLowerCase().includes(search.toLowerCase()) ||
       s.description.toLowerCase().includes(search.toLowerCase());
-    const matchesProvider = activeProvider === "All" || s.provider === activeProvider;
-    return matchesSearch && matchesProvider;
+    const matchesCategory = activeCategory === "All" || s.category === activeCategory;
+    return matchesSearch && matchesCategory;
   });
 
-  const visibleCategories = CATEGORIES.filter((cat) => filtered.some((s) => s.category === cat));
+  const categories = SKILL_CATEGORIES.filter((cat) =>
+    filtered.some((s) => s.category === cat.id)
+  );
 
   return (
-    <div className="space-y-5">
-      {/* Search + filter */}
+    <div className="space-y-6">
+      {/* Setup instructions */}
+      <div className="rounded-xl border border-border bg-card">
+        <button
+          onClick={() => setSetupOpen(!setupOpen)}
+          className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-foreground"
+        >
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-primary" />
+            How to use skills in Claude Desktop
+          </div>
+          {setupOpen ? (
+            <ChevronUp className="w-4 h-4 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+          )}
+        </button>
+        {setupOpen && (
+          <div className="px-4 pb-4 text-sm text-muted-foreground space-y-3 border-t border-border pt-3">
+            <p>Skills are markdown instruction files that tell Claude how to use your EasyFetcher data. Here&apos;s how to set them up:</p>
+            <ol className="space-y-2 list-decimal list-inside">
+              <li>
+                <strong>Download a skill</strong> — click the download button on any skill below
+              </li>
+              <li>
+                <strong>Save it</strong> — move the downloaded <code className="text-xs bg-muted px-1 py-0.5 rounded">.md</code> file to{" "}
+                <code className="text-xs bg-muted px-1 py-0.5 rounded">~/.claude/skills/</code> (create the folder if it doesn&apos;t exist)
+              </li>
+              <li>
+                <strong>Use it</strong> — open Claude Desktop and type something like{" "}
+                <em>&ldquo;Run my weekly SEO health check&rdquo;</em>. Claude will automatically use the skill!
+              </li>
+            </ol>
+            <p className="text-xs text-muted-foreground/70">
+              Each downloaded skill is personalized with your MCP API key ({apiKey && apiKey !== "none" ? `${apiKey.slice(0, 8)}...` : "YOUR_API_KEY"}) so Claude can connect to your data automatically.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Search + category filter */}
       <div className="flex items-center gap-3 flex-wrap">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search 100+ skills..."
+            placeholder={`Search ${SKILL_TEMPLATES.length} skills...`}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
         <div className="flex items-center gap-1 p-1 bg-muted rounded-lg flex-wrap">
-          {(["All", ...PROVIDERS] as const).map((p) => (
-            <button
-              key={p}
-              onClick={() => setActiveProvider(p)}
-              className={cn(
-                "px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
-                activeProvider === p
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {p}
-            </button>
-          ))}
+          <button
+            onClick={() => setActiveCategory("All")}
+            className={cn(
+              "px-3 py-1.5 rounded-md text-xs font-medium transition-colors",
+              activeCategory === "All"
+                ? "bg-background text-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            All
+          </button>
+          {SKILL_CATEGORIES.map((cat) => {
+            const Icon = CATEGORY_ICONS[cat.id];
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id)}
+                className={cn(
+                  "px-3 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1.5",
+                  activeCategory === cat.id
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {Icon && <Icon className="w-3.5 h-3.5 shrink-0" />}
+                {cat.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Skills grouped by category */}
-      {visibleCategories.length === 0 ? (
-        <p className="text-sm text-muted-foreground text-center py-12">No skills match your search.</p>
+      {categories.length === 0 ? (
+        <p className="text-sm text-muted-foreground text-center py-12">
+          No skills match your search.
+        </p>
       ) : (
-        visibleCategories.map((category) => {
-          const categorySkills = filtered.filter((s) => s.category === category);
+        categories.map((category) => {
+          const categorySkills = filtered.filter((s) => s.category === category.id);
+          const CatIcon = CATEGORY_ICONS[category.id];
           return (
-            <div key={category}>
+            <div key={category.id}>
               <div className="flex items-center gap-2 mb-3">
-                <h2 className="text-sm font-semibold text-foreground">{category}</h2>
-                <span className="text-xs text-muted-foreground">{categorySkills.length} skills</span>
+                <CatIcon className="w-4 h-4 text-primary" />
+                <h2 className="text-sm font-semibold text-foreground">{category.label}</h2>
+                <span className="text-xs text-muted-foreground">
+                  {categorySkills.length} {categorySkills.length === 1 ? "skill" : "skills"}
+                </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {categorySkills.map((skill) => (
-                  <SkillCard key={skill.id} skill={skill} />
+                  <SkillCard
+                    key={skill.id}
+                    skill={skill}
+                    isExpanded={expandedSkill === skill.id}
+                    onToggle={() =>
+                      setExpandedSkill(expandedSkill === skill.id ? null : skill.id)
+                    }
+                  />
                 ))}
               </div>
             </div>
@@ -237,34 +196,208 @@ export function SkillsLibrary() {
   );
 }
 
-function SkillCard({ skill }: { skill: Skill }) {
-  const Icon = skill.icon;
-  const creditLabel = skill.credits == null ? "Free" : `${skill.credits} cr`;
-  const creditStyle = skill.credits == null ? "bg-green-500/15 text-green-600 dark:text-green-400" : "bg-primary/10 text-primary";
+// ─── Skill Card ───────────────────────────────────────────────────────────────
+
+function SkillCard({
+  skill,
+  isExpanded,
+  onToggle,
+}: {
+  skill: SkillTemplate;
+  isExpanded: boolean;
+  onToggle: () => void;
+}) {
+  const [downloading, setDownloading] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const CatIcon = CATEGORY_ICONS[skill.category];
+
+  const handleDownload = async () => {
+    setDownloading(true);
+    try {
+      const res = await fetch(`/api/skills/download?id=${skill.id}`);
+      if (!res.ok) {
+        throw new Error("Download failed");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${skill.id}.md`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download error:", err);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handleCopyExample = async () => {
+    if (skill.examplePrompts.length > 0) {
+      await navigator.clipboard.writeText(skill.examplePrompts[0]);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   return (
-    <div className="rounded-xl border border-border bg-card p-4 flex flex-col gap-3">
-      <div className="flex items-start justify-between gap-2">
-        <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-          <Icon className="w-4 h-4 text-primary" strokeWidth={1.75} />
+    <div
+      className={cn(
+        "rounded-xl border bg-card flex flex-col transition-all border-border hover:border-primary/30",
+        isExpanded && "ring-1 ring-primary/20"
+      )}
+    >
+      <div className="p-4 flex flex-col gap-3 flex-1">
+        {/* Header */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+            <CatIcon className="w-4 h-4 text-primary" />
+          </div>
+          <div className="flex items-center gap-2">
+            {/* Connector Logos */}
+            {skill.requiredConnections.length > 0 && (
+              <div className="flex -space-x-1.5 items-center mr-1">
+                {skill.requiredConnections.map((conn) => {
+                  const item = CONNECTOR_LOGOS[conn];
+                  if (!item) return null;
+                  return (
+                    <div
+                      key={conn}
+                      className="w-6 h-6 rounded-full bg-background border border-border flex items-center justify-center overflow-hidden shadow-sm shrink-0"
+                      title={item.name}
+                    >
+                      <img src={item.logo} alt={item.name} className="w-4 h-4 object-contain" />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {/* Credits badge (Coin Symbol) */}
+            {skill.credits !== null && skill.credits > 0 && (
+              <div
+                className="w-6 h-6 rounded-full bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-600 dark:text-amber-400 shadow-sm shrink-0"
+                title="Uses credits"
+              >
+                <Coins className="w-3.5 h-3.5" />
+              </div>
+            )}
+          </div>
         </div>
-        <span className={cn("text-[10px] px-1.5 py-0.5 rounded font-semibold shrink-0", creditStyle)}>
-          {creditLabel}
-        </span>
+
+        {/* Name + description */}
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-foreground">{skill.name}</p>
+          <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed line-clamp-2">
+            {skill.description.split(". ")[0]}.
+          </p>
+        </div>
+
+        {/* Tools used */}
+        <div className="flex items-center gap-1 flex-wrap">
+          {skill.requiredTools.slice(0, 3).map((tool) => (
+            <span
+              key={tool}
+              className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-medium"
+            >
+              {tool}
+            </span>
+          ))}
+          {skill.requiredTools.length > 3 && (
+            <span className="text-[10px] text-muted-foreground">
+              +{skill.requiredTools.length - 3} more
+            </span>
+          )}
+        </div>
+
+        {/* Expand button */}
+        <button
+          onClick={onToggle}
+          className="text-xs text-primary hover:text-primary/80 font-medium flex items-center gap-1 transition-colors"
+        >
+          {isExpanded ? (
+            <>
+              Less <ChevronUp className="w-3 h-3" />
+            </>
+          ) : (
+            <>
+              Details <ChevronDown className="w-3 h-3" />
+            </>
+          )}
+        </button>
       </div>
 
-      <div className="flex-1">
-        <p className="text-sm font-semibold text-foreground">{skill.name}</p>
-        <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{skill.description}</p>
-        {skill.requiresConnection && (
-          <p className="text-[11px] text-muted-foreground mt-1.5">Requires: {skill.requiresConnection}</p>
-        )}
-      </div>
+      {/* Expanded details */}
+      {isExpanded && (
+        <div className="px-4 pb-3 border-t border-border pt-3 space-y-3">
+          {/* Connections required */}
+          {skill.requiredConnections.length > 0 && (
+            <div>
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                Requires
+              </p>
+              <div className="flex gap-1">
+                {skill.requiredConnections.map((conn) => (
+                  <span
+                    key={conn}
+                    className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium"
+                  >
+                    {conn} connected
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
 
-      <button className="w-full py-1.5 rounded-md border border-border text-xs font-medium text-foreground hover:bg-accent transition-colors flex items-center justify-center gap-1.5">
-        <Download className="w-3.5 h-3.5" />
-        Download skill
-      </button>
+          {/* Example prompts */}
+          <div>
+            <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+              Try saying
+            </p>
+            <div className="space-y-1">
+              {skill.examplePrompts.map((prompt, i) => (
+                <p key={i} className="text-xs text-foreground/80 italic">
+                  &ldquo;{prompt}&rdquo;
+                </p>
+              ))}
+            </div>
+          </div>
+
+          {/* Copy example button */}
+          <button
+            onClick={handleCopyExample}
+            className="w-full py-1.5 rounded-md border border-border text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex items-center justify-center gap-1.5"
+          >
+            {copied ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-green-500" /> Copied!
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5" /> Copy example prompt
+              </>
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* Download button */}
+      <div className="px-4 pb-4 pt-1">
+        <button
+          onClick={handleDownload}
+          disabled={downloading}
+          className="w-full py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+        >
+          {downloading ? (
+            "Downloading..."
+          ) : (
+            <>
+              <Download className="w-3.5 h-3.5" /> Download skill
+            </>
+          )}
+        </button>
+      </div>
     </div>
   );
 }

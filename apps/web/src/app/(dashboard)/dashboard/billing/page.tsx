@@ -48,7 +48,7 @@ const CREDIT_TABLE = [
   { feature: "SEO audit",            poweredBy: "AI-powered",      creditsPerRun: 5, oauthFree: false },
   { feature: "GSC data fetch",       poweredBy: "Google OAuth",    creditsPerRun: 0, oauthFree: true  },
   { feature: "GA4 data fetch",       poweredBy: "Google OAuth",    creditsPerRun: 0, oauthFree: true  },
-  { feature: "PageSpeed / GMB",      poweredBy: "Google OAuth",    creditsPerRun: 0, oauthFree: true  },
+  { feature: "PageSpeed Insights",    poweredBy: "Google API key",  creditsPerRun: 0, oauthFree: true  },
 ];
 
 function daysUntilReset() {

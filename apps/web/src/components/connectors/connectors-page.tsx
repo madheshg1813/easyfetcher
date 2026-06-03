@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Check, Copy, X, Lock, Gauge, Sparkles, ChevronRight } from "lucide-react";
+import { Check, Copy, X, Lock, Gauge, Sparkles, ChevronRight, Coins } from "lucide-react";
 import type { Plan } from "@easyfetcher/db";
 
 interface Connection {
@@ -42,10 +42,10 @@ const CONNECTORS = [
   {
     id: "PAGESPEED",
     name: "PageSpeed Insights",
-    description: "Core Web Vitals, performance",
-    logo: null,
-    connectUrl: "#",
-    comingSoon: true,
+    description: "Core Web Vitals, performance scores",
+    logo: "/connectors/pagespeed.svg",
+    connectUrl: "/api/connect/free?platform=PAGESPEED",
+    comingSoon: false,
   },
   {
     id: "GOOGLE_MY_BUSINESS",
@@ -58,10 +58,17 @@ const CONNECTORS = [
 ] as const;
 
 const PREVIEW_SKILLS = [
-  { name: "Rank tracker", tag: "Free", provider: "GSC", credits: null, description: "Track keyword positions across Google with daily refreshes." },
-  { name: "AI citation tracker", tag: "8 cr", provider: "Apify", credits: 8, description: "See when ChatGPT, Perplexity, and Claude cite your domain." },
-  { name: "SEO audit", tag: "5 cr", provider: "Apify", credits: 5, description: "Crawl any site for technical, on-page, and content issues." },
+  { name: "Rank tracker", provider: "GSC", credits: null, description: "Track keyword positions across Google with daily refreshes." },
+  { name: "AI citation tracker", provider: "Apify", credits: 8, description: "See when ChatGPT, Perplexity, and Claude cite your domain." },
+  { name: "SEO audit", provider: "Apify", credits: 5, description: "Crawl any site for technical, on-page, and content issues." },
 ];
+
+const CONNECTOR_LOGOS: Record<string, string> = {
+  GSC: "/connectors/gsc.svg",
+  GA4: "/connectors/google-analytics.svg",
+  GMB: "/connectors/google-my-business.svg",
+  PAGESPEED: "/connectors/pagespeed.svg",
+};
 
 export function ConnectorsPage({ plan: _plan, connections, workspaceId, apiKey, params }: ConnectorsPageProps) {
   const [copiedConfig, setCopiedConfig] = useState(false);
@@ -82,6 +89,7 @@ export function ConnectorsPage({ plan: _plan, connections, workspaceId, apiKey, 
   })();
 
   const connectedSet = new Set(connections.map((c) => c.platform));
+  connectedSet.add("PAGESPEED");
   const connectedCount = CONNECTORS.filter((c) => connectedSet.has(c.id)).length;
 
   const copyConfig = async () => {
@@ -246,25 +254,42 @@ export function ConnectorsPage({ plan: _plan, connections, workspaceId, apiKey, 
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {PREVIEW_SKILLS.map((skill) => (
-            <div key={skill.name} className="rounded-xl border border-border bg-card p-4 flex flex-col gap-3">
-              <div className="flex items-start justify-between gap-2">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                  <Sparkles className="w-4 h-4 text-primary" strokeWidth={1.75} />
+          {PREVIEW_SKILLS.map((skill) => {
+            const logo = CONNECTOR_LOGOS[skill.provider];
+            return (
+              <div key={skill.name} className="rounded-xl border border-border bg-card p-4 flex flex-col gap-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                    <Sparkles className="w-4 h-4 text-primary" strokeWidth={1.75} />
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    {/* Connector Logo */}
+                    {logo && (
+                      <div className="w-6 h-6 rounded-full bg-background border border-border flex items-center justify-center overflow-hidden shadow-sm shrink-0">
+                        <img src={logo} alt={skill.provider} className="w-4 h-4 object-contain" />
+                      </div>
+                    )}
+                    {/* Credits badge (Coin Symbol) */}
+                    {skill.credits !== null && skill.credits > 0 && (
+                      <div
+                        className="w-6 h-6 rounded-full bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-600 dark:text-amber-400 shadow-sm shrink-0"
+                        title="Uses credits"
+                      >
+                        <Coins className="w-3.5 h-3.5" />
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded font-semibold shrink-0 ${skill.credits == null ? "bg-green-500/15 text-green-600 dark:text-green-400" : "bg-primary/10 text-primary"}`}>
-                  {skill.tag}
-                </span>
+                <div>
+                  <p className="text-xs font-semibold text-foreground">{skill.name}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{skill.description}</p>
+                </div>
+                <button className="mt-auto w-full py-1.5 rounded-md border border-border text-xs font-medium text-foreground hover:bg-accent transition-colors flex items-center justify-center gap-1.5">
+                  Download skill
+                </button>
               </div>
-              <div>
-                <p className="text-xs font-semibold text-foreground">{skill.name}</p>
-                <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{skill.description}</p>
-              </div>
-              <button className="mt-auto w-full py-1.5 rounded-md border border-border text-xs font-medium text-foreground hover:bg-accent transition-colors flex items-center justify-center gap-1.5">
-                Download skill
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>

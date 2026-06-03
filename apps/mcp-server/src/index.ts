@@ -436,6 +436,99 @@ server.tool(
   }
 );
 
+// ─── pagespeed_insights ───────────────────────────────────────────────────────
+server.tool(
+  "pagespeed_insights",
+  "Analyze any URL's Core Web Vitals, Lighthouse performance scores, and PageSpeed metrics using Google's PageSpeed Insights API",
+  {
+    url: z.string().url().describe("The fully qualified URL to analyze (e.g. https://example.com/page)"),
+    strategy: z.enum(["mobile", "desktop"]).default("mobile").describe("Device strategy: mobile (default) or desktop"),
+  },
+  async ({ url, strategy }) => {
+    const user = await getUser();
+    if (!user) return { content: [{ type: "text" as const, text: "Invalid API key" }] };
+
+
+    const apiKey = process.env.PAGESPEED_API_KEY;
+    if (!apiKey) {
+      return { content: [{ type: "text" as const, text: "PageSpeed API key is not configured on the server. Please add PAGESPEED_API_KEY to your environment variables." }] };
+    }
+
+    const endpoint = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=${strategy}&key=${apiKey}`;
+
+    let data: Record<string, unknown>;
+    try {
+      const res = await fetch(endpoint);
+      if (!res.ok) {
+        const errBody = await res.text();
+        return { content: [{ type: "text" as const, text: `PageSpeed API error ${res.status}: ${errBody}` }] };
+      }
+      data = await res.json() as Record<string, unknown>;
+    } catch (err) {
+      return { content: [{ type: "text" as const, text: `Failed to call PageSpeed API: ${err instanceof Error ? err.message : String(err)}` }] };
+    }
+
+    // Extract Lighthouse categories
+    const categories = (data.lighthouseResult as Record<string, unknown>)?.categories as Record<string, { score: number; title: string }> | undefined;
+    const audits = (data.lighthouseResult as Record<string, unknown>)?.audits as Record<string, { numericValue?: number; displayValue?: string; title: string }> | undefined;
+
+    const score = (key: string) => {
+      const s = categories?.[key]?.score;
+      return s != null ? Math.round(s * 100) : "N/A";
+    };
+
+    const metric = (key: string) => audits?.[key]?.displayValue ?? "N/A";
+
+    const performanceScore = score("performance");
+    const accessibilityScore = score("accessibility");
+    const bestPracticesScore = score("best-practices");
+    const seoScore = score("seo");
+
+    // Core Web Vitals & key metrics
+    const fcp = metric("first-contentful-paint");
+    const lcp = metric("largest-contentful-paint");
+    const cls = metric("cumulative-layout-shift");
+    const tbt = metric("total-blocking-time");
+    const si  = metric("speed-index");
+    const tti = metric("interactive");
+
+    // Opportunities (top failing audits)
+    const opportunities: string[] = [];
+    if (audits) {
+      for (const [, audit] of Object.entries(audits)) {
+        const a = audit as { score?: number; details?: { type?: string }; title: string; displayValue?: string };
+        if (a.score != null && a.score < 0.9 && a.details?.type === "opportunity") {
+          opportunities.push(`• ${a.title}${a.displayValue ? ` — ${a.displayValue}` : ""}`);
+        }
+      }
+    }
+
+    const strategyLabel = strategy.charAt(0).toUpperCase() + strategy.slice(1);
+
+    const report = [
+      `📊 PageSpeed Insights — ${strategyLabel}`,
+      `URL: ${url}`,
+      ``,
+      `🏆 Lighthouse Scores`,
+      `  Performance:    ${performanceScore}/100`,
+      `  Accessibility:  ${accessibilityScore}/100`,
+      `  Best Practices: ${bestPracticesScore}/100`,
+      `  SEO:            ${seoScore}/100`,
+      ``,
+      `⚡ Core Web Vitals & Metrics`,
+      `  First Contentful Paint (FCP):    ${fcp}`,
+      `  Largest Contentful Paint (LCP):  ${lcp}`,
+      `  Cumulative Layout Shift (CLS):   ${cls}`,
+      `  Total Blocking Time (TBT):       ${tbt}`,
+      `  Speed Index:                     ${si}`,
+      `  Time to Interactive (TTI):       ${tti}`,
+      ...(opportunities.length > 0 ? [``, `🔧 Top Improvement Opportunities`, ...opportunities.slice(0, 5)] : []),
+    ].join("\n");
+
+    return { content: [{ type: "text" as const, text: report }] };
+  }
+);
+
 // ─── Start ─────────────────────────────────────────────────────────────────────
 async function main() {
   const transport = new StdioServerTransport();
