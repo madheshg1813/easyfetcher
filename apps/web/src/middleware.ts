@@ -13,6 +13,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/oauth/(.*)",
   "/api/callback/(.*)",
   "/api/connect/(.*)",
+  "/api/debug-confirm",
   "/.well-known/(.*)",
 ]);
 
