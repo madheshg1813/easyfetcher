@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { saveConnection } from "@/app/api/callback/google/route";
+import { saveConnection } from "@/lib/save-connection";
 
 // Called from the site-picker page when a user has multiple GSC sites or GA4 properties.
 // For single-site OAuth flows, the connection is now written directly in /api/callback/google.
