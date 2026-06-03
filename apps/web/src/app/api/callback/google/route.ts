@@ -5,6 +5,90 @@ import { prisma } from "@/lib/db";
 import { encrypt } from "@easyfetcher/db";
 import type { Platform } from "@easyfetcher/db";
 
+// ─── Shared helper: save a single connection from a pending record ────────────
+export async function saveConnection(
+  dbUserId: string,
+  workspaceId: string | null,
+  platform: Platform,
+  accessToken: string,   // already encrypted
+  refreshToken: string | null,
+  tokenExpiry: Date | null,
+  userEmail: string | null,
+  siteUrl: string,
+  label: string,
+) {
+  if (workspaceId) {
+    await prisma.connection.upsert({
+      where: {
+        workspaceId_platform_siteUrl: { workspaceId, platform, siteUrl },
+      },
+      create: {
+        userId: dbUserId,
+        workspaceId,
+        platform,
+        accessToken,
+        refreshToken,
+        expiresAt: tokenExpiry,
+        status: "CONNECTED",
+        siteUrl,
+        label,
+        metadata: { email: userEmail },
+      },
+      update: {
+        accessToken,
+        refreshToken: refreshToken ?? undefined,
+        expiresAt: tokenExpiry,
+        status: "CONNECTED",
+        label,
+        metadata: { email: userEmail },
+      },
+    });
+  } else {
+    // workspaceId is null — can't use compound unique key, fall back to find+upsert
+    const existing = await prisma.connection.findFirst({
+      where: { userId: dbUserId, platform, siteUrl, workspaceId: null },
+    });
+    if (existing) {
+      await prisma.connection.update({
+        where: { id: existing.id },
+        data: {
+          accessToken,
+          refreshToken: refreshToken ?? undefined,
+          expiresAt: tokenExpiry,
+          status: "CONNECTED",
+          label,
+          metadata: { email: userEmail },
+        },
+      });
+    } else {
+      await prisma.connection.create({
+        data: {
+          userId: dbUserId,
+          workspaceId: null,
+          platform,
+          accessToken,
+          refreshToken,
+          expiresAt: tokenExpiry,
+          status: "CONNECTED",
+          siteUrl,
+          label,
+          metadata: { email: userEmail },
+        },
+      });
+    }
+  }
+
+  await prisma.activityLog.create({
+    data: {
+      userId: dbUserId,
+      type: "CONNECTED",
+      message: `Connected ${platform} (${label})`,
+      metadata: { platform, siteUrl, workspaceId },
+    },
+  });
+}
+
+// ─── Main callback handler ────────────────────────────────────────────────────
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
@@ -37,7 +121,6 @@ export async function GET(request: NextRequest) {
       const clerkUser = await client.users.getUser(userId);
       const email = clerkUser.emailAddresses?.[0]?.emailAddress ?? `${userId}@unknown.local`;
       const name = [clerkUser.firstName, clerkUser.lastName].filter(Boolean).join(" ") || null;
-      // Email may already exist (webhook fired with different clerkId) — upsert to reconcile
       dbUser = await prisma.user.upsert({
         where: { email },
         update: { clerkId: userId },
@@ -46,6 +129,14 @@ export async function GET(request: NextRequest) {
     } catch {
       return NextResponse.redirect(`${baseUrl}/dashboard/sources?error=user_not_found`);
     }
+  }
+
+  // Resolve workspace
+  if (!workspaceId) {
+    const ws =
+      (await prisma.workspace.findFirst({ where: { userId: dbUser.id, isDefault: true } })) ??
+      (await prisma.workspace.findFirst({ where: { userId: dbUser.id } }));
+    workspaceId = ws?.id ?? null;
   }
 
   // Exchange code for tokens
@@ -77,13 +168,18 @@ export async function GET(request: NextRequest) {
 
   oauth2Client.setCredentials(tokens);
 
-  // Get user email
+  // Get user email (non-critical)
   let userEmail: string | null = null;
   try {
     const oauth2 = google.oauth2({ version: "v2", auth: oauth2Client });
     const userInfo = await oauth2.userinfo.get();
     userEmail = userInfo.data.email ?? null;
   } catch { /* non-critical */ }
+
+  // Encrypt tokens once
+  const encryptedAccess = encrypt(tokens.access_token!);
+  const encryptedRefresh = tokens.refresh_token ? encrypt(tokens.refresh_token) : null;
+  const tokenExpiry = tokens.expiry_date ? new Date(tokens.expiry_date) : null;
 
   // Fetch available sites/properties for the picker
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -95,11 +191,15 @@ export async function GET(request: NextRequest) {
       sites = (res.data.siteEntry ?? []).map((s) => ({
         siteUrl: s.siteUrl,
         permissionLevel: s.permissionLevel,
+        displayName: s.siteUrl
+          ?.replace("sc-domain:", "")
+          .replace("https://", "")
+          .replace("http://", "")
+          .replace(/\/$/, ""),
       }));
     }
     if (platform === "GA4") {
       const analyticsAdmin = google.analyticsadmin({ version: "v1beta", auth: oauth2Client });
-      // List accounts first, then properties per account (wildcard filter not supported)
       const accountsRes = await analyticsAdmin.accounts.list();
       const accounts = accountsRes.data.accounts ?? [];
       for (const account of accounts) {
@@ -111,14 +211,13 @@ export async function GET(request: NextRequest) {
         const props = (propsRes.data.properties ?? [])
           .filter((p) => p.name)
           .map((p) => ({
-            siteUrl: p.name!,           // e.g. "properties/123456"
+            siteUrl: p.name!,
             displayName: p.displayName ?? p.name ?? "GA4 Property",
           }));
         sites.push(...props);
       }
     }
     if (platform === "GOOGLE_ADS") {
-      // No picker needed for Ads — auto-connect with placeholder
       sites = [{ siteUrl: "google_ads", displayName: "Google Ads Account" }];
     }
     if (platform === "GOOGLE_MY_BUSINESS") {
@@ -126,7 +225,7 @@ export async function GET(request: NextRequest) {
         const mybusiness = google.mybusinessaccountmanagement({ version: "v1", auth: oauth2Client });
         const res = await mybusiness.accounts.list();
         sites = (res.data.accounts ?? []).map((a) => ({
-          siteUrl: a.name ?? "",        // e.g. "accounts/123456789"
+          siteUrl: a.name ?? "",
           displayName: a.accountName ?? a.name ?? "My Business",
         }));
       } catch (gmbErr) {
@@ -167,28 +266,52 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${baseUrl}/dashboard/sources?error=no_sites_found&platform=${platform}`);
   }
 
-  // Save tokens in PendingConnection (expires in 15 min)
-  const pending = await prisma.pendingConnection.create({
-    data: {
-      userId: dbUser.id,
-      workspaceId,
-      platform,
-      accessToken: encrypt(tokens.access_token!),
-      refreshToken: tokens.refresh_token ? encrypt(tokens.refresh_token) : null,
-      tokenExpiry: tokens.expiry_date ? new Date(tokens.expiry_date) : null,
-      sites,
-      userEmail,
-      expiresAt: new Date(Date.now() + 15 * 60 * 1000),
-    },
-  });
-
-  // If only one site, skip the picker and auto-confirm
+  // ── Single site: write Connection directly here — no confirm redirect needed ─
   if (sites.length === 1) {
-    return NextResponse.redirect(
-      `${baseUrl}/api/connect/confirm?pendingId=${pending.id}&siteUrl=${encodeURIComponent(sites[0].siteUrl)}`
-    );
+    try {
+      const site = sites[0];
+      const siteUrl = site.siteUrl as string;
+      const label = (site.displayName ?? siteUrl) as string;
+
+      await saveConnection(
+        dbUser.id,
+        workspaceId,
+        platform,
+        encryptedAccess,
+        encryptedRefresh,
+        tokenExpiry,
+        userEmail,
+        siteUrl,
+        label,
+      );
+
+      return NextResponse.redirect(`${baseUrl}/dashboard/sources?connected=${platform}`);
+    } catch (err: any) {
+      console.error("[callback/google] single-site save failed:", err);
+      const detail = encodeURIComponent((err?.message ?? String(err)).slice(0, 200));
+      return NextResponse.redirect(`${baseUrl}/dashboard/sources?error=save_failed&detail=${detail}`);
+    }
   }
 
-  // Multiple sites — show picker
-  return NextResponse.redirect(`${baseUrl}/dashboard/sources/pick-site?pendingId=${pending.id}`);
+  // ── Multiple sites: save pending record and show picker ──────────────────────
+  try {
+    const pending = await prisma.pendingConnection.create({
+      data: {
+        userId: dbUser.id,
+        workspaceId,
+        platform,
+        accessToken: encryptedAccess,
+        refreshToken: encryptedRefresh,
+        tokenExpiry,
+        sites,
+        userEmail,
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+      },
+    });
+    return NextResponse.redirect(`${baseUrl}/dashboard/sources/pick-site?pendingId=${pending.id}`);
+  } catch (err: any) {
+    console.error("[callback/google] pending save failed:", err);
+    const detail = encodeURIComponent((err?.message ?? String(err)).slice(0, 200));
+    return NextResponse.redirect(`${baseUrl}/dashboard/sources?error=pending_failed&detail=${detail}`);
+  }
 }
