@@ -35,13 +35,7 @@ async function getUserFromToken(request: NextRequest) {
     });
     if (user) return user;
   }
-
-  // Fallback to the first user in the database if no token is provided
-  return prisma.user.findFirst({
-    include: {
-      connections: { where: { status: "CONNECTED" } },
-    },
-  });
+  return null;
 }
 
 // ─── OAuth client factory ─────────────────────────────────────────────────────
