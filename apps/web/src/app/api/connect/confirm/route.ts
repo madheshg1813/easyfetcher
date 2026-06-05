@@ -1,41 +1,41 @@
-import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { saveConnection } from "@/lib/save-connection";
 
-// Called from the site-picker page when a user has multiple GSC sites or GA4 properties.
-// For single-site OAuth flows, the connection is now written directly in /api/callback/google.
+// Called from the pick-site page when user selects which site(s) to connect.
+// Security: pendingId is a random cuid with 15-min expiry — no Clerk auth() needed.
+// The pendingConnection record already contains the verified userId from the OAuth callback.
 export async function GET(request: NextRequest) {
-  try {
-    const { userId } = await auth();
-    if (!userId) return NextResponse.redirect(new URL("/login", request.url));
+  const base = process.env.NEXT_PUBLIC_APP_URL ?? `${new URL(request.url).protocol}//${new URL(request.url).host}`;
 
+  try {
     const { searchParams } = new URL(request.url);
     const pendingId = searchParams.get("pendingId");
     const siteUrlsParam = searchParams.get("siteUrl") ?? "";
-    const selectedSites = siteUrlsParam.split(",").map((s) => s.trim()).filter(Boolean);
+    const selectedSites = siteUrlsParam.split(",").map((s) => decodeURIComponent(s.trim())).filter(Boolean);
 
     if (!pendingId || selectedSites.length === 0) {
-      return NextResponse.redirect(new URL("/dashboard/sources?error=invalid_confirm", request.url));
+      return NextResponse.redirect(new URL("/dashboard/sources?error=invalid_confirm", base));
     }
 
-    const dbUser = await prisma.user.findUnique({ where: { clerkId: userId } });
-    if (!dbUser) return NextResponse.redirect(new URL("/dashboard/sources?error=user_not_found", request.url));
+    // Look up pending connection — it contains the userId from the OAuth callback
+    const pending = await prisma.pendingConnection.findUnique({ where: { id: pendingId } });
 
-    const pending = await prisma.pendingConnection.findFirst({
-      where: { id: pendingId, userId: dbUser.id },
-    });
+    if (!pending) {
+      return NextResponse.redirect(new URL("/dashboard/sources?error=session_not_found", base));
+    }
 
-    if (!pending || pending.expiresAt < new Date()) {
-      return NextResponse.redirect(new URL("/dashboard/sources?error=session_expired", request.url));
+    if (pending.expiresAt < new Date()) {
+      await prisma.pendingConnection.delete({ where: { id: pendingId } }).catch(() => {});
+      return NextResponse.redirect(new URL("/dashboard/sources?error=session_expired", base));
     }
 
     // Resolve workspace
     let workspaceId = pending.workspaceId;
     if (!workspaceId) {
       const ws =
-        (await prisma.workspace.findFirst({ where: { userId: dbUser.id, isDefault: true } })) ??
-        (await prisma.workspace.findFirst({ where: { userId: dbUser.id } }));
+        (await prisma.workspace.findFirst({ where: { userId: pending.userId, isDefault: true } })) ??
+        (await prisma.workspace.findFirst({ where: { userId: pending.userId } }));
       workspaceId = ws?.id ?? null;
     }
 
@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
           .replace(/\/$/, "");
 
       await saveConnection(
-        dbUser.id,
+        pending.userId,
         workspaceId,
         pending.platform,
         pending.accessToken,
@@ -67,10 +67,11 @@ export async function GET(request: NextRequest) {
     }
 
     await prisma.pendingConnection.delete({ where: { id: pendingId } });
-    return NextResponse.redirect(new URL(`/dashboard/sources?connected=${pending.platform}`, request.url));
-  } catch (err: any) {
+    return NextResponse.redirect(new URL(`/dashboard/sources?connected=${pending.platform}`, base));
+  } catch (err: unknown) {
     console.error("[confirm] error:", err);
-    const detail = encodeURIComponent((err?.message ?? String(err)).slice(0, 200));
-    return NextResponse.redirect(new URL(`/dashboard/sources?error=confirm_failed&detail=${detail}`, request.url));
+    const msg = err instanceof Error ? err.message : String(err);
+    const detail = encodeURIComponent(msg.slice(0, 200));
+    return NextResponse.redirect(new URL(`/dashboard/sources?error=confirm_failed&detail=${detail}`, base));
   }
 }

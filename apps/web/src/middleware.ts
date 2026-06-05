@@ -16,6 +16,8 @@ const isPublicRoute = createRouteMatcher([
   // Google OAuth flow — these must be public (Google redirects to callback, user initiates connect)
   "/api/connect/google",
   "/api/connect/free(.*)",
+  "/api/connect/confirm",
+  "/api/connect/disconnect(.*)",
   "/api/callback/(.*)",
   "/api/debug-confirm",
 ]);
