@@ -19,6 +19,10 @@ export default async function SourcesPage({
   const dbUser = await prisma.user.findUnique({
     where: { clerkId: userId },
     include: {
+      connections: {
+        where: { status: "CONNECTED" },
+        select: { id: true, platform: true, status: true, siteUrl: true, accountId: true, label: true, workspaceId: true },
+      },
       workspaces: {
         orderBy: { sortOrder: "asc" },
         include: {
@@ -36,7 +40,8 @@ export default async function SourcesPage({
     (dbUser?.workspaces ?? []).find((w) => w.id === dbUser?.activeWorkspaceId) ??
     (dbUser?.workspaces ?? [])[0];
 
-  const connections = activeWorkspace?.connections ?? [];
+  // Use all user connections so that even those without a workspace show as connected
+  const connections = dbUser?.connections ?? [];
   let apiKey = dbUser?.apiKey;
   if (dbUser && !apiKey) {
     const { randomBytes } = require("crypto");

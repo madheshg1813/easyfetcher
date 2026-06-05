@@ -82,10 +82,14 @@ export function ConnectorsPage({ plan: _plan, connections, workspaceId, apiKey, 
   }, []);
 
   const mcpUrl = (() => {
-    if (origin.includes("hub-beta")) {
-      return `https://hub-beta.easyfetcher.com/mcp`;
+    if (!origin) return "";
+    if (origin.includes("localhost")) {
+      return `http://localhost:3000/api/mcp?apiKey=${apiKey}`;
     }
-    return `https://mcp.easyfetcher.com/mcp`;
+    if (origin.includes("hub-beta")) {
+      return `https://hub-beta.easyfetcher.com/api/mcp?apiKey=${apiKey}`;
+    }
+    return `https://mcp.easyfetcher.com/mcp?apiKey=${apiKey}`;
   })();
 
   const connectedSet = new Set(connections.map((c) => c.platform));
