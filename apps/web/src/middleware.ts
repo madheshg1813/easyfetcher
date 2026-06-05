@@ -20,6 +20,7 @@ const isPublicRoute = createRouteMatcher([
   "/api/connect/disconnect(.*)",
   "/api/callback/(.*)",
   "/api/debug-confirm",
+  "/api/debug/connections",
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
