@@ -56,7 +56,10 @@ export async function GET(request: NextRequest) {
   }
 
   // Exchange code for tokens
-  const redirectUri = new URL("/api/callback/google", request.url).toString();
+  // IMPORTANT: must use NEXT_PUBLIC_APP_URL (same as connect/google used) — request.url
+  // may differ on Vercel preview deployments, causing redirect_uri_mismatch from Google.
+  const appBase = process.env.NEXT_PUBLIC_APP_URL ?? `${new URL(request.url).protocol}//${new URL(request.url).host}`;
+  const redirectUri = `${appBase}/api/callback/google`;
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
