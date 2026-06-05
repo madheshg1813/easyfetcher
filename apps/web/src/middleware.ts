@@ -7,14 +7,17 @@ const isPublicRoute = createRouteMatcher([
   "/api/favicon(.*)",
   "/api/stripe/webhook",
   "/api/webhooks/clerk",
-  // MCP + OAuth endpoints — must be public so Claude can connect
+  "/api/webhooks/dodo",
+  // MCP endpoints — public so Claude can connect via Bearer token
   "/api/mcp(.*)",
   "/mcp(.*)",
-  "/api/oauth/(.*)",
-  "/api/callback/(.*)",
-  "/api/connect/(.*)",
-  "/api/debug-confirm",
+  // OAuth well-known endpoints
   "/.well-known/(.*)",
+  // Google OAuth flow — these must be public (Google redirects to callback, user initiates connect)
+  "/api/connect/google",
+  "/api/connect/free(.*)",
+  "/api/callback/(.*)",
+  "/api/debug-confirm",
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
