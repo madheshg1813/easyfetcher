@@ -9,8 +9,7 @@ export const gmbTool: McpTool = {
     properties: {
       metric: { type: "string", enum: ["overview", "reviews"], description: "Type of GMB data to fetch" },
       limit: { type: "number", description: "Number of reviews (default 10, only for metric='reviews')", default: 10 },
-      workspace_name: { type: "string", description: "Workspace name. Required if you have multiple workspaces." },
-      account_name: { type: "string", description: "GMB account label. Required if workspace has multiple GMB accounts." },
+      account_name: { type: "string", description: "Google My Business account name. Required if you have multiple accounts." },
     },
     required: ["metric"],
   },

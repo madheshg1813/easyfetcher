@@ -47,8 +47,6 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const platform = (searchParams.get("platform") ?? "GSC") as Platform;
-    const workspaceId = searchParams.get("workspaceId");
-
     // Validate platform is a Google platform
     const googlePlatforms: Platform[] = ["GSC", "GA4", "GOOGLE_ADS", "GOOGLE_MY_BUSINESS", "YOUTUBE", "YOUTUBE_ADS"];
     if (!googlePlatforms.includes(platform)) {
@@ -56,48 +54,30 @@ export async function GET(request: NextRequest) {
     }
 
     // Auto-create user if webhook hasn't fired yet
-    let dbUser = await prisma.user.findUnique({ where: { clerkId: userId } });
+    let dbUser = await prisma.user.findUnique({ 
+      where: { clerkId: userId },
+      include: { _count: { select: { connections: { where: { status: "CONNECTED" } } } } }
+    });
     if (!dbUser) {
       const clerkUser = await currentUser();
       const email = clerkUser?.emailAddresses?.[0]?.emailAddress ?? `${userId}@unknown.local`;
       const name = [clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(" ") || null;
-      // Email may already exist (webhook fired with different clerkId) — upsert to reconcile
       dbUser = await prisma.user.upsert({
         where: { email },
         update: { clerkId: userId },
         create: { clerkId: userId, email, name },
+        include: { _count: { select: { connections: { where: { status: "CONNECTED" } } } } }
       });
     }
 
-    // Resolve active workspace
-    let resolvedWorkspaceId = workspaceId;
-    if (!resolvedWorkspaceId) {
-      const ws = await prisma.workspace.findFirst({
-        where: { userId: dbUser.id, isDefault: true },
-      }) ?? await prisma.workspace.findFirst({ where: { userId: dbUser.id } });
-      resolvedWorkspaceId = ws?.id ?? null;
-    }
-
-    // Verify workspace belongs to this user
-    if (resolvedWorkspaceId) {
-      const workspace = await prisma.workspace.findFirst({
-        where: { id: resolvedWorkspaceId, userId: dbUser.id },
-        include: { _count: { select: { connections: { where: { status: "CONNECTED" } } } } },
-      });
-
-      if (!workspace) {
-        const base = process.env.NEXT_PUBLIC_APP_URL ?? `${new URL(request.url).protocol}//${new URL(request.url).host}`;
-        return NextResponse.redirect(new URL("/dashboard/sources", base));
-      }
-
-      const check = checkConnectionAllowed(dbUser.plan as Plan, platform, workspace._count.connections);
-      if (!check.allowed) {
-        const base = process.env.NEXT_PUBLIC_APP_URL ?? `${new URL(request.url).protocol}//${new URL(request.url).host}`;
-        const url = new URL("/dashboard/sources", base);
-        url.searchParams.set("error", "plan_limit");
-        url.searchParams.set("requiredPlan", check.requiredPlan);
-        return NextResponse.redirect(url);
-      }
+    // Check plan limits globally for the user
+    const check = checkConnectionAllowed(dbUser.plan as Plan, platform, dbUser._count.connections);
+    if (!check.allowed) {
+      const base = process.env.NEXT_PUBLIC_APP_URL ?? `${new URL(request.url).protocol}//${new URL(request.url).host}`;
+      const url = new URL("/dashboard/sources", base);
+      url.searchParams.set("error", "plan_limit");
+      url.searchParams.set("requiredPlan", check.requiredPlan);
+      return NextResponse.redirect(url);
     }
 
     const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/callback/google`;
@@ -107,8 +87,8 @@ export async function GET(request: NextRequest) {
       redirectUri
     );
 
-    // Encode userId + platform + workspaceId in state
-    const state = Buffer.from(JSON.stringify({ userId, platform, workspaceId: resolvedWorkspaceId })).toString("base64url");
+    // Encode userId + platform in state
+    const state = Buffer.from(JSON.stringify({ userId, platform })).toString("base64url");
 
     const authUrl = oauth2Client.generateAuthUrl({
       access_type: "offline",

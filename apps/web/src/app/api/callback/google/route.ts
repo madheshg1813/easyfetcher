@@ -19,12 +19,10 @@ export async function GET(request: NextRequest) {
 
   let userId: string;
   let platform: Platform;
-  let workspaceId: string | null = null;
   try {
     const decoded = JSON.parse(Buffer.from(state, "base64url").toString());
     userId = decoded.userId;
     platform = decoded.platform;
-    workspaceId = decoded.workspaceId ?? null;
   } catch {
     return NextResponse.redirect(new URL("/dashboard/sources?error=invalid_state", request.url));
   }
@@ -45,14 +43,6 @@ export async function GET(request: NextRequest) {
     } catch {
       return NextResponse.redirect(new URL("/dashboard/sources?error=user_not_found", request.url));
     }
-  }
-
-  // Resolve workspace
-  if (!workspaceId) {
-    const ws =
-      (await prisma.workspace.findFirst({ where: { userId: dbUser.id, isDefault: true } })) ??
-      (await prisma.workspace.findFirst({ where: { userId: dbUser.id } }));
-    workspaceId = ws?.id ?? null;
   }
 
   // Exchange code for tokens
@@ -194,7 +184,7 @@ export async function GET(request: NextRequest) {
 
       await saveConnection(
         dbUser.id,
-        workspaceId,
+        null,
         platform,
         encryptedAccess,
         encryptedRefresh,
@@ -217,7 +207,6 @@ export async function GET(request: NextRequest) {
     const pending = await prisma.pendingConnection.create({
       data: {
         userId: dbUser.id,
-        workspaceId,
         platform,
         accessToken: encryptedAccess,
         refreshToken: encryptedRefresh,

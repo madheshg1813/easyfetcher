@@ -30,10 +30,7 @@ async function getUserFromToken(request: NextRequest) {
     const user = await prisma.user.findFirst({
       where: { apiKey: token },
       include: {
-        workspaces: {
-          orderBy: { sortOrder: "asc" },
-          include: { connections: { where: { status: "CONNECTED" } } },
-        },
+        connections: { where: { status: "CONNECTED" } },
       },
     });
     if (user) return user;
@@ -42,10 +39,7 @@ async function getUserFromToken(request: NextRequest) {
   // Fallback to the first user in the database if no token is provided
   return prisma.user.findFirst({
     include: {
-      workspaces: {
-        orderBy: { sortOrder: "asc" },
-        include: { connections: { where: { status: "CONNECTED" } } },
-      },
+      connections: { where: { status: "CONNECTED" } },
     },
   });
 }
@@ -66,15 +60,15 @@ function makeOAuth2Client(accessToken: string, refreshToken: string | null, expi
 }
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type UserWithWorkspaces = NonNullable<Awaited<ReturnType<typeof getUserFromToken>>>;
-type Connection = UserWithWorkspaces["workspaces"][0]["connections"][0];
+type UserWithConnections = NonNullable<Awaited<ReturnType<typeof getUserFromToken>>>;
+type Connection = UserWithConnections["connections"][0];
 
 // ─── All tools list ───────────────────────────────────────────────────────────
 const TOOLS = [
   trendsTool,
   {
     name: "list_connections",
-    description: "List all connected data sources grouped by workspace. Call this first to discover what workspaces and platforms are available before querying data.",
+    description: "List all connected data sources. Call this first to discover what platforms and sites are available before querying data.",
     inputSchema: { type: "object", properties: {} },
   },
   gscTool,
@@ -94,33 +88,13 @@ type ResolveResult = { conn: Connection } | { error: string };
 function resolveConnection(
   platform: "GSC" | "GA4" | "GOOGLE_MY_BUSINESS",
   labelArg: string | undefined,
-  workspaceNameArg: string | undefined,
-  user: UserWithWorkspaces
+  user: UserWithConnections
 ): ResolveResult {
-  let workspace: UserWithWorkspaces["workspaces"][0];
+  const platformConns = user.connections.filter((c) => (c.platform as string) === platform);
 
-  if (workspaceNameArg) {
-    const match = user.workspaces.find((ws) =>
-      ws.name.toLowerCase().includes(workspaceNameArg.toLowerCase())
-    );
-    if (!match) {
-      const names = user.workspaces.map((ws) => `"${ws.name}"`).join(", ");
-      return { error: `No workspace matching "${workspaceNameArg}" found. Available: ${names}. Call list_connections to confirm.` };
-    }
-    workspace = match;
-  } else if (user.workspaces.length === 1) {
-    workspace = user.workspaces[0];
-  } else if (user.workspaces.length === 0) {
-    return { error: "No workspaces found. Visit your EasyFetcher dashboard to create one and connect data sources." };
-  } else {
-    const names = user.workspaces.map((ws) => `"${ws.name}"`).join(", ");
-    return { error: `You have multiple workspaces: ${names}. Please call list_connections and specify workspace_name.` };
-  }
-
-  const platformConns = workspace.connections.filter((c) => (c.platform as string) === platform);
   if (platformConns.length === 0) {
     const platformLabel = platform === "GOOGLE_MY_BUSINESS" ? "Google My Business" : platform;
-    return { error: `${platformLabel} is not connected for workspace "${workspace.name}". Visit your EasyFetcher dashboard to connect it.` };
+    return { error: `${platformLabel} is not connected. Visit your EasyFetcher dashboard to connect it.` };
   }
 
   if (labelArg) {
@@ -130,7 +104,7 @@ function resolveConnection(
     });
     if (!match) {
       const available = platformConns.map((c) => `"${c.label ?? c.siteUrl ?? c.accountId}"`).join(", ");
-      return { error: `No ${platform} connection matching "${labelArg}" in workspace "${workspace.name}". Available: ${available}.` };
+      return { error: `No ${platform} connection matching "${labelArg}". Available: ${available}.` };
     }
     return { conn: match };
   }
@@ -139,11 +113,11 @@ function resolveConnection(
 
   const paramName = platform === "GSC" ? "site_url" : platform === "GA4" ? "property_name" : "account_name";
   const available = platformConns.map((c) => `"${c.label ?? c.siteUrl ?? c.accountId}"`).join(", ");
-  return { error: `Workspace "${workspace.name}" has multiple ${platform} connections: ${available}. Please specify ${paramName}.` };
+  return { error: `You have multiple ${platform} connections: ${available}. Please specify ${paramName}.` };
 }
 
 // ─── Tool execution ────────────────────────────────────────────────────────────
-async function executeTool(name: string, args: Record<string, unknown>, user: UserWithWorkspaces) {
+async function executeTool(name: string, args: Record<string, unknown>, user: UserWithConnections) {
   const text = (t: string) => ({ content: [{ type: "text", text: t }] });
 
   // Google Trends — no auth needed
@@ -153,55 +127,47 @@ async function executeTool(name: string, args: Record<string, unknown>, user: Us
 
   // List all connections
   if (name === "list_connections") {
-    if (user.workspaces.length === 0) {
-      return text("No workspaces found. Visit your EasyFetcher dashboard to create one and connect data sources.");
+    if (user.connections.length === 0) {
+      return text("No data sources connected. Visit your EasyFetcher dashboard to connect Google Search Console, Google Analytics 4, etc.");
     }
-    const lines: string[] = ["**Connected workspaces and data sources:**\n"];
-    for (const ws of user.workspaces) {
-      lines.push(`📁 **${ws.name}**`);
-      if (ws.connections.length === 0) {
-        lines.push("   (no sources connected)");
-      } else {
-        for (const c of ws.connections) {
-          const p = c.platform as string;
-          const label = c.label ?? c.siteUrl ?? c.accountId ?? p;
-          if (p === "GSC") lines.push(`   • GSC: ${label} → use gsc_query with workspace_name="${ws.name}", site_url="${label}"`);
-          else if (p === "GA4") lines.push(`   • GA4: ${label} → use ga4_query with workspace_name="${ws.name}", property_name="${label}"`);
-          else if (p === "GOOGLE_MY_BUSINESS") lines.push(`   • Google My Business: ${label} → use gmb_query with workspace_name="${ws.name}", account_name="${label}"`);
-          else if (p === "GOOGLE_TRENDS") lines.push(`   • Google Trends: connected (use trends_query with any keyword)`);
-          else lines.push(`   • ${p}: ${label}`);
-        }
-      }
-      lines.push("");
+    const lines: string[] = ["**Connected data sources:**\n"];
+    for (const c of user.connections) {
+      const p = c.platform as string;
+      const label = c.label ?? c.siteUrl ?? c.accountId ?? p;
+      if (p === "GSC") lines.push(`   • GSC: ${label} → use gsc_query with site_url="${label}"`);
+      else if (p === "GA4") lines.push(`   • GA4: ${label} → use ga4_query with property_name="${label}"`);
+      else if (p === "GOOGLE_MY_BUSINESS") lines.push(`   • Google My Business: ${label} → use gmb_query with account_name="${label}"`);
+      else if (p === "GOOGLE_TRENDS") lines.push(`   • Google Trends: connected (use trends_query with any keyword)`);
+      else lines.push(`   • ${p}: ${label}`);
     }
-    lines.push("Use the appropriate query tool with the workspace_name and site identifier shown above.");
+    lines.push("\nUse the appropriate query tool with the site identifier shown above.");
     return text(lines.join("\n"));
   }
 
   // GSC
   if (name === "gsc_query") {
-    const result = resolveConnection("GSC", args.site_url as string | undefined, args.workspace_name as string | undefined, user);
+    const result = resolveConnection("GSC", args.site_url as string | undefined, user);
     if ("error" in result) return text(result.error);
     return executeGscTool(args.metric as "top_queries" | "top_pages" | "keyword_detail", args, result.conn, text, makeOAuth2Client);
   }
 
   // GSC URL Inspection
   if (name === "gsc_url_inspect") {
-    const result = resolveConnection("GSC", args.site_url as string | undefined, args.workspace_name as string | undefined, user);
+    const result = resolveConnection("GSC", args.site_url as string | undefined, user);
     if ("error" in result) return text(result.error);
     return executeUrlInspection(args, result.conn, text, makeOAuth2Client);
   }
 
   // GA4
   if (name === "ga4_query") {
-    const result = resolveConnection("GA4", args.property_name as string | undefined, args.workspace_name as string | undefined, user);
+    const result = resolveConnection("GA4", args.property_name as string | undefined, user);
     if ("error" in result) return text(result.error);
     return executeGa4Tool(args.metric as "traffic" | "top_pages" | "traffic_sources" | "devices" | "geo", args, result.conn, text, makeOAuth2Client);
   }
 
   // GMB
   if (name === "gmb_query") {
-    const result = resolveConnection("GOOGLE_MY_BUSINESS", args.account_name as string | undefined, args.workspace_name as string | undefined, user);
+    const result = resolveConnection("GOOGLE_MY_BUSINESS", args.account_name as string | undefined, user);
     if ("error" in result) return text(result.error);
     return executeGmbTool(args.metric as "overview" | "reviews", args, result.conn, text, makeOAuth2Client);
   }

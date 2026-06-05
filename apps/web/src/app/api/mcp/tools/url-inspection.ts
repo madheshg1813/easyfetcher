@@ -20,14 +20,10 @@ export const urlInspectionTool: McpTool = {
         description:
           "The full page URL to inspect (e.g. https://example.com/blog/post). Must belong to the connected GSC property.",
       },
-      workspace_name: {
-        type: "string",
-        description: "Workspace name. Required if you have multiple workspaces.",
-      },
       site_url: {
         type: "string",
         description:
-          "GSC site URL or label. Required if your workspace has multiple GSC sites connected.",
+          "GSC site URL or label. Required if you have multiple GSC sites connected.",
       },
     },
     required: ["url"],

@@ -23,24 +23,10 @@ export default async function SourcesPage({
         where: { status: "CONNECTED" },
         select: { id: true, platform: true, status: true, siteUrl: true, accountId: true, label: true, workspaceId: true },
       },
-      workspaces: {
-        orderBy: { sortOrder: "asc" },
-        include: {
-          connections: {
-            where: { status: "CONNECTED" },
-            select: { id: true, platform: true, status: true, siteUrl: true, accountId: true, label: true },
-          },
-        },
-      },
     },
   });
 
   const plan: Plan = dbUser?.plan ?? "FREE";
-  const activeWorkspace =
-    (dbUser?.workspaces ?? []).find((w) => w.id === dbUser?.activeWorkspaceId) ??
-    (dbUser?.workspaces ?? [])[0];
-
-  // Use all user connections so that even those without a workspace show as connected
   const connections = dbUser?.connections ?? [];
   let apiKey = dbUser?.apiKey;
   if (dbUser && !apiKey) {
@@ -59,7 +45,6 @@ export default async function SourcesPage({
     <ConnectorsPage
       plan={plan}
       connections={connections}
-      workspaceId={activeWorkspace?.id}
       apiKey={apiKey}
       params={params}
     />

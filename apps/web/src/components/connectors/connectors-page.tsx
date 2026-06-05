@@ -17,7 +17,6 @@ interface Connection {
 interface ConnectorsPageProps {
   plan: Plan;
   connections: Connection[];
-  workspaceId?: string;
   apiKey: string;
   params: { connected?: string; error?: string; requiredPlan?: string; detail?: string };
 }
@@ -70,7 +69,7 @@ const CONNECTOR_LOGOS: Record<string, string> = {
   PAGESPEED: "/connectors/pagespeed.svg",
 };
 
-export function ConnectorsPage({ plan: _plan, connections, workspaceId, apiKey, params }: ConnectorsPageProps) {
+export function ConnectorsPage({ plan: _plan, connections, apiKey, params }: ConnectorsPageProps) {
   const [copiedConfig, setCopiedConfig] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [origin, setOrigin] = useState("");
@@ -233,7 +232,7 @@ export function ConnectorsPage({ plan: _plan, connections, workspaceId, apiKey, 
                   </span>
                 ) : (
                   <a
-                    href={`${connector.connectUrl}${workspaceId ? `&workspaceId=${workspaceId}` : ""}`}
+                    href={connector.connectUrl}
                     className="px-3 py-1.5 rounded-md border border-border text-xs font-medium text-foreground hover:bg-accent transition-colors shrink-0"
                   >
                     Connect

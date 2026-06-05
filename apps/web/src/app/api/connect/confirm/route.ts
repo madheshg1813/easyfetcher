@@ -30,15 +30,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL("/dashboard/sources?error=session_expired", base));
     }
 
-    // Resolve workspace
-    let workspaceId = pending.workspaceId;
-    if (!workspaceId) {
-      const ws =
-        (await prisma.workspace.findFirst({ where: { userId: pending.userId, isDefault: true } })) ??
-        (await prisma.workspace.findFirst({ where: { userId: pending.userId } }));
-      workspaceId = ws?.id ?? null;
-    }
-
     const sites = (pending.sites as Array<{ siteUrl: string; displayName?: string }>) || [];
 
     for (const siteUrl of selectedSites) {
@@ -55,7 +46,7 @@ export async function GET(request: NextRequest) {
 
       await saveConnection(
         pending.userId,
-        workspaceId,
+        null,
         pending.platform,
         pending.accessToken,
         pending.refreshToken,
