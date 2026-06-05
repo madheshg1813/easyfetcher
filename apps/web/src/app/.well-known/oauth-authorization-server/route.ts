@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
 function getBase(request: NextRequest) {
-  const forwarded = request.headers.get("x-forwarded-host");
-  const proto = request.headers.get("x-forwarded-proto") ?? "https";
-  if (forwarded) return `${proto}://${forwarded}`;
   return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 }
 

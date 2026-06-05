@@ -12,9 +12,7 @@ export async function GET(request: NextRequest) {
   const state = searchParams.get("state");
   const responseType = searchParams.get("response_type");
 
-  const forwarded = request.headers.get("x-forwarded-host");
-  const proto = request.headers.get("x-forwarded-proto") ?? "https";
-  const base = forwarded ? `${proto}://${forwarded}` : (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000");
+  const base = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
   if (responseType !== "code" || !clientId || !redirectUri) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 });

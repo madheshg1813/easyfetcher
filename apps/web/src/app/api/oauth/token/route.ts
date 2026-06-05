@@ -14,7 +14,16 @@ export async function POST(request: NextRequest) {
     body = await request.json();
   }
 
-  const { grant_type, code, redirect_uri, client_id } = body;
+  let { grant_type, code, redirect_uri, client_id } = body;
+
+  const authHeader = request.headers.get("authorization") ?? "";
+  if (!client_id && authHeader.startsWith("Basic ")) {
+    try {
+      const decoded = Buffer.from(authHeader.slice(6), "base64").toString("utf-8");
+      const [id] = decoded.split(":");
+      client_id = id;
+    } catch {}
+  }
 
   if (grant_type !== "authorization_code" || !code || !client_id) {
     return NextResponse.json({ error: "invalid_request" }, { status: 400 });

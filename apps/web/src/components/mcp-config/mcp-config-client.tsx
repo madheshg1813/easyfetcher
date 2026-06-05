@@ -32,9 +32,9 @@ export function McpConfigClient({ apiKey }: McpConfigClientProps) {
 
   const mcpUrl = (() => {
     if (origin.includes("hub-beta")) {
-      return `https://hub-beta.easyfetcher.com/mcp?apiKey=${apiKey}`;
+      return `https://hub-beta.easyfetcher.com/mcp`;
     }
-    return `https://mcp.easyfetcher.com/mcp?apiKey=${apiKey}`;
+    return `https://mcp.easyfetcher.com/mcp`;
   })();
 
   const copy = async () => {
