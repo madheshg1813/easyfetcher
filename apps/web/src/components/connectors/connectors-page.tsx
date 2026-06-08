@@ -18,9 +18,15 @@ interface Connection {
 interface ConnectorsPageProps {
   plan: Plan;
   connections: Connection[];
+<<<<<<< HEAD
   apiKey: string;
+=======
+  workspaceId?: string;
+>>>>>>> cb39fa4 (fix(mcp): OAuth resource metadata mismatch + remove API key from UI)
   params: { connected?: string; error?: string; requiredPlan?: string; detail?: string };
 }
+
+const MCP_URL = "https://mcp.easyfetcher.com/mcp";
 
 const CONNECTORS = [
   {
@@ -63,6 +69,7 @@ const PREVIEW_SKILLS = [
   { name: "SEO audit", provider: "Apify", credits: 5, description: "Crawl any site for technical, on-page, and content issues." },
 ];
 
+<<<<<<< HEAD
 const CONNECTOR_LOGOS: Record<string, string> = {
   GSC: "/connectors/gsc.svg",
   GA4: "/connectors/google-analytics.svg",
@@ -72,6 +79,10 @@ const CONNECTOR_LOGOS: Record<string, string> = {
 
 export function ConnectorsPage({ plan: _plan, connections, apiKey, params }: ConnectorsPageProps) {
   const [copiedConfig, setCopiedConfig] = useState(false);
+=======
+export function ConnectorsPage({ plan: _plan, connections, workspaceId, params }: ConnectorsPageProps) {
+  const [copiedUrl, setCopiedUrl] = useState(false);
+>>>>>>> cb39fa4 (fix(mcp): OAuth resource metadata mismatch + remove API key from UI)
   const [showOnboarding, setShowOnboarding] = useState(true);
   const [origin, setOrigin] = useState("");
 
@@ -96,14 +107,21 @@ export function ConnectorsPage({ plan: _plan, connections, apiKey, params }: Con
   connectedSet.add("PAGESPEED");
   const connectedCount = CONNECTORS.filter((c) => connectedSet.has(c.id)).length;
 
+<<<<<<< HEAD
   const copyConfig = async () => {
     if (!mcpUrl) return;
     await navigator.clipboard.writeText(mcpUrl);
     setCopiedConfig(true);
     setTimeout(() => setCopiedConfig(false), 2000);
+=======
+  const copyUrl = async () => {
+    await navigator.clipboard.writeText(MCP_URL);
+    setCopiedUrl(true);
+    setTimeout(() => setCopiedUrl(false), 2000);
+>>>>>>> cb39fa4 (fix(mcp): OAuth resource metadata mismatch + remove API key from UI)
   };
 
-  const step3Done = false; // would persist in localStorage in a real implementation
+  const step3Done = false;
   const hasFirstSource = connectedCount > 0;
 
   return (
@@ -149,11 +167,16 @@ export function ConnectorsPage({ plan: _plan, connections, apiKey, params }: Con
             </div>
             <div className="flex items-center gap-3 ml-4">
               <button
-                onClick={copyConfig}
+                onClick={copyUrl}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors"
               >
+<<<<<<< HEAD
                 {copiedConfig ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                 {copiedConfig ? "Copied!" : "Copy URL →"}
+=======
+                {copiedUrl ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedUrl ? "Copied!" : "Copy URL →"}
+>>>>>>> cb39fa4 (fix(mcp): OAuth resource metadata mismatch + remove API key from UI)
               </button>
               <button onClick={() => setShowOnboarding(false)} className="text-muted-foreground hover:text-foreground transition-colors">
                 <X className="w-4 h-4" />
@@ -161,7 +184,7 @@ export function ConnectorsPage({ plan: _plan, connections, apiKey, params }: Con
             </div>
           </div>
 
-          {/* MCP config card */}
+          {/* MCP URL card */}
           <div className="rounded-lg border border-border bg-muted/30 p-4">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
@@ -175,6 +198,7 @@ export function ConnectorsPage({ plan: _plan, connections, apiKey, params }: Con
               </div>
               <p className="text-[11px] text-muted-foreground">
                 Paste this into Claude.ai Projects (Custom Integration) or Cursor (SSE).{" "}
+<<<<<<< HEAD
                 <Link href="/dashboard/mcp-config" className="text-primary hover:underline">Full instructions →</Link>
               </p>
             </div>
@@ -182,11 +206,18 @@ export function ConnectorsPage({ plan: _plan, connections, apiKey, params }: Con
               <pre className="text-[11px] font-mono leading-relaxed bg-background border border-border rounded-lg p-4 overflow-x-auto text-foreground select-all">
                 {mcpUrl || "Loading..."}
               </pre>
+=======
+                <button className="text-primary hover:underline">Full instructions →</button>
+              </p>
+            </div>
+            <div className="relative flex items-center gap-2 bg-background border border-border rounded-lg px-4 py-3">
+              <code className="text-[12px] font-mono text-foreground flex-1 select-all">{MCP_URL}</code>
+>>>>>>> cb39fa4 (fix(mcp): OAuth resource metadata mismatch + remove API key from UI)
               <button
-                onClick={copyConfig}
-                className="absolute top-2 right-2 flex items-center gap-1 px-2 py-1 rounded-md bg-muted text-xs font-medium text-muted-foreground hover:text-foreground border border-border transition-colors"
+                onClick={copyUrl}
+                className="flex items-center gap-1 px-2 py-1 rounded-md bg-muted text-xs font-medium text-muted-foreground hover:text-foreground border border-border transition-colors shrink-0"
               >
-                {copiedConfig ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
+                {copiedUrl ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
                 Copy
               </button>
             </div>

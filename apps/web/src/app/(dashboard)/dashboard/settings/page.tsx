@@ -20,11 +20,12 @@ export default async function SettingsPage() {
   const email = clerkUser?.emailAddresses[0]?.emailAddress ?? "";
   const displayName = [clerkUser?.firstName, clerkUser?.lastName].filter(Boolean).join(" ") || "";
   const workspaceName = dbUser?.workspaces[0]?.name ?? "";
+
   return (
     <div className="space-y-5 max-w-2xl">
       <div>
         <h1 className="text-xl font-semibold text-foreground">Settings</h1>
-        <p className="text-sm text-muted-foreground mt-1">Manage your workspace and notifications.</p>
+        <p className="text-sm text-muted-foreground mt-1">Manage your workspace and account.</p>
       </div>
       <SettingsClient
         workspaceName={workspaceName}

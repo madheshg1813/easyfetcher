@@ -204,12 +204,15 @@ export async function HEAD() {
 }
 
 // ─── GET ──────────────────────────────────────────────────────────────────────
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
+  const forwarded = request.headers.get("x-forwarded-host");
+  const proto = request.headers.get("x-forwarded-proto") ?? "https";
+  const mcpBase = forwarded ? `${proto}://${forwarded}` : BASE;
   return new NextResponse(null, {
     status: 405,
     headers: {
       Allow: "POST, HEAD",
-      "WWW-Authenticate": `Bearer resource_metadata="${BASE}/.well-known/oauth-protected-resource"`,
+      "WWW-Authenticate": `Bearer resource_metadata="${mcpBase}/.well-known/oauth-protected-resource"`,
     },
   });
 }
@@ -244,13 +247,16 @@ export async function POST(request: NextRequest) {
 
   const user = await getUserFromToken(request);
   if (!user) {
+    const forwarded = request.headers.get("x-forwarded-host");
+    const proto = request.headers.get("x-forwarded-proto") ?? "https";
+    const mcpBase = forwarded ? `${proto}://${forwarded}` : BASE;
     return new NextResponse(
       JSON.stringify({ jsonrpc: "2.0", id, error: { code: -32001, message: "Unauthorized" } }),
       {
         status: 401,
         headers: {
           "Content-Type": "application/json",
-          "WWW-Authenticate": `Bearer resource_metadata="${BASE}/.well-known/oauth-protected-resource"`,
+          "WWW-Authenticate": `Bearer resource_metadata="${mcpBase}/.well-known/oauth-protected-resource"`,
         },
       }
     );

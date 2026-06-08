@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 
-function getBase(request: NextRequest) {
-  return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-}
+const APP_BASE = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
 export async function GET(request: NextRequest) {
-  const base = getBase(request);
+  const forwarded = request.headers.get("x-forwarded-host");
+  const proto = request.headers.get("x-forwarded-proto") ?? "https";
+  // resource must match the host this endpoint was reached on (could be mcp.easyfetcher.com)
+  const resource = forwarded ? `${proto}://${forwarded}` : APP_BASE;
+
   return NextResponse.json({
-    resource: base,
-    authorization_servers: [base],
+    resource,
+    authorization_servers: [APP_BASE],
     bearer_methods_supported: ["header"],
     scopes_supported: ["data:read"],
   });

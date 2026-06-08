@@ -1,45 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Copy, Check } from "lucide-react";
 
-interface McpConfigClientProps {
-  apiKey: string;
-}
+const MCP_URL = "https://mcp.easyfetcher.com/mcp";
 
 const CLAUDE_STEPS = [
-  { num: 1, title: "Copy your MCP URL", detail: "Copy the unique integration URL from the box below." },
+  { num: 1, title: "Copy the MCP URL", detail: "Copy the URL from the box below." },
   { num: 2, title: "Open a Project in Claude.ai", detail: "Go to your Claude.ai workspace, open a Project, and go to the Developer tab." },
-  { num: 3, title: "Add Custom Integration", detail: "Click 'Add Custom Integration', paste the URL, and click Connect." },
+  { num: 3, title: "Add Custom Integration", detail: "Click 'Add Custom Integration', paste the URL, and click Connect. You'll be prompted to log in to EasyFetcher." },
 ];
 
 const IDE_STEPS = [
-  { num: 1, title: "Copy your MCP URL", detail: "Copy the unique integration URL from the box below." },
+  { num: 1, title: "Copy the MCP URL", detail: "Copy the URL from the box below." },
   { num: 2, title: "Open IDE settings", detail: "Go to settings in Cursor, Windsurf, or other MCP-compatible editors." },
-  { num: 3, title: "Add SSE server", detail: "Add a new MCP server, select SSE (or HTTP) type, and paste the URL." },
+  { num: 3, title: "Add SSE server", detail: "Add a new MCP server, select SSE (or HTTP) type, and paste the URL. Log in when prompted." },
 ];
 
-export function McpConfigClient({ apiKey }: McpConfigClientProps) {
+export function McpConfigClient() {
   const [copied, setCopied] = useState(false);
-  const [origin, setOrigin] = useState("");
   const [activeTab, setActiveTab] = useState<"claude" | "ide">("claude");
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setOrigin(window.location.origin);
-    }
-  }, []);
-
-  const mcpUrl = (() => {
-    if (origin.includes("hub-beta")) {
-      return `https://hub-beta.easyfetcher.com/mcp`;
-    }
-    return `https://mcp.easyfetcher.com/mcp`;
-  })();
-
   const copy = async () => {
-    if (!mcpUrl) return;
-    await navigator.clipboard.writeText(mcpUrl);
+    await navigator.clipboard.writeText(MCP_URL);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -88,10 +71,10 @@ export function McpConfigClient({ apiKey }: McpConfigClientProps) {
         ))}
       </div>
 
-      {/* Config URL block */}
+      {/* URL block */}
       <div className="rounded-xl border border-border bg-card p-5">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-sm font-semibold text-foreground">Your MCP Server URL</h2>
+          <h2 className="text-sm font-semibold text-foreground">MCP Server URL</h2>
           <button
             onClick={copy}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors"
@@ -100,9 +83,12 @@ export function McpConfigClient({ apiKey }: McpConfigClientProps) {
             {copied ? "Copied!" : "Copy URL"}
           </button>
         </div>
-        <pre className="text-[12px] font-mono leading-relaxed bg-muted rounded-lg p-4 overflow-x-auto text-foreground border border-border select-all">
-          {mcpUrl || "Loading..."}
-        </pre>
+        <div className="flex items-center gap-3 bg-muted rounded-lg px-4 py-3 border border-border">
+          <code className="text-[13px] font-mono text-foreground flex-1 select-all">{MCP_URL}</code>
+        </div>
+        <p className="text-[11px] text-muted-foreground mt-2">
+          Works with Claude.ai Projects, Cursor (SSE), and any MCP-compatible client.
+        </p>
       </div>
     </div>
   );
