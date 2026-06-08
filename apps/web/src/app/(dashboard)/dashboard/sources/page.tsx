@@ -19,30 +19,21 @@ export default async function SourcesPage({
   const dbUser = await prisma.user.findUnique({
     where: { clerkId: userId },
     include: {
-      workspaces: {
-        orderBy: { sortOrder: "asc" },
-        include: {
-          connections: {
-            where: { status: "CONNECTED" },
-            select: { id: true, platform: true, status: true, siteUrl: true, accountId: true, label: true },
-          },
-        },
+      // Fetch all connections directly on the user (workspaceId may be null for legacy connections)
+      connections: {
+        where: { status: "CONNECTED" },
+        select: { id: true, platform: true, status: true, siteUrl: true, accountId: true, label: true },
       },
     },
   });
 
   const plan: Plan = dbUser?.plan ?? "FREE";
-  const activeWorkspace =
-    (dbUser?.workspaces ?? []).find((w) => w.id === dbUser?.activeWorkspaceId) ??
-    (dbUser?.workspaces ?? [])[0];
-
-  const connections = activeWorkspace?.connections ?? [];
+  const connections = dbUser?.connections ?? [];
 
   return (
     <ConnectorsPage
       plan={plan}
       connections={connections}
-      workspaceId={activeWorkspace?.id}
       params={params}
     />
   );

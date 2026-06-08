@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, Copy, X, Lock, Gauge, Sparkles, ChevronRight, Coins, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import { Check, Copy, X, Lock, Gauge, Sparkles, ChevronRight, Coins } from "lucide-react";
 import type { Plan } from "@easyfetcher/db";
 
 interface Connection {
@@ -285,7 +285,6 @@ function ConnectorCard({
   connections: Connection[];
   isConnected: boolean;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
   const router = useRouter();
 
@@ -302,7 +301,6 @@ function ConnectorCard({
       });
       if (!res.ok) throw new Error("Failed to disconnect");
       router.refresh();
-      if (!connectionId) setExpanded(false);
     } catch {
       alert("Failed to disconnect. Please try again.");
     } finally {
@@ -311,7 +309,8 @@ function ConnectorCard({
   };
 
   return (
-    <div className="flex flex-col rounded-xl border border-border bg-card transition-colors">
+    <div className="flex flex-col rounded-xl border border-border bg-card transition-colors overflow-hidden">
+      {/* Header row */}
       <div className="flex items-center gap-3 p-4">
         <div className="w-10 h-10 rounded-lg border border-border bg-background flex items-center justify-center shrink-0">
           {connector.logo ? (
@@ -327,12 +326,9 @@ function ConnectorCard({
         </div>
 
         {isConnected ? (
-          <button
-            onClick={() => setExpanded(!expanded)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-border bg-background text-xs font-medium text-foreground hover:bg-accent transition-colors shrink-0"
-          >
-            Manage {expanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-          </button>
+          <span className="flex items-center gap-1 text-xs font-semibold text-green-600 dark:text-green-400 shrink-0">
+            <Check className="w-3.5 h-3.5" /> Connected
+          </span>
         ) : connector.comingSoon ? (
           <span className="flex items-center gap-1 text-[11px] px-2 py-1 rounded-md bg-muted text-muted-foreground font-medium shrink-0">
             <Lock className="w-3 h-3" /> Coming soon
@@ -347,44 +343,42 @@ function ConnectorCard({
         )}
       </div>
 
-      {expanded && isConnected && (
-        <div className="border-t border-border bg-muted/20 p-3 pt-2">
-          <div className="flex items-center justify-between px-2 py-1.5 mb-1">
-            <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-              Connected Sites ({connections.length})
-            </span>
-            <button
-              onClick={() => handleDisconnect()}
-              disabled={loading === "all"}
-              className="text-[11px] text-destructive hover:underline font-medium disabled:opacity-50"
-            >
-              Disconnect all
-            </button>
-          </div>
-          <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
-            {connections.map((c) => (
-              <div key={c.id} className="flex items-center justify-between p-2 rounded-md bg-background border border-border">
-                <span className="text-xs font-medium text-foreground truncate mr-3">
-                  {c.label ?? c.siteUrl ?? c.accountId ?? "Unknown Site"}
+      {/* Connected sites — always visible when connected */}
+      {isConnected && (
+        <div className="border-t border-border bg-muted/30 px-4 py-3 space-y-2">
+          {connections.map((c) => (
+            <div key={c.id} className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0" />
+                <span className="text-xs text-foreground font-medium truncate">
+                  {c.label ?? c.siteUrl ?? c.accountId ?? "Unknown"}
                 </span>
-                <button
-                  onClick={() => handleDisconnect(c.id)}
-                  disabled={loading === c.id}
-                  className="p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
-                  title="Disconnect site"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
               </div>
-            ))}
-          </div>
-          <div className="mt-2 px-1">
+              <button
+                onClick={() => handleDisconnect(c.id)}
+                disabled={loading === c.id}
+                className="text-[11px] text-muted-foreground hover:text-destructive transition-colors shrink-0 disabled:opacity-40"
+              >
+                {loading === c.id ? "…" : "Remove"}
+              </button>
+            </div>
+          ))}
+          <div className="flex items-center justify-between pt-1">
             <a
               href={connector.connectUrl}
-              className="text-xs text-primary hover:underline font-medium flex items-center gap-1"
+              className="text-[11px] text-primary hover:underline font-medium"
             >
               + Add another site
             </a>
+            {connections.length > 1 && (
+              <button
+                onClick={() => handleDisconnect()}
+                disabled={loading === "all"}
+                className="text-[11px] text-destructive hover:underline disabled:opacity-40"
+              >
+                Disconnect all
+              </button>
+            )}
           </div>
         </div>
       )}
