@@ -229,12 +229,23 @@ export async function POST(request: NextRequest) {
 
   const { id, method, params = {} } = body;
 
+  if (method === "initialize") {
+    return rpcResult(id, {
+      protocolVersion: "2025-06-18",
+      capabilities: { tools: {} },
+      serverInfo: { name: "easyfetcher", version: "2.0.0" },
+      instructions: "EasyFetcher provides marketing data from Google Search Console, Google Analytics 4, Google My Business, and Google Trends. WORKFLOW: 1) Call list_connections to see available workspaces and data sources. 2) Call the appropriate query tool. For trends_query no connection is needed — just provide a keyword.",
+    });
+  }
+
   if (method === "notifications/initialized") {
     return new NextResponse(null, { status: 204 });
   }
 
-  // All other methods require a valid Bearer token so that Claude triggers the
-  // OAuth flow during connection setup (not mid-conversation on the first tool call).
+  if (method === "tools/list") {
+    return rpcResult(id, { tools: TOOLS });
+  }
+
   const user = await getUserFromToken(request);
   if (!user) {
     return new NextResponse(
@@ -247,19 +258,6 @@ export async function POST(request: NextRequest) {
         },
       }
     );
-  }
-
-  if (method === "initialize") {
-    return rpcResult(id, {
-      protocolVersion: "2025-06-18",
-      capabilities: { tools: {} },
-      serverInfo: { name: "easyfetcher", version: "2.0.0" },
-      instructions: "EasyFetcher provides marketing data from Google Search Console, Google Analytics 4, Google My Business, and Google Trends. WORKFLOW: 1) Call list_connections to see available workspaces and data sources. 2) Call the appropriate query tool. For trends_query no connection is needed — just provide a keyword.",
-    });
-  }
-
-  if (method === "tools/list") {
-    return rpcResult(id, { tools: TOOLS });
   }
 
   if (method === "tools/call") {

@@ -2,7 +2,6 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { SourcesGrid } from "@/components/sources/sources-grid";
-import { McpUrlStep } from "@/components/sources/mcp-url-step";
 import { getConnectionLimit, getWorkspaceLimit } from "@/lib/plan-check";
 import type { Plan } from "@easyfetcher/db";
 import type { SourceConfig } from "@/components/sources/source-card";
@@ -117,13 +116,10 @@ export default async function SourcesPage({
 
       {/* Alerts */}
       {params.connected && (
-        <>
-          <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-700 dark:text-green-400 text-sm">
-            <span>✓</span>
-            <span><strong>{params.connected}</strong> connected successfully!</span>
-          </div>
-          <McpUrlStep />
-        </>
+        <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-700 dark:text-green-400 text-sm">
+          <span>✓</span>
+          <span><strong>{params.connected}</strong> connected successfully!</span>
+        </div>
       )}
       {params.error === "plan_limit" && (
         <div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
