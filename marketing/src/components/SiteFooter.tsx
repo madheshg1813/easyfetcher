@@ -10,7 +10,7 @@ export default function SiteFooter() {
           <div>
             <div className="flex items-center mb-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="EasyFetcher" className="h-8 w-auto object-contain brightness-0 invert" />
+              <img src="/logo.png" alt="EasyFetcher" className="h-8 w-auto object-contain" />
             </div>
             <p className="text-gray-400 text-sm max-w-xs leading-relaxed">
               Connect your marketing data to Claude AI via the Model Context Protocol.
