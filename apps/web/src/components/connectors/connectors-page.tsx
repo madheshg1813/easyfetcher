@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Check, Copy, X, Lock, Gauge, Sparkles, ChevronRight, Coins, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
@@ -18,11 +18,7 @@ interface Connection {
 interface ConnectorsPageProps {
   plan: Plan;
   connections: Connection[];
-<<<<<<< HEAD
-  apiKey: string;
-=======
   workspaceId?: string;
->>>>>>> cb39fa4 (fix(mcp): OAuth resource metadata mismatch + remove API key from UI)
   params: { connected?: string; error?: string; requiredPlan?: string; detail?: string };
 }
 
@@ -63,13 +59,6 @@ const CONNECTORS = [
   },
 ] as const;
 
-const PREVIEW_SKILLS = [
-  { name: "Rank tracker", provider: "GSC", credits: null, description: "Track keyword positions across Google with daily refreshes." },
-  { name: "AI citation tracker", provider: "Apify", credits: 8, description: "See when ChatGPT, Perplexity, and Claude cite your domain." },
-  { name: "SEO audit", provider: "Apify", credits: 5, description: "Crawl any site for technical, on-page, and content issues." },
-];
-
-<<<<<<< HEAD
 const CONNECTOR_LOGOS: Record<string, string> = {
   GSC: "/connectors/gsc.svg",
   GA4: "/connectors/google-analytics.svg",
@@ -77,48 +66,24 @@ const CONNECTOR_LOGOS: Record<string, string> = {
   PAGESPEED: "/connectors/pagespeed.svg",
 };
 
-export function ConnectorsPage({ plan: _plan, connections, apiKey, params }: ConnectorsPageProps) {
-  const [copiedConfig, setCopiedConfig] = useState(false);
-=======
-export function ConnectorsPage({ plan: _plan, connections, workspaceId, params }: ConnectorsPageProps) {
+const PREVIEW_SKILLS = [
+  { name: "Rank tracker", provider: "GSC", credits: null, description: "Track keyword positions across Google with daily refreshes." },
+  { name: "AI citation tracker", provider: "Apify", credits: 8, description: "See when ChatGPT, Perplexity, and Claude cite your domain." },
+  { name: "SEO audit", provider: "Apify", credits: 5, description: "Crawl any site for technical, on-page, and content issues." },
+];
+
+export function ConnectorsPage({ plan: _plan, connections, params }: ConnectorsPageProps) {
   const [copiedUrl, setCopiedUrl] = useState(false);
->>>>>>> cb39fa4 (fix(mcp): OAuth resource metadata mismatch + remove API key from UI)
   const [showOnboarding, setShowOnboarding] = useState(true);
-  const [origin, setOrigin] = useState("");
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setOrigin(window.location.origin);
-    }
-  }, []);
-
-  const mcpUrl = (() => {
-    if (!origin) return "";
-    if (origin.includes("localhost")) {
-      return `http://localhost:3000/api/mcp?apiKey=${apiKey}`;
-    }
-    if (origin.includes("hub-beta")) {
-      return `https://hub-beta.easyfetcher.com/api/mcp?apiKey=${apiKey}`;
-    }
-    return `https://mcp.easyfetcher.com/mcp?apiKey=${apiKey}`;
-  })();
 
   const connectedSet = new Set(connections.map((c) => c.platform));
   connectedSet.add("PAGESPEED");
   const connectedCount = CONNECTORS.filter((c) => connectedSet.has(c.id)).length;
 
-<<<<<<< HEAD
-  const copyConfig = async () => {
-    if (!mcpUrl) return;
-    await navigator.clipboard.writeText(mcpUrl);
-    setCopiedConfig(true);
-    setTimeout(() => setCopiedConfig(false), 2000);
-=======
   const copyUrl = async () => {
     await navigator.clipboard.writeText(MCP_URL);
     setCopiedUrl(true);
     setTimeout(() => setCopiedUrl(false), 2000);
->>>>>>> cb39fa4 (fix(mcp): OAuth resource metadata mismatch + remove API key from UI)
   };
 
   const step3Done = false;
@@ -170,13 +135,8 @@ export function ConnectorsPage({ plan: _plan, connections, workspaceId, params }
                 onClick={copyUrl}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors"
               >
-<<<<<<< HEAD
-                {copiedConfig ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                {copiedConfig ? "Copied!" : "Copy URL →"}
-=======
                 {copiedUrl ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                 {copiedUrl ? "Copied!" : "Copy URL →"}
->>>>>>> cb39fa4 (fix(mcp): OAuth resource metadata mismatch + remove API key from UI)
               </button>
               <button onClick={() => setShowOnboarding(false)} className="text-muted-foreground hover:text-foreground transition-colors">
                 <X className="w-4 h-4" />
@@ -198,21 +158,11 @@ export function ConnectorsPage({ plan: _plan, connections, workspaceId, params }
               </div>
               <p className="text-[11px] text-muted-foreground">
                 Paste this into Claude.ai Projects (Custom Integration) or Cursor (SSE).{" "}
-<<<<<<< HEAD
                 <Link href="/dashboard/mcp-config" className="text-primary hover:underline">Full instructions →</Link>
-              </p>
-            </div>
-            <div className="relative">
-              <pre className="text-[11px] font-mono leading-relaxed bg-background border border-border rounded-lg p-4 overflow-x-auto text-foreground select-all">
-                {mcpUrl || "Loading..."}
-              </pre>
-=======
-                <button className="text-primary hover:underline">Full instructions →</button>
               </p>
             </div>
             <div className="relative flex items-center gap-2 bg-background border border-border rounded-lg px-4 py-3">
               <code className="text-[12px] font-mono text-foreground flex-1 select-all">{MCP_URL}</code>
->>>>>>> cb39fa4 (fix(mcp): OAuth resource metadata mismatch + remove API key from UI)
               <button
                 onClick={copyUrl}
                 className="flex items-center gap-1 px-2 py-1 rounded-md bg-muted text-xs font-medium text-muted-foreground hover:text-foreground border border-border transition-colors shrink-0"
@@ -241,7 +191,7 @@ export function ConnectorsPage({ plan: _plan, connections, workspaceId, params }
           {CONNECTORS.map((connector) => {
             const platformConns = connections.filter((c) => c.platform === connector.id);
             const isConnected = connectedSet.has(connector.id);
-            
+
             if (connector.id === "PAGESPEED") {
               return (
                 <div key={connector.id} className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
@@ -260,11 +210,11 @@ export function ConnectorsPage({ plan: _plan, connections, workspaceId, params }
             }
 
             return (
-              <ConnectorCard 
-                key={connector.id} 
-                connector={connector} 
-                connections={platformConns} 
-                isConnected={isConnected} 
+              <ConnectorCard
+                key={connector.id}
+                connector={connector}
+                connections={platformConns}
+                isConnected={isConnected}
               />
             );
           })}
@@ -293,13 +243,11 @@ export function ConnectorsPage({ plan: _plan, connections, workspaceId, params }
                     <Sparkles className="w-4 h-4 text-primary" strokeWidth={1.75} />
                   </div>
                   <div className="flex items-center gap-1.5">
-                    {/* Connector Logo */}
                     {logo && (
                       <div className="w-6 h-6 rounded-full bg-background border border-border flex items-center justify-center overflow-hidden shadow-sm shrink-0">
                         <img src={logo} alt={skill.provider} className="w-4 h-4 object-contain" />
                       </div>
                     )}
-                    {/* Credits badge (Coin Symbol) */}
                     {skill.credits !== null && skill.credits > 0 && (
                       <div
                         className="w-6 h-6 rounded-full bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-600 dark:text-amber-400 shadow-sm shrink-0"
@@ -328,13 +276,13 @@ export function ConnectorsPage({ plan: _plan, connections, workspaceId, params }
 
 // ─── Subcomponents ────────────────────────────────────────────────────────────
 
-function ConnectorCard({ 
-  connector, 
-  connections, 
-  isConnected 
-}: { 
-  connector: typeof CONNECTORS[number]; 
-  connections: Connection[]; 
+function ConnectorCard({
+  connector,
+  connections,
+  isConnected,
+}: {
+  connector: typeof CONNECTORS[number];
+  connections: Connection[];
   isConnected: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -344,8 +292,8 @@ function ConnectorCard({
   const handleDisconnect = async (connectionId?: string) => {
     if (loading) return;
     if (!confirm(connectionId ? "Disconnect this site?" : `Disconnect all ${connector.name} connections?`)) return;
-    
-    setLoading(connectionId || "all");
+
+    setLoading(connectionId ?? "all");
     try {
       const res = await fetch("/api/connect/disconnect", {
         method: "POST",
@@ -353,10 +301,9 @@ function ConnectorCard({
         body: JSON.stringify({ platform: connector.id, connectionId }),
       });
       if (!res.ok) throw new Error("Failed to disconnect");
-      
       router.refresh();
       if (!connectionId) setExpanded(false);
-    } catch (err) {
+    } catch {
       alert("Failed to disconnect. Please try again.");
     } finally {
       setLoading(null);
@@ -368,6 +315,7 @@ function ConnectorCard({
       <div className="flex items-center gap-3 p-4">
         <div className="w-10 h-10 rounded-lg border border-border bg-background flex items-center justify-center shrink-0">
           {connector.logo ? (
+            // eslint-disable-next-line @next/next/no-img-element
             <img src={connector.logo} alt={connector.name} className="w-6 h-6 object-contain" />
           ) : (
             <Gauge className="w-5 h-5 text-muted-foreground" />
@@ -377,7 +325,7 @@ function ConnectorCard({
           <p className="text-sm font-semibold text-foreground truncate">{connector.name}</p>
           <p className="text-xs text-muted-foreground truncate">{connector.description}</p>
         </div>
-        
+
         {isConnected ? (
           <button
             onClick={() => setExpanded(!expanded)}
@@ -405,7 +353,7 @@ function ConnectorCard({
             <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
               Connected Sites ({connections.length})
             </span>
-            <button 
+            <button
               onClick={() => handleDisconnect()}
               disabled={loading === "all"}
               className="text-[11px] text-destructive hover:underline font-medium disabled:opacity-50"
@@ -417,7 +365,7 @@ function ConnectorCard({
             {connections.map((c) => (
               <div key={c.id} className="flex items-center justify-between p-2 rounded-md bg-background border border-border">
                 <span className="text-xs font-medium text-foreground truncate mr-3">
-                  {c.label || c.siteUrl || c.accountId || "Unknown Site"}
+                  {c.label ?? c.siteUrl ?? c.accountId ?? "Unknown Site"}
                 </span>
                 <button
                   onClick={() => handleDisconnect(c.id)}

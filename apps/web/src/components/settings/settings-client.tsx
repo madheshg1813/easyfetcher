@@ -27,10 +27,6 @@ export function SettingsClient({ workspaceName, email, displayName }: SettingsCl
         </div>
       </section>
 
-<<<<<<< HEAD
-
-=======
->>>>>>> cb39fa4 (fix(mcp): OAuth resource metadata mismatch + remove API key from UI)
       {/* Notifications */}
       <section className="rounded-xl border border-border bg-card p-5">
         <h2 className="text-sm font-semibold text-foreground mb-4">Notifications</h2>
