@@ -13,6 +13,8 @@ const isPublicRoute = createRouteMatcher([
   "/mcp(.*)",
   // OAuth well-known endpoints
   "/.well-known/(.*)",
+  // OAuth endpoints — server-to-server calls from Claude.ai have no Clerk session
+  "/api/oauth/(.*)",
   // Google OAuth flow — these must be public (Google redirects to callback, user initiates connect)
   "/api/connect/google",
   "/api/connect/free(.*)",
