@@ -1,14 +1,19 @@
-"use client";
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { Zap, Check } from "lucide-react";
 
-import { Zap, Check, ExternalLink } from "lucide-react";
+// Dodo product IDs → checkout URLs
+const DODO_BASE = "https://checkout.dodopayments.com/buy";
 
 const PLANS = [
   {
     id: "STARTER",
     name: "Starter",
-    monthlyPrice: 14,
     yearlyPrice: 9,
+    monthlyPrice: 14,
     credits: 50,
+    yearlyProductId: "pdt_0Ng5wo22oONBlqDIQvQQH",
+    monthlyProductId: "pdt_0Ng5y8DYr4SO7bAbztKe1",
     features: [
       "50 credits / month",
       "GSC, GA4 & Google My Business",
@@ -19,10 +24,12 @@ const PLANS = [
   {
     id: "PRO",
     name: "Pro",
-    monthlyPrice: 29,
     yearlyPrice: 24,
+    monthlyPrice: 29,
     credits: 125,
     highlight: true,
+    yearlyProductId: "pdt_0Ng5xPsUKdHXhvmQOsEz9",
+    monthlyProductId: "pdt_0Ng5yT8aBWnSvfhryKLOC",
     features: [
       "125 credits / month",
       "All connectors — GSC, GA4, GMB",
@@ -34,9 +41,11 @@ const PLANS = [
   {
     id: "AGENCY",
     name: "Agency",
-    monthlyPrice: 59,
     yearlyPrice: 49,
+    monthlyPrice: 59,
     credits: 275,
+    yearlyProductId: "pdt_0Ng5xi9BNGdxE9t2akkwK",
+    monthlyProductId: "pdt_0Ng5ykFTysYI4D73Jx37I",
     features: [
       "275 credits / month",
       "All connectors — GSC, GA4, GMB",
@@ -47,9 +56,24 @@ const PLANS = [
   },
 ];
 
-const MARKETING_URL = "https://easyfetcher.com";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.easyfetcher.com";
 
-export default function OnboardingPage() {
+function checkoutUrl(productId: string, email: string) {
+  const params = new URLSearchParams({
+    email,
+    redirect_url: `${APP_URL}/dashboard`,
+    quantity: "1",
+  });
+  return `${DODO_BASE}/${productId}?${params.toString()}`;
+}
+
+export default async function OnboardingPage() {
+  const { userId } = await auth();
+  if (!userId) redirect("/login");
+
+  const clerkUser = await currentUser();
+  const email = clerkUser?.emailAddresses[0]?.emailAddress ?? "";
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="w-full max-w-3xl">
@@ -62,8 +86,13 @@ export default function OnboardingPage() {
             Choose a plan to get started
           </h1>
           <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-            EasyFetcher requires an active subscription. Pick a plan below to unlock full access.
+            EasyFetcher requires an active subscription. Pick a plan to unlock full access.
           </p>
+          {email && (
+            <p className="text-xs text-muted-foreground mt-2">
+              Purchasing for <span className="font-medium text-foreground">{email}</span>
+            </p>
+          )}
         </div>
 
         {/* Plans grid */}
@@ -89,7 +118,9 @@ export default function OnboardingPage() {
                   <span className="text-3xl font-bold text-foreground">${plan.yearlyPrice}</span>
                   <span className="text-xs text-muted-foreground mb-1">/mo</span>
                 </div>
-                <p className="text-[10px] text-muted-foreground">Billed ${plan.yearlyPrice * 12}/year</p>
+                <p className="text-[10px] text-muted-foreground">
+                  Billed ${plan.yearlyPrice * 12}/year · or ${plan.monthlyPrice}/mo
+                </p>
                 <div className="mt-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 border border-primary/20">
                   <span className="text-xs font-bold text-primary">{plan.credits}</span>
                   <span className="text-[10px] text-primary/80">credits/mo</span>
@@ -105,24 +136,30 @@ export default function OnboardingPage() {
                 ))}
               </ul>
 
-              <a
-                href={`${MARKETING_URL}/pricing`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`w-full py-2.5 rounded-lg text-xs font-semibold text-center transition-colors flex items-center justify-center gap-1.5 ${
-                  plan.highlight
-                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                    : "border border-border text-foreground hover:bg-accent"
-                }`}
-              >
-                Get {plan.name} <ExternalLink className="w-3 h-3" />
-              </a>
+              <div className="flex flex-col gap-2">
+                <a
+                  href={checkoutUrl(plan.yearlyProductId, email)}
+                  className={`w-full py-2.5 rounded-lg text-xs font-semibold text-center transition-colors ${
+                    plan.highlight
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                      : "bg-foreground text-background hover:bg-foreground/90"
+                  }`}
+                >
+                  Get {plan.name} yearly
+                </a>
+                <a
+                  href={checkoutUrl(plan.monthlyProductId, email)}
+                  className="w-full py-2 rounded-lg text-xs font-medium text-center border border-border text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
+                >
+                  Monthly — ${plan.monthlyPrice}/mo
+                </a>
+              </div>
             </div>
           ))}
         </div>
 
         <p className="text-center text-[11px] text-muted-foreground">
-          After completing your purchase, come back here and refresh — your plan will activate automatically.
+          After completing your purchase you will be redirected back to the dashboard automatically.
         </p>
       </div>
     </div>
