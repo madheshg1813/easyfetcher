@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Zap, Plug2, Sparkles, Terminal, CreditCard, Settings, Sun, Moon } from "lucide-react";
+import { Zap, Plug2, Sparkles, Terminal, CreditCard, Settings, Sun, Moon, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useClerk } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
 import type { Plan } from "@easyfetcher/db";
 
@@ -52,6 +53,7 @@ interface SidebarProps {
 
 export function Sidebar({ userName, userImageUrl, plan, mcpCallsUsed = 0 }: SidebarProps) {
   const pathname = usePathname();
+  const { signOut } = useClerk();
   const limit = PLAN_LIMITS[plan];
   const progress = Math.min((mcpCallsUsed / limit) * 100, 100);
   const [isDark, setIsDark] = useState(false);
@@ -102,6 +104,13 @@ export function Sidebar({ userName, userImageUrl, plan, mcpCallsUsed = 0 }: Side
             </div>
           )}
           <p className="text-xs font-medium text-sidebar-foreground truncate flex-1">{userName}</p>
+          <button
+            onClick={() => signOut({ redirectUrl: "/" })}
+            className="p-1 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors shrink-0"
+            title="Log out"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+          </button>
         </div>
 
         {/* Plan row + dark mode toggle */}

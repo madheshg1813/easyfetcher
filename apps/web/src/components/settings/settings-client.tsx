@@ -3,12 +3,11 @@
 import { useState } from "react";
 
 interface SettingsClientProps {
-  workspaceName: string;
   email: string;
   displayName: string;
 }
 
-export function SettingsClient({ workspaceName, email, displayName }: SettingsClientProps) {
+export function SettingsClient({ email, displayName }: SettingsClientProps) {
   const [notifs, setNotifs] = useState({
     lowCredit: true,
     weeklyDigest: true,
@@ -21,7 +20,6 @@ export function SettingsClient({ workspaceName, email, displayName }: SettingsCl
       <section className="rounded-xl border border-border bg-card p-5">
         <h2 className="text-sm font-semibold text-foreground mb-4">Profile</h2>
         <div className="space-y-4">
-          <Field label="Workspace name" value={workspaceName} editable />
           <Field label="Email" value={email} action={<button className="text-xs text-primary hover:underline">Change</button>} />
           <Field label="Display name" value={displayName} editable />
         </div>

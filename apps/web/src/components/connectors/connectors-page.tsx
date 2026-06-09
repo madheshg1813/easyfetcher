@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, Copy, X, Lock, Gauge, Sparkles, ChevronRight, Coins } from "lucide-react";
+import { Check, Copy, X, Lock, Gauge, Sparkles, ChevronRight, ChevronDown, Coins } from "lucide-react";
 import type { Plan } from "@easyfetcher/db";
 
 interface Connection {
@@ -55,7 +55,7 @@ const CONNECTORS = [
     description: "Reviews, local visibility",
     logo: "/connectors/google-my-business.svg",
     connectUrl: "/api/connect/google?platform=GOOGLE_MY_BUSINESS",
-    comingSoon: true,
+    comingSoon: false,
   },
 ] as const;
 
@@ -286,6 +286,7 @@ function ConnectorCard({
   isConnected: boolean;
 }) {
   const [loading, setLoading] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
   const router = useRouter();
 
   const handleDisconnect = async (connectionId?: string) => {
@@ -326,9 +327,14 @@ function ConnectorCard({
         </div>
 
         {isConnected ? (
-          <span className="flex items-center gap-1 text-xs font-semibold text-green-600 dark:text-green-400 shrink-0">
-            <Check className="w-3.5 h-3.5" /> Connected
-          </span>
+          <button
+            onClick={() => setOpen((v) => !v)}
+            className="flex items-center gap-1.5 text-xs font-semibold text-green-600 dark:text-green-400 shrink-0 hover:opacity-80 transition-opacity"
+          >
+            <Check className="w-3.5 h-3.5" />
+            Connected
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+          </button>
         ) : connector.comingSoon ? (
           <span className="flex items-center gap-1 text-[11px] px-2 py-1 rounded-md bg-muted text-muted-foreground font-medium shrink-0">
             <Lock className="w-3 h-3" /> Coming soon
@@ -343,8 +349,8 @@ function ConnectorCard({
         )}
       </div>
 
-      {/* Connected sites — always visible when connected */}
-      {isConnected && (
+      {/* Connected sites dropdown */}
+      {isConnected && open && (
         <div className="border-t border-border bg-muted/30 px-4 py-3 space-y-2">
           {connections.map((c) => (
             <div key={c.id} className="flex items-center justify-between gap-2">
