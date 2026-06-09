@@ -33,6 +33,8 @@ export default async function DashboardLayout({
 
   const plan: Plan = dbUser?.plan ?? "FREE";
 
+  // Gate: unpaid users must purchase before accessing the dashboard
+  if (plan === "FREE") redirect("/onboarding");
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
