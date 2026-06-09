@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { Zap, Menu, X } from "lucide-react";
 import Link from "next/link";
+import { CldImage } from "next-cloudinary";
 import { SIGNUP_URL, LOGIN_URL } from "@/lib/constants";
+import { IMAGES } from "@/lib/cloudinary";
 
 export default function SiteNav() {
   const [open, setOpen] = useState(false);
@@ -13,8 +15,14 @@ export default function SiteNav() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-1 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo.png" alt="EasyFetcher" className="h-16 w-auto object-contain" />
+          <CldImage
+            src={IMAGES.logo}
+            alt="EasyFetcher"
+            width={160}
+            height={64}
+            className="h-16 w-auto object-contain"
+            priority
+          />
         </Link>
 
         {/* Desktop links */}

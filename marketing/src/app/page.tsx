@@ -7,6 +7,8 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import { SIGNUP_URL } from "@/lib/constants";
 import { PLANS, getDodoCheckoutUrl } from "@/lib/dodo";
+import { CldImage } from "next-cloudinary";
+import { IMAGES } from "@/lib/cloudinary";
 
 const features = [
   {
@@ -32,10 +34,10 @@ const features = [
 ];
 
 const connectors = [
-  { name: "Google Search Console", logo: "/connectors/gsc.svg" },
-  { name: "Google Analytics 4", logo: "/connectors/google-analytics.svg" },
-  { name: "Google My Business", logo: "/connectors/google-my-business.svg" },
-  { name: "PageSpeed Insights", logo: "/connectors/pagespeed.svg" },
+  { name: "Google Search Console", logo: IMAGES.connectors.gsc },
+  { name: "Google Analytics 4", logo: IMAGES.connectors.ga4 },
+  { name: "Google My Business", logo: IMAGES.connectors.gmb },
+  { name: "PageSpeed Insights", logo: IMAGES.connectors.pagespeed },
 ];
 
 const stats = [
@@ -251,8 +253,13 @@ export default function HomePage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 max-w-3xl mx-auto">
             {connectors.map((c) => (
               <div key={c.name} className="group flex flex-col items-center gap-3 p-5 sm:p-6 rounded-2xl border border-gray-100 hover:border-amber-200 hover:shadow-lg hover:shadow-amber-50/80 transition-all bg-white cursor-default">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={c.logo} alt={c.name} className="w-10 h-10 sm:w-12 sm:h-12 object-contain" />
+                <CldImage
+                  src={c.logo}
+                  alt={c.name}
+                  width={48}
+                  height={48}
+                  className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
+                />
                 <span className="text-xs font-semibold text-center leading-tight text-gray-700">{c.name}</span>
               </div>
             ))}

@@ -1,6 +1,8 @@
 import { Zap } from "lucide-react";
 import Link from "next/link";
+import { CldImage } from "next-cloudinary";
 import { SIGNUP_URL, LOGIN_URL } from "@/lib/constants";
+import { IMAGES } from "@/lib/cloudinary";
 
 export default function SiteFooter() {
   return (
@@ -9,8 +11,13 @@ export default function SiteFooter() {
         <div className="flex flex-col md:flex-row items-start justify-between gap-8 mb-8 sm:mb-10">
           <div>
             <div className="flex items-center mb-3">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/logo.png" alt="EasyFetcher" className="h-8 w-auto object-contain" />
+              <CldImage
+                src={IMAGES.logo}
+                alt="EasyFetcher"
+                width={120}
+                height={32}
+                className="h-8 w-auto object-contain"
+              />
             </div>
             <p className="text-gray-400 text-sm max-w-xs leading-relaxed">
               Connect your marketing data to Claude AI via the Model Context Protocol.
