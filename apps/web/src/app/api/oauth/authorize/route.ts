@@ -53,13 +53,20 @@ export async function GET(request: NextRequest) {
     // User may exist with same email but different clerkId (e.g. different Clerk app instance)
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
-      // Link this Clerk session to the existing account
       dbUser = await prisma.user.update({ where: { id: existing.id }, data: { clerkId: userId } });
     } else {
       dbUser = await prisma.user.create({
         data: { clerkId: userId, email, name: clerkUser.fullName ?? null },
       });
     }
+  }
+
+  // Gate: user must have a paid plan to connect via OAuth
+  if (dbUser.plan === "FREE") {
+    const onboardingUrl = new URL("/onboarding", base);
+    // Pass the full authorize URL as `next` so Dodo can redirect back after payment
+    onboardingUrl.searchParams.set("next", `${base}/api/oauth/authorize?${searchParams.toString()}`);
+    return NextResponse.redirect(onboardingUrl);
   }
 
   // Issue a one-time authorization code (expires in 10 minutes)

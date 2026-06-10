@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Zap, Check, Shield, RefreshCw, Headphones, Lock } from "lucide-react";
+import { Zap, Check, Shield, RefreshCw, Headphones, Lock, Sparkles } from "lucide-react";
 
 const DODO_BASE = "https://checkout.dodopayments.com/buy";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.easyfetcher.com";
@@ -57,17 +57,18 @@ const PLANS = [
   },
 ];
 
-function checkoutUrl(productId: string, email: string) {
+function checkoutUrl(productId: string, email: string, next: string) {
   const params = new URLSearchParams({
     email,
-    redirect_url: `${APP_URL}/dashboard`,
+    redirect_url: next,
     quantity: "1",
   });
   return `${DODO_BASE}/${productId}?${params.toString()}`;
 }
 
-export function PlansClient({ email }: { email: string }) {
+export function PlansClient({ email, next }: { email: string; next: string }) {
   const [billing, setBilling] = useState<"yearly" | "monthly">("yearly");
+  const fromClaude = next.includes("/api/oauth/authorize");
 
   return (
     <div className="min-h-screen bg-background">
@@ -99,6 +100,12 @@ export function PlansClient({ email }: { email: string }) {
           <p className="text-sm text-muted-foreground max-w-sm mx-auto">
             Connect your data sources and query them with Claude — GSC, GA4, Google My Business and more.
           </p>
+          {fromClaude && (
+            <div className="mt-4 inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-xs text-blue-600 dark:text-blue-400 font-medium">
+              <Sparkles className="w-3.5 h-3.5 shrink-0" />
+              After purchasing, you&apos;ll be automatically connected to Claude
+            </div>
+          )}
           {email && (
             <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted border border-border text-xs text-muted-foreground">
               <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
@@ -206,7 +213,7 @@ export function PlansClient({ email }: { email: string }) {
                 </ul>
 
                 <a
-                  href={checkoutUrl(productId, email)}
+                  href={checkoutUrl(productId, email, next)}
                   className={`w-full py-2.5 rounded-lg text-xs font-semibold text-center transition-colors mt-1 ${
                     plan.highlight
                       ? "bg-primary text-primary-foreground hover:bg-primary/90"
@@ -223,7 +230,9 @@ export function PlansClient({ email }: { email: string }) {
         {/* Bottom trust */}
         <div className="text-center space-y-3">
           <p className="text-[11px] text-muted-foreground">
-            After completing your purchase you will be redirected back to the dashboard automatically.
+            {fromClaude
+              ? "After completing your purchase you will be automatically connected to Claude."
+              : "After completing your purchase you will be redirected back to the dashboard automatically."}
           </p>
           <div className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
             <Lock className="w-3 h-3" />
