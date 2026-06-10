@@ -7,7 +7,6 @@ import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import { SIGNUP_URL } from "@/lib/constants";
 import { PLANS, getDodoCheckoutUrl } from "@/lib/dodo";
-import { CldImage } from "next-cloudinary";
 import { IMAGES } from "@/lib/cloudinary";
 
 const features = [
@@ -116,7 +115,8 @@ export default function HomePage() {
               { label: "PageSpeed Insights", img: IMAGES.connectors.pagespeed },
             ].map((item) => (
               <div key={item.label} className="flex items-center gap-1.5 text-gray-400 text-xs font-medium">
-                <CldImage src={item.img} alt={item.label} width={16} height={16} className="w-4 h-4 object-contain opacity-60" />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={item.img} alt={item.label} className="w-4 h-4 object-contain opacity-60" />
                 {item.label}
               </div>
             ))}
@@ -304,13 +304,8 @@ export default function HomePage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 max-w-3xl mx-auto">
             {connectors.map((c) => (
               <div key={c.name} className="group flex flex-col items-center gap-3 p-5 sm:p-6 rounded-2xl border border-gray-100 hover:border-amber-200 hover:shadow-lg hover:shadow-amber-50/80 transition-all bg-white cursor-default">
-                <CldImage
-                  src={c.logo}
-                  alt={c.name}
-                  width={48}
-                  height={48}
-                  className="w-10 h-10 sm:w-12 sm:h-12 object-contain"
-                />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={c.logo} alt={c.name} className="w-10 h-10 sm:w-12 sm:h-12 object-contain" />
                 <span className="text-xs font-semibold text-center leading-tight text-gray-700">{c.name}</span>
               </div>
             ))}

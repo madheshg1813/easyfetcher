@@ -1,20 +1,25 @@
-// All image public IDs live here — single source of truth
+const CLOUD = "dbsdu7dk5";
+
+function cdnUrl(publicId: string) {
+  return `https://res.cloudinary.com/${CLOUD}/image/upload/f_auto,q_auto/${publicId}`;
+}
+
 export const IMAGES = {
-  logo: "easyfetcher/logo/logo",
+  logo: cdnUrl("easyfetcher/logo/logo"),
   connectors: {
-    gsc: "easyfetcher/connectors/gsc",
-    ga4: "easyfetcher/connectors/google-analytics",
-    gmb: "easyfetcher/connectors/google-my-business",
-    pagespeed: "easyfetcher/connectors/pagespeed",
-    facebook: "easyfetcher/connectors/facebook",
-    instagram: "easyfetcher/connectors/instagram",
-    shopify: "easyfetcher/connectors/shopify",
-    googleAds: "easyfetcher/connectors/icons8-google-ads",
-    linkedin: "easyfetcher/connectors/linkedin",
-    reddit: "easyfetcher/connectors/reddit",
-    tiktok: "easyfetcher/connectors/tiktok",
-    bing: "easyfetcher/connectors/bing",
-    claude: "easyfetcher/connectors/claude",
-    googleTrends: "easyfetcher/connectors/google-trends",
+    gsc: cdnUrl("easyfetcher/connectors/gsc"),
+    ga4: cdnUrl("easyfetcher/connectors/google-analytics"),
+    gmb: cdnUrl("easyfetcher/connectors/google-my-business"),
+    pagespeed: cdnUrl("easyfetcher/connectors/pagespeed"),
+    facebook: cdnUrl("easyfetcher/connectors/facebook"),
+    instagram: cdnUrl("easyfetcher/connectors/instagram"),
+    shopify: cdnUrl("easyfetcher/connectors/shopify"),
+    googleAds: cdnUrl("easyfetcher/connectors/icons8-google-ads"),
+    linkedin: cdnUrl("easyfetcher/connectors/linkedin"),
+    reddit: cdnUrl("easyfetcher/connectors/reddit"),
+    tiktok: cdnUrl("easyfetcher/connectors/tiktok"),
+    bing: cdnUrl("easyfetcher/connectors/bing"),
+    claude: cdnUrl("easyfetcher/connectors/claude"),
+    googleTrends: cdnUrl("easyfetcher/connectors/google-trends"),
   },
 } as const;
