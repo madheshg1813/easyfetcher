@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Zap, Check, Shield, RefreshCw, Headphones, Lock, Sparkles } from "lucide-react";
 
 const DODO_BASE = "https://checkout.dodopayments.com/buy";
@@ -76,12 +77,14 @@ export function PlansClient({ email, next }: { email: string; next: string }) {
       <header className="border-b border-border bg-card/60 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
           {/* Brand logo */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center shrink-0">
-              <Zap className="w-4.5 h-4.5 text-primary-foreground" />
-            </div>
-            <span className="font-bold text-foreground text-base tracking-tight">EasyFetcher</span>
-          </div>
+          <Image
+            src="/logo.png"
+            alt="EasyFetcher"
+            width={140}
+            height={40}
+            className="h-9 w-auto object-contain"
+            priority
+          />
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Lock className="w-3 h-3" />
             Secure checkout

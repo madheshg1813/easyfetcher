@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Zap, Plug2, Sparkles, Terminal, CreditCard, Settings, Sun, Moon, LogOut } from "lucide-react";
+import { Plug2, Sparkles, Terminal, CreditCard, Settings, Sun, Moon, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useClerk } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
@@ -75,14 +76,15 @@ export function Sidebar({ userName, userImageUrl, plan, mcpCallsUsed = 0 }: Side
   return (
     <aside className="w-[220px] h-screen sticky top-0 flex flex-col bg-sidebar border-r border-sidebar-border shrink-0">
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-4 h-14 border-b border-sidebar-border">
-        <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center shrink-0">
-          <Zap className="w-4 h-4 text-primary-foreground" />
-        </div>
-        <div className="min-w-0">
-          <p className="font-bold text-foreground text-sm leading-tight">EasyFetcher</p>
-          <p className="text-[10px] text-muted-foreground leading-tight truncate">MCP connector hub</p>
-        </div>
+      <div className="flex items-center px-4 h-14 border-b border-sidebar-border">
+        <Image
+          src="/logo.png"
+          alt="EasyFetcher"
+          width={130}
+          height={36}
+          className="h-8 w-auto object-contain"
+          priority
+        />
       </div>
 
       {/* Nav */}
