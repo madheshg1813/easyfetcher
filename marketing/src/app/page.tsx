@@ -85,35 +85,56 @@ export default function HomePage() {
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 leading-[1.1] tracking-tight mb-5">
-            Turn Claude Into Your<br />
-            <span className="text-amber-500">SEO Expert</span>
+            The SEO Operating System<br />
+            <span className="text-amber-500">for Claude</span>
           </h1>
 
           <p className="text-base sm:text-xl text-gray-500 max-w-2xl mx-auto mb-8 leading-relaxed font-normal">
-            Connect Google Search Console, GA4, Shopify and more to Claude AI.
-            Ask questions in plain English. Get real answers from your live data.
+            Connect Google Search Console, GA4, and SEO data sources to Claude. Generate SEO audits, client reports, technical recommendations, keyword insights, rank tracking, and AI visibility reports from your real data.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-5">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8">
             <Link
               href={SIGNUP_URL}
               className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg bg-amber-500 text-gray-900 font-semibold text-base hover:bg-amber-600 transition-colors shadow-md shadow-amber-100"
             >
-              Get started now <ArrowRight className="w-4 h-4" />
+              Connect Claude <ArrowRight className="w-4 h-4" />
             </Link>
             <a
-              href="#pricing"
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg border border-gray-200 bg-white text-gray-700 font-semibold text-base hover:border-gray-300 hover:shadow-sm transition-all"
+              href="#features"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg border border-gray-200 bg-white text-gray-700 font-semibold text-base hover:border-amber-200 hover:shadow-sm transition-all"
             >
-              View pricing
+              Browse SEO Skills
             </a>
           </div>
-          <p className="text-sm text-gray-400">Cancel anytime · Simple transparent pricing</p>
+
+          {/* Trust bar */}
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-3">
+            {[
+              { label: "Search Console", img: IMAGES.connectors.gsc },
+              { label: "GA4", img: IMAGES.connectors.ga4 },
+              { label: "PageSpeed Insights", img: IMAGES.connectors.pagespeed },
+            ].map((item) => (
+              <div key={item.label} className="flex items-center gap-1.5 text-gray-400 text-xs font-medium">
+                <CldImage src={item.img} alt={item.label} width={16} height={16} className="w-4 h-4 object-contain opacity-60" />
+                {item.label}
+              </div>
+            ))}
+            {["Rank Tracking", "Backlink Data", "AI Visibility"].map((label) => (
+              <div key={label} className="flex items-center gap-1.5 text-gray-400 text-xs font-medium">
+                <div className="w-4 h-4 rounded-sm bg-gray-200 flex items-center justify-center">
+                  <Zap className="w-2.5 h-2.5 text-gray-400" />
+                </div>
+                {label}
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Hero mockup */}
-        <div className="max-w-3xl mx-auto mt-12 px-0 sm:px-0">
+        {/* Hero mockup — Claude SEO audit conversation */}
+        <div className="max-w-2xl mx-auto mt-14">
           <div className="rounded-2xl border border-gray-200 bg-white shadow-2xl shadow-gray-100/80 overflow-hidden">
+            {/* Window chrome */}
             <div className="flex items-center gap-2 px-4 sm:px-5 py-3 bg-gray-50 border-b border-gray-100">
               <div className="flex gap-1.5">
                 <div className="w-3 h-3 rounded-full bg-red-400" />
@@ -122,26 +143,56 @@ export default function HomePage() {
               </div>
               <span className="ml-2 text-xs text-gray-400 font-mono truncate">Claude Desktop — EasyFetcher MCP</span>
             </div>
+
             <div className="p-4 sm:p-6 space-y-4 bg-white">
+              {/* User message */}
               <div className="flex gap-3 items-start">
                 <div className="w-7 h-7 rounded-full bg-gray-200 flex items-center justify-center shrink-0 text-xs font-bold text-gray-500">U</div>
-                <div className="bg-gray-100 rounded-2xl rounded-tl-none px-4 py-3 text-sm text-gray-700 max-w-xs sm:max-w-sm leading-relaxed">
-                  What are my top 10 landing pages by clicks in the last 30 days?
+                <div className="bg-gray-100 rounded-2xl rounded-tl-none px-4 py-3 text-sm text-gray-700 leading-relaxed">
+                  Run a complete SEO audit for easyfetcher.com
                 </div>
               </div>
+
+              {/* Claude response */}
               <div className="flex gap-3 items-start flex-row-reverse">
                 <div className="w-7 h-7 rounded-full bg-amber-500 flex items-center justify-center shrink-0">
                   <Zap className="w-3.5 h-3.5 text-white" />
                 </div>
-                <div className="bg-amber-50 border border-amber-100 rounded-2xl rounded-tr-none px-4 py-3 text-sm text-gray-700 max-w-xs sm:max-w-sm">
-                  <p className="font-semibold text-amber-600 mb-2 text-xs uppercase tracking-wide">Fetching from Google Search Console</p>
-                  <p className="text-gray-600 mb-2 text-xs sm:text-sm">Here are your top 10 landing pages by clicks (last 30 days):</p>
-                  <ol className="space-y-1 text-xs text-gray-600 font-mono">
-                    <li className="flex justify-between gap-4"><span className="truncate">1. /blog/seo-tips</span><span className="font-semibold text-gray-800 shrink-0">4,821</span></li>
-                    <li className="flex justify-between gap-4"><span className="truncate">2. / (homepage)</span><span className="font-semibold text-gray-800 shrink-0">3,204</span></li>
-                    <li className="flex justify-between gap-4"><span className="truncate">3. /pricing</span><span className="font-semibold text-gray-800 shrink-0">1,893</span></li>
-                    <li className="text-gray-400">… and 7 more results</li>
-                  </ol>
+                <div className="bg-amber-50 border border-amber-100 rounded-2xl rounded-tr-none px-4 py-4 text-sm text-gray-700 w-full max-w-sm sm:max-w-md space-y-3">
+
+                  {/* Connected sources */}
+                  <div className="space-y-1">
+                    {["Search Console Connected", "GA4 Connected", "PageSpeed Insights Connected"].map((src) => (
+                      <div key={src} className="flex items-center gap-2 text-xs text-green-700">
+                        <Check className="w-3.5 h-3.5 text-green-500 shrink-0" />
+                        {src}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="border-t border-amber-200 pt-3">
+                    <p className="text-xs font-bold text-gray-800 mb-2 uppercase tracking-wide">SEO Audit Summary</p>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+                      <div className="text-gray-500">Traffic Trend</div><div className="font-semibold text-green-600">+24%</div>
+                      <div className="text-gray-500">Indexed Pages</div><div className="font-semibold text-gray-800">1,243</div>
+                      <div className="text-gray-500">Critical Issues</div><div className="font-semibold text-red-500">7</div>
+                      <div className="text-gray-500">Missing Meta Desc.</div><div className="font-semibold text-amber-600">43</div>
+                      <div className="text-gray-500">Core Web Vitals Failed</div><div className="font-semibold text-red-500">12</div>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-amber-200 pt-3">
+                    <p className="text-xs font-bold text-gray-800 mb-2 uppercase tracking-wide">Top Opportunities</p>
+                    <ol className="space-y-1 text-xs text-gray-600">
+                      <li className="flex gap-2"><span className="text-amber-500 font-bold shrink-0">1.</span>Fix slow category pages</li>
+                      <li className="flex gap-2"><span className="text-amber-500 font-bold shrink-0">2.</span>Improve CTR on branded keywords</li>
+                      <li className="flex gap-2"><span className="text-amber-500 font-bold shrink-0">3.</span>Add schema to product pages</li>
+                    </ol>
+                  </div>
+
+                  <button className="w-full mt-1 py-2 px-4 rounded-lg bg-amber-500 text-gray-900 text-xs font-semibold hover:bg-amber-600 transition-colors flex items-center justify-center gap-1.5">
+                    Generate Detailed Report <ArrowRight className="w-3 h-3" />
+                  </button>
                 </div>
               </div>
             </div>
