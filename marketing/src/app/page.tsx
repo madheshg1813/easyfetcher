@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Zap, BarChart2, Globe, Shield, ArrowRight, Check, Star, TrendingUp, Users, Clock } from "lucide-react";
+import { Zap, BarChart2, Globe, Shield, ArrowRight, Check, Star, TrendingUp, Users, Clock, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
@@ -68,6 +68,93 @@ const testimonials = [
   },
 ];
 
+const faqs = [
+  {
+    q: "Do I need a Claude subscription to use Easy Fetcher?",
+    a: "No. You do not need a paid Claude subscription to use Easy Fetcher. You can connect Easy Fetcher to Claude and start using its SEO and marketing skills with your Claude account.",
+  },
+  {
+    q: "Is Easy Fetcher free?",
+    a: "No. Easy Fetcher is a paid product. Easy Fetcher is built with input from experienced SEO professionals and marketers to deliver reliable insights, reports, and workflows. Our focus is on providing high-quality SEO capabilities rather than a limited free experience.",
+  },
+  {
+    q: "How do I use Easy Fetcher?",
+    a: null,
+    steps: [
+      "Create your Easy Fetcher account.",
+      "Add the Easy Fetcher MCP URL to Claude.",
+      "Connect your data sources (optional, depending on the skill).",
+      "Start asking Claude for audits, reports, keyword insights, rankings, AI visibility analysis, and more.",
+    ],
+    footer: "Claude will use Easy Fetcher to access the required data and generate actionable results.",
+  },
+  {
+    q: "Is my data secure?",
+    a: "Yes. Data security is a top priority at Easy Fetcher. We use industry-standard security practices, encrypted connections, and multiple layers of protection to safeguard your data. Your information is handled securely and is only used to provide the features and insights you request.",
+  },
+  {
+    q: "What can I do with Easy Fetcher?",
+    a: "Easy Fetcher helps you perform SEO and marketing workflows directly inside Claude, including:",
+    bullets: [
+      "SEO Audits", "Technical Site Audits", "SEO Client Reports", "Internal SEO Reports",
+      "Keyword Research", "Rank Tracking", "AI Visibility Analysis", "Schema Generation",
+      "SEO Proposals", "Performance Analysis",
+    ],
+    footer: "New skills and integrations are added regularly.",
+  },
+  {
+    q: "Who is Easy Fetcher for?",
+    a: "Easy Fetcher is built for SEO professionals, agencies, consultants, growth marketers, founders, and businesses that want to automate SEO analysis and reporting using Claude.",
+  },
+];
+
+function FaqAccordion() {
+  const [open, setOpen] = useState<number | null>(null);
+  return (
+    <div className="divide-y divide-gray-100 border border-gray-100 rounded-2xl overflow-hidden">
+      {faqs.map((faq, i) => (
+        <div key={i} className="bg-white">
+          <button
+            className="w-full flex items-center justify-between px-6 py-5 text-left gap-4 hover:bg-gray-50 transition-colors"
+            onClick={() => setOpen(open === i ? null : i)}
+            aria-expanded={open === i}
+          >
+            <span className="text-sm sm:text-base font-semibold text-gray-900">{faq.q}</span>
+            <ChevronDown
+              className={`w-5 h-5 text-gray-400 shrink-0 transition-transform duration-200 ${open === i ? "rotate-180" : ""}`}
+            />
+          </button>
+          {open === i && (
+            <div className="px-6 pb-6 text-sm text-gray-600 leading-relaxed space-y-3">
+              {faq.a && <p>{faq.a}</p>}
+              {faq.steps && (
+                <ol className="space-y-1.5 pl-1">
+                  {faq.steps.map((step, j) => (
+                    <li key={j} className="flex gap-3">
+                      <span className="shrink-0 w-5 h-5 rounded-full bg-amber-100 text-amber-600 text-xs font-bold flex items-center justify-center mt-0.5">{j + 1}</span>
+                      <span>{step}</span>
+                    </li>
+                  ))}
+                </ol>
+              )}
+              {faq.bullets && (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {faq.bullets.map((b) => (
+                    <span key={b} className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-100 text-amber-700 text-xs font-medium">
+                      <Check className="w-3 h-3" />{b}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {faq.footer && <p className="text-gray-500 italic">{faq.footer}</p>}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function HomePage() {
   const [isYearly, setIsYearly] = useState(true);
 
@@ -78,14 +165,19 @@ export default function HomePage() {
       {/* Hero */}
       <section className="pt-14 pb-20 px-4 sm:px-6" style={{ background: "linear-gradient(180deg, #fffbeb 0%, #ffffff 100%)" }}>
         <div className="max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-200 bg-amber-50 text-amber-600 text-xs font-semibold mb-6">
-            <Zap className="w-3.5 h-3.5" />
-            Powered by Claude AI · Model Context Protocol
-          </div>
-
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 leading-[1.1] tracking-tight mb-5">
             The SEO Operating System<br />
-            <span className="text-amber-500">for Claude</span>
+            for{" "}
+            <span className="inline-flex items-center gap-3" style={{ color: "#D97757" }}>
+              Claude
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={IMAGES.claudeIcon}
+                alt="Claude"
+                className="w-8 h-8 sm:w-10 sm:h-10 md:w-11 md:h-11 object-contain"
+                style={{ marginTop: "6px" }}
+              />
+            </span>
           </h1>
 
           <p className="text-base sm:text-xl text-gray-500 max-w-2xl mx-auto mb-8 leading-relaxed font-normal">
@@ -108,25 +200,27 @@ export default function HomePage() {
           </div>
 
           {/* Trust bar */}
-          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-3">
+          <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
             {[
               { label: "Search Console", img: IMAGES.connectors.gsc },
               { label: "GA4", img: IMAGES.connectors.ga4 },
               { label: "PageSpeed Insights", img: IMAGES.connectors.pagespeed },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center gap-1.5 text-gray-400 text-xs font-medium">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={item.img} alt={item.label} className="w-4 h-4 object-contain opacity-60" />
+              { label: "Rank Tracking", img: null },
+              { label: "Backlink Data", img: null },
+              { label: "AI Visibility", img: null },
+            ].map((item, i) => (
+              <span
+                key={item.label}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-gray-200 text-gray-500 text-xs font-medium shadow-sm"
+              >
+                {item.img ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={item.img} alt="" className="w-3.5 h-3.5 object-contain" />
+                ) : (
+                  <Zap className="w-3 h-3 text-amber-400" />
+                )}
                 {item.label}
-              </div>
-            ))}
-            {["Rank Tracking", "Backlink Data", "AI Visibility"].map((label) => (
-              <div key={label} className="flex items-center gap-1.5 text-gray-400 text-xs font-medium">
-                <div className="w-4 h-4 rounded-sm bg-gray-200 flex items-center justify-center">
-                  <Zap className="w-2.5 h-2.5 text-gray-400" />
-                </div>
-                {label}
-              </div>
+              </span>
             ))}
           </div>
         </div>
@@ -255,37 +349,45 @@ export default function HomePage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <p className="text-sm font-semibold text-amber-500 uppercase tracking-wider mb-3">How it works</p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight mb-4">Up and running in 3 steps</h2>
-            <p className="text-base sm:text-lg text-gray-500">No technical setup. No API keys to manage. No code.</p>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight mb-4">From Question to Deliverable in 3 Steps</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8">
-            {[
-              {
-                step: "01",
-                title: "Connect your data",
-                desc: "Click Connect on any platform — Google, Meta, Shopify. OAuth handles the authentication automatically.",
-              },
-              {
-                step: "02",
-                title: "Add to Claude",
-                desc: "Copy one config snippet into Claude Desktop. The setup takes under 30 seconds.",
-              },
-              {
-                step: "03",
-                title: "Ask anything",
-                desc: "Ask Claude about your campaigns, rankings, or revenue — and get real answers from your live data.",
-              },
-            ].map((s, i) => (
-              <div key={s.step} className="relative bg-white rounded-2xl p-6 sm:p-7 border border-gray-100 shadow-sm">
-                {i < 2 && (
-                  <div className="hidden md:block absolute top-10 -right-4 w-8 h-px bg-gray-200 z-10" />
-                )}
-                <div className="text-4xl font-black text-amber-100 mb-4 tracking-tighter">{s.step}</div>
-                <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 tracking-tight">{s.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed">{s.desc}</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+            {/* Step 01 */}
+            <div className="relative bg-white rounded-2xl p-6 sm:p-7 border border-gray-100 shadow-sm">
+              <div className="hidden md:block absolute top-10 -right-3 w-6 h-px bg-gray-200 z-10" />
+              <div className="text-4xl font-black text-amber-100 mb-4 tracking-tighter">01</div>
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 tracking-tight">Install Easy Fetcher</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">Add Easy Fetcher to Claude in minutes.</p>
+            </div>
+
+            {/* Step 02 */}
+            <div className="relative bg-white rounded-2xl p-6 sm:p-7 border border-gray-100 shadow-sm">
+              <div className="hidden md:block absolute top-10 -right-3 w-6 h-px bg-gray-200 z-10" />
+              <div className="text-4xl font-black text-amber-100 mb-4 tracking-tighter">02</div>
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3 tracking-tight">Ask Claude What You Need</h3>
+              <div className="space-y-2">
+                {[
+                  "Run an SEO audit",
+                  "Create a client report",
+                  "Track my rankings",
+                  "Analyze AI visibility",
+                ].map((prompt) => (
+                  <div key={prompt} className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
+                    <span className="text-amber-400 text-xs font-bold">&ldquo;</span>
+                    <span className="text-gray-700 text-xs font-medium">{prompt}</span>
+                    <span className="text-amber-400 text-xs font-bold">&rdquo;</span>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+
+            {/* Step 03 */}
+            <div className="bg-white rounded-2xl p-6 sm:p-7 border border-gray-100 shadow-sm">
+              <div className="text-4xl font-black text-amber-100 mb-4 tracking-tighter">03</div>
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-2 tracking-tight">Receive Ready-to-Use Output</h3>
+              <p className="text-gray-500 text-sm leading-relaxed">Get reports, audits, recommendations, opportunities, and insights without switching tools.</p>
+            </div>
           </div>
         </div>
       </section>
@@ -443,6 +545,18 @@ export default function HomePage() {
         </div>
       </section>
 
+
+      {/* FAQ */}
+      <section className="py-16 sm:py-24 px-4 sm:px-6 bg-white">
+        <div className="max-w-3xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="text-sm font-semibold text-amber-500 uppercase tracking-wider mb-3">FAQ</p>
+            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">Frequently asked questions</h2>
+          </div>
+
+          <FaqAccordion />
+        </div>
+      </section>
 
       {/* CTA Banner */}
       <section className="py-16 sm:py-24 px-4 sm:px-6 bg-gray-950">

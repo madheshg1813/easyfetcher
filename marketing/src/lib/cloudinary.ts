@@ -6,6 +6,7 @@ function cdnUrl(publicId: string) {
 
 export const IMAGES = {
   logo: cdnUrl("easyfetcher/logo/logo"),
+  claudeIcon: cdnUrl("easyfetcher/connectors/claude-color"),
   connectors: {
     gsc: cdnUrl("easyfetcher/connectors/gsc"),
     ga4: cdnUrl("easyfetcher/connectors/google-analytics"),
