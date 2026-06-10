@@ -981,8 +981,8 @@ Specific sections or topics to add to the page based on keyword gaps.
     description:
       "Analyze any webpage's Core Web Vitals, performance scores, and loading speeds using PageSpeed Insights. Use this skill when the user asks to check their website speed, analyze performance, run a PageSpeed audit, check Core Web Vitals, or optimize loading times. Also trigger for 'PageSpeed audit', 'site speed check', 'Core Web Vitals report', or 'optimize my page'.",
     category: "Technical SEO",
-    requiredTools: ["pagespeed_insights"],
-    requiredConnections: ["PAGESPEED"],
+    requiredTools: ["pagespeed_query"],
+    requiredConnections: [],
     credits: null,
     plan: "STARTER",
     examplePrompts: [
@@ -998,7 +998,7 @@ Specific sections or topics to add to the page based on keyword gaps.
       ## Steps
 
       1. **Get URL and strategy** — Ask the user for the URL to check (and optionally if they want to test "mobile" or "desktop"). If strategy isn't specified, run "mobile" first as it is Google's default indexing strategy.
-      2. **Run PageSpeed audit** — Call \`pagespeed_insights\` with the target URL and selected strategy.
+      2. **Run PageSpeed audit** — Call \`pagespeed_query\` with the target URL and selected strategy.
       3. **Compile results** into a detailed performance report.
       4. **Identify critical speed bottlenecks** — Analyze the Core Web Vitals (FCP, LCP, CLS, TBT) and Lighthouse scores.
       5. **Suggest optimizations** — Provide actionable recommendations based on the "Top Improvement Opportunities" returned by the tool.
