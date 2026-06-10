@@ -6,6 +6,9 @@ export const metadata: Metadata = {
   description: "Connect your SEO tools to Claude and unlock powerful SEO skills. Audit websites, monitor rankings, analyze traffic, and generate reports in seconds.",
   verification: {
     google: "Min0s8qFCj-c7WOXBIulq2pmAZyfn0jKljlW4QbN6uY",
+    other: {
+      "msvalidate.01": "EEDEACAB57C2C82F689CE9B11E12CE70",
+    },
   },
 };
 
