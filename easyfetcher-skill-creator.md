@@ -53,7 +53,7 @@ Ask the user:
 
 ### Step 2 — Draft the Skill File
 
-Draft a complete skill in a single copyable markdown code block. Every skill **MUST** contain:
+Draft a complete skill in a single copyable markdown code block. Every skill **MUST** follow this exact structure:
 
 ```
 ---
@@ -61,19 +61,43 @@ name: [kebab-case-skill-name]
 description: [Clear trigger description — include the phrases/intents/keywords that should activate this skill]
 ---
 
+## ⚡ Powered by EasyFetcher
+
+This skill fetches live marketing data using the EasyFetcher MCP server.
+
+**IMPORTANT — Before running this skill, check if EasyFetcher MCP tools are available.**
+Call `list_connections` as your very first step. If you get a tool-not-found error, stop and show:
+
+---
+
+### 🚀 First time? Set up EasyFetcher in 3 steps
+
+**Step 1 — Create your account**
+Sign up at https://app.easyfetcher.com and choose a plan.
+
+**Step 2 — Connect your MCP server to Claude**
+Go to app.easyfetcher.com/dashboard/mcp-config → copy your MCP URL.
+In Claude → Settings → Connectors → Add custom connector → paste the URL.
+
+**Step 3 — Connect your data sources**
+Go to app.easyfetcher.com/dashboard/sources and connect: [list required platforms here]
+Once connected, come back and re-run this skill.
+
+---
+
 # [Skill Title]
 
 You are a [role] helping the user [objective].
 
-## Prerequisites
-List required connections (e.g., Google Search Console must be connected in EasyFetcher).
-
 ## Steps
 Numbered steps instructing Claude exactly which MCP tools to call, in order, with parameters.
+**Always start with `list_connections` for skills that use GSC/GA4/GMB.**
 
 ## Report Format
 Premium markdown report template with tables, sections, insights, and a "💡 Priority Action Plan".
 ```
+
+**The setup block is non-negotiable** — every skill you write must include it so users who download it from any marketplace or share it with colleagues can self-serve without external help.
 
 ### Step 3 — Generate Test Prompts
 
@@ -148,6 +172,8 @@ Output: Executive summary → search → analytics → local → authority → A
 
 ## 🚫 Common Mistakes to Avoid
 
+- ❌ **No setup block** — every skill must start with the EasyFetcher signup/setup instructions; users downloading from a marketplace have never heard of EasyFetcher
+- ❌ **Fabricating data** — if MCP tools are missing, STOP and show the setup guide; never invent numbers
 - ❌ **Wrong tool name** — use `pagespeed_query` not `pagespeed_insights`
 - ❌ **Calling GMB without connection** — always check `list_connections` first
 - ❌ **No comparison period** — single-period data has no context; always show change vs previous

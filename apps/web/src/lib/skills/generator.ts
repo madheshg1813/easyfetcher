@@ -8,14 +8,12 @@ interface GeneratorConfig {
   apiKey: string;  // e.g. "ef_abc123..."
 }
 
-/**
- * Generates the full content of a SKILL.md file ready for Claude Desktop.
- *
- * The file includes:
- * 1. YAML frontmatter (name + description for triggering)
- * 2. MCP connection instructions so Claude knows where to send tool calls
- * 3. The skill body with step-by-step workflow instructions
- */
+const CONNECTION_LABELS: Record<string, string> = {
+  GSC: "Google Search Console",
+  GA4: "Google Analytics 4",
+  GMB: "Google My Business",
+};
+
 export function generateSkillFile(
   template: SkillTemplate,
   config: GeneratorConfig
@@ -25,24 +23,57 @@ export function generateSkillFile(
   // ── YAML frontmatter ────────────────────────────────────────────────────
   lines.push("---");
   lines.push(`name: ${template.id}`);
-  // Escape any quotes in the description
   lines.push(`description: "${template.description.replace(/"/g, '\\"')}"`);
   lines.push("---");
   lines.push("");
 
-  // ── MCP connection context ──────────────────────────────────────────────
-  lines.push("## EasyFetcher MCP Connection");
-  lines.push("");
-  lines.push("This skill uses the EasyFetcher MCP server to fetch marketing data.");
-  lines.push("The MCP server should already be configured in your Claude Desktop settings.");
-  lines.push("");
-  lines.push("**MCP Server Details:**");
-  lines.push(`- **URL:** ${config.mcpUrl}`);
-  lines.push(`- **API Key:** ${config.apiKey}`);
+  // ── New user setup block — ALWAYS first ─────────────────────────────────
+  lines.push("## ⚡ Powered by EasyFetcher");
   lines.push("");
   lines.push(
-    "If the MCP tools are not available, ask the user to configure the EasyFetcher MCP server in their Claude Desktop settings:"
+    "This skill fetches **live marketing data** using the [EasyFetcher](https://app.easyfetcher.com) MCP server."
   );
+  lines.push("");
+  lines.push(
+    "**IMPORTANT — Before running this skill, check if the EasyFetcher MCP tools are available in this session.**"
+  );
+  lines.push("Call `list_connections` as your very first step. If you get a tool-not-found error, stop immediately and show the user this setup guide:"
+  );
+  lines.push("");
+  lines.push("---");
+  lines.push("");
+  lines.push("### 🚀 First time? Set up EasyFetcher in 3 steps");
+  lines.push("");
+  lines.push("**Step 1 — Create your free account**");
+  lines.push("Sign up at **https://app.easyfetcher.com** and choose a plan.");
+  lines.push("");
+  lines.push("**Step 2 — Connect your MCP server to Claude**");
+  lines.push("Go to **app.easyfetcher.com/dashboard/mcp-config** and copy your personal MCP URL.");
+  lines.push("Then in Claude → Settings → Connectors → Add custom connector → paste the URL.");
+  lines.push("");
+  lines.push(`Your personal MCP URL: \`${config.mcpUrl}?apiKey=${config.apiKey}\``);
+  lines.push("");
+
+  if (template.requiredConnections.length > 0) {
+    lines.push("**Step 3 — Connect your data sources**");
+    lines.push(
+      `Go to **app.easyfetcher.com/dashboard/sources** and connect: **${
+        template.requiredConnections.map((c) => CONNECTION_LABELS[c] ?? c).join(", ")
+      }**`
+    );
+    lines.push("");
+    lines.push("Once connected, come back here and re-run this skill.");
+  } else {
+    lines.push("**Step 3 — You're ready!**");
+    lines.push("This skill doesn't need any OAuth connections — just the MCP URL above.");
+  }
+
+  lines.push("");
+  lines.push("---");
+  lines.push("");
+
+  // ── MCP config block ─────────────────────────────────────────────────────
+  lines.push("## MCP Server Configuration");
   lines.push("");
   lines.push("```json");
   lines.push(`{`);
@@ -55,41 +86,21 @@ export function generateSkillFile(
   lines.push("```");
   lines.push("");
 
-  // ── Required connections ────────────────────────────────────────────────
-  if (template.requiredConnections.length > 0) {
-    lines.push("## Required Connections");
-    lines.push("");
-    lines.push(
-      `This skill requires the following data sources to be connected in your EasyFetcher dashboard: **${template.requiredConnections.join(", ")}**.`
-    );
-    lines.push("");
-    lines.push(
-      "If a required connection is missing, guide the user to connect it at https://app.easyfetcher.com/dashboard/sources"
-    );
-    lines.push("");
-  }
-
-  // ── Available tools reference ───────────────────────────────────────────
+  // ── Tools used ───────────────────────────────────────────────────────────
   lines.push("## Tools Used");
-  lines.push("");
-  lines.push("This skill uses the following EasyFetcher MCP tools:");
   lines.push("");
   for (const tool of template.requiredTools) {
     lines.push(`- \`${tool}\``);
   }
   lines.push("");
 
-  // ── Skill body ──────────────────────────────────────────────────────────
+  // ── Skill body ───────────────────────────────────────────────────────────
   lines.push(template.skillBody.trim());
   lines.push("");
 
   return lines.join("\n");
 }
 
-/**
- * Returns just the raw skill content without personalized MCP config.
- * Useful for previewing the skill in the dashboard.
- */
 export function generateGenericSkillFile(template: SkillTemplate): string {
   return generateSkillFile(template, {
     mcpUrl: "https://app.easyfetcher.com/api/mcp",
