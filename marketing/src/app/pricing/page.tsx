@@ -117,7 +117,7 @@ export default function PricingPage() {
                 >
                   {plan.highlight && (
                     <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                      <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500 text-gray-900 text-[10px] font-extrabold whitespace-nowrap shadow-md shadow-amber-200">
+                      <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0e1b2f] text-white text-[10px] font-extrabold whitespace-nowrap shadow-md shadow-gray-300">
                         <Zap className="w-3 h-3" /> Most popular
                       </span>
                     </div>
@@ -258,7 +258,7 @@ export default function PricingPage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <a
               href={getDodoCheckoutUrl(PLANS[1].yearlyProductId)}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-amber-500 text-gray-900 font-bold text-base hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/20"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-white text-[#0e1b2f] font-bold text-base hover:bg-gray-100 transition-colors shadow-lg shadow-black/20"
             >
               Start with Pro <ArrowRight className="w-4 h-4" />
             </a>

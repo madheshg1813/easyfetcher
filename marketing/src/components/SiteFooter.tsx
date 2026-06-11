@@ -47,7 +47,7 @@ export default function SiteFooter() {
           <p className="text-gray-500 text-sm">© {new Date().getFullYear()} EasyFetcher. All rights reserved.</p>
           <Link
             href={SIGNUP_URL}
-            className="px-5 py-2.5 rounded-lg bg-amber-500 text-gray-900 text-sm font-semibold hover:bg-amber-600 transition-colors"
+            className="px-5 py-2.5 rounded-lg bg-white text-[#0e1b2f] text-sm font-semibold hover:bg-gray-100 transition-colors"
           >
             Get started free →
           </Link>
