@@ -89,3 +89,18 @@
     color: var(--foreground);
   }
 }
+
+/* Hide Clerk "Secured by Clerk" branding badge */
+.cl-powered-by-clerk,
+.cl-powered-by-clerk ~ *,
+[class*="cl-powered"],
+[data-localization-key="poweredBy"],
+[data-localization-key="poweredBy"] *,
+.cl-footer__poweredByClerk,
+.cl-footerAction__poweredByClerk {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}

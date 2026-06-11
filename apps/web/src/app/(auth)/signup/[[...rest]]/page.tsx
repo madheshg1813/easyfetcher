@@ -29,6 +29,10 @@ export default function SignUpPage() {
             formButtonPrimary:
               "bg-primary text-primary-foreground hover:bg-primary/90",
             footerActionLink: "text-primary hover:text-primary/90",
+            // Hide Clerk branding badge
+            footer: { "& .cl-powered-by-clerk": { display: "none" } },
+            internal_poweredByClerk: { display: "none" },
+            poweredByClerk: { display: "none" },
           },
         }}
       />
