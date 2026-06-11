@@ -1,17 +1,7 @@
 import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/db";
-import type { Plan } from "@easyfetcher/db";
-
-// ─── Product ID → Plan mapping ────────────────────────────────────────────────
-const PRODUCT_PLAN_MAP: Record<string, Plan> = {
-  pdt_0Ng5wo22oONBlqDIQvQQH: "STARTER", // Starter Yearly
-  pdt_0Ng5y8DYr4SO7bAbztKe1: "STARTER", // Starter Monthly
-  pdt_0Ng5xPsUKdHXhvmQOsEz9: "PRO",     // Pro Yearly
-  pdt_0Ng5yT8aBWnSvfhryKLOC: "PRO",     // Pro Monthly
-  pdt_0Ng5xi9BNGdxE9t2akkwK: "AGENCY",  // Agency Yearly
-  pdt_0Ng5ykFTysYI4D73Jx37I: "AGENCY",  // Agency Monthly
-};
+import { PRODUCT_PLAN_MAP } from "@/lib/billing/plans";
 
 type DodoEvent = {
   type: string;
@@ -25,6 +15,8 @@ type DodoEvent = {
     product_id?: string;
     status?: string;
     next_billing_date?: string;
+    trial_period_days?: number;
+    cancel_at_next_billing_date?: boolean;
   };
 };
 
@@ -92,6 +84,11 @@ export async function POST(req: Request) {
       ? new Date(data.next_billing_date)
       : new Date(Date.now() + 31 * 24 * 60 * 60 * 1000);
 
+    // Subscriptions that start with a free trial arrive as `active` with the
+    // first charge scheduled at trial end (= next_billing_date)
+    const isTrial = (data.trial_period_days ?? 0) > 0;
+    const trialEnd = isTrial ? periodEnd : null;
+
     await prisma.$transaction([
       prisma.subscription.upsert({
         where: { userId: user.id },
@@ -102,6 +99,8 @@ export async function POST(req: Request) {
           dodoSubId:       subId,
           status:          "active",
           currentPeriodEnd: periodEnd,
+          trialEnd,
+          cancelAtPeriodEnd: data.cancel_at_next_billing_date ?? false,
         },
         update: {
           dodoCustomerId:  customerId,
@@ -109,6 +108,9 @@ export async function POST(req: Request) {
           dodoSubId:       subId,
           status:          "active",
           currentPeriodEnd: periodEnd,
+          // keep the original trialEnd once set (trial→paid renewal omits it)
+          ...(isTrial ? { trialEnd } : {}),
+          cancelAtPeriodEnd: data.cancel_at_next_billing_date ?? false,
         },
       }),
       prisma.user.update({
@@ -117,7 +119,7 @@ export async function POST(req: Request) {
       }),
     ]);
 
-    console.log(`✅ Plan activated: ${customerEmail} → ${plan}`);
+    console.log(`✅ Plan activated: ${customerEmail} → ${plan}${isTrial ? " (7-day trial)" : ""}`);
   }
 
   // ── subscription.cancelled / expired → downgrade to FREE ──────────────────

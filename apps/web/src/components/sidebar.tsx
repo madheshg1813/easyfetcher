@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Plug2, Sparkles, Terminal, CreditCard, Settings, Sun, Moon, LogOut } from "lucide-react";
+import { Plug2, Sparkles, Terminal, CreditCard, Settings, Sun, Moon, LogOut, Lock } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useClerk } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
@@ -50,9 +50,14 @@ interface SidebarProps {
   userImageUrl?: string;
   plan: Plan;
   mcpCallsUsed?: number;
+  /** True while the user has no plan — everything except billing is locked */
+  locked?: boolean;
 }
 
-export function Sidebar({ userName, userImageUrl, plan, mcpCallsUsed = 0 }: SidebarProps) {
+// Routes that stay clickable while the account is locked (no plan yet)
+const UNLOCKED_HREFS = ["/dashboard/billing"];
+
+export function Sidebar({ userName, userImageUrl, plan, mcpCallsUsed = 0, locked = false }: SidebarProps) {
   const pathname = usePathname();
   const { signOut } = useClerk();
   const limit = PLAN_LIMITS[plan];
@@ -89,8 +94,14 @@ export function Sidebar({ userName, userImageUrl, plan, mcpCallsUsed = 0 }: Side
 
       {/* Nav */}
       <nav className="flex-1 px-2 py-3 overflow-y-auto space-y-5">
-        <NavSection label="Setup" items={SETUP_NAV} pathname={pathname} />
-        <NavSection label="Account" items={ACCOUNT_NAV} pathname={pathname} />
+        <NavSection label="Setup" items={SETUP_NAV} pathname={pathname} locked={locked} />
+        <NavSection label="Account" items={ACCOUNT_NAV} pathname={pathname} locked={locked} />
+        {locked && (
+          <p className="px-3 text-[10px] leading-relaxed text-muted-foreground">
+            <Lock className="w-3 h-3 inline mr-1 align-[-1px]" />
+            Start your free trial to unlock the dashboard.
+          </p>
+        )}
       </nav>
 
       {/* Bottom */}
@@ -149,10 +160,12 @@ function NavSection({
   label,
   items,
   pathname,
+  locked = false,
 }: {
   label: string;
   items: { label: string; href: string; icon: React.ComponentType<{ className?: string }> }[];
   pathname: string;
+  locked?: boolean;
 }) {
   return (
     <div>
@@ -161,6 +174,22 @@ function NavSection({
         {items.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
           const Icon = item.icon;
+          const isLocked = locked && !UNLOCKED_HREFS.includes(item.href);
+
+          if (isLocked) {
+            return (
+              <div
+                key={item.href}
+                className="flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground/50 cursor-not-allowed select-none"
+                title="Start your free trial to unlock"
+              >
+                <Icon className="w-4 h-4 shrink-0" />
+                <span className="flex-1">{item.label}</span>
+                <Lock className="w-3 h-3 shrink-0" />
+              </div>
+            );
+          }
+
           return (
             <Link
               key={item.href}

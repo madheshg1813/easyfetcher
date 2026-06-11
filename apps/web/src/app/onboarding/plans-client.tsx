@@ -2,74 +2,32 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Zap, Check, Shield, RefreshCw, Headphones, Lock, Sparkles } from "lucide-react";
-
-const DODO_BASE = "https://checkout.dodopayments.com/buy";
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.easyfetcher.com";
-
-const PLANS = [
-  {
-    id: "STARTER",
-    name: "Starter",
-    yearlyPrice: 9,
-    monthlyPrice: 14,
-    credits: 50,
-    yearlyProductId: "pdt_0Ng5wo22oONBlqDIQvQQH",
-    monthlyProductId: "pdt_0Ng5y8DYr4SO7bAbztKe1",
-    features: [
-      "50 credits / month",
-      "GSC, GA4 & Google My Business",
-      "All Claude Skills included",
-      "Email support",
-    ],
-  },
-  {
-    id: "PRO",
-    name: "Pro",
-    yearlyPrice: 24,
-    monthlyPrice: 29,
-    credits: 125,
-    highlight: true,
-    yearlyProductId: "pdt_0Ng5xPsUKdHXhvmQOsEz9",
-    monthlyProductId: "pdt_0Ng5yT8aBWnSvfhryKLOC",
-    features: [
-      "125 credits / month",
-      "All connectors — GSC, GA4, GMB",
-      "All Claude Skills included",
-      "OAuth calls always free",
-      "Priority email support",
-    ],
-  },
-  {
-    id: "AGENCY",
-    name: "Agency",
-    yearlyPrice: 49,
-    monthlyPrice: 59,
-    credits: 275,
-    yearlyProductId: "pdt_0Ng5xi9BNGdxE9t2akkwK",
-    monthlyProductId: "pdt_0Ng5ykFTysYI4D73Jx37I",
-    features: [
-      "275 credits / month",
-      "All connectors — GSC, GA4, GMB",
-      "All Claude Skills included",
-      "Unlimited workspaces",
-      "Dedicated Slack support",
-    ],
-  },
-];
-
-function checkoutUrl(productId: string, email: string, next: string) {
-  const params = new URLSearchParams({
-    email,
-    redirect_url: next,
-    quantity: "1",
-  });
-  return `${DODO_BASE}/${productId}?${params.toString()}`;
-}
+import { Zap, Check, Shield, RefreshCw, CreditCard, Lock, Sparkles, Loader2 } from "lucide-react";
+import { PLANS, TRIAL_DAYS } from "@/lib/billing/plans";
 
 export function PlansClient({ email, next }: { email: string; next: string }) {
   const [billing, setBilling] = useState<"yearly" | "monthly">("yearly");
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const fromClaude = next.includes("/api/oauth/authorize");
+
+  async function startTrial(productId: string) {
+    setLoadingId(productId);
+    setError(null);
+    try {
+      const res = await fetch("/api/billing/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId, next }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.url) throw new Error(data.error ?? "Something went wrong");
+      window.location.href = data.url;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
+      setLoadingId(null);
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -97,16 +55,17 @@ export function PlansClient({ email, next }: { email: string; next: string }) {
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-5">
             <Zap className="w-3.5 h-3.5 text-primary" />
-            <span className="text-xs font-semibold text-primary">One step away from your marketing AI stack</span>
+            <span className="text-xs font-semibold text-primary">Try EasyFetcher free for {TRIAL_DAYS} days</span>
           </div>
-          <h1 className="text-3xl font-bold text-foreground mb-3">Choose your plan</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-3">Start your free trial</h1>
           <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-            Connect your data sources and query them with Claude — GSC, GA4, Google My Business and more.
+            <span className="font-semibold text-foreground">$0 today.</span> Add a payment method, get full access for{" "}
+            {TRIAL_DAYS} days, and cancel anytime before your first charge.
           </p>
           {fromClaude && (
             <div className="mt-4 inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-xs text-blue-600 dark:text-blue-400 font-medium">
               <Sparkles className="w-3.5 h-3.5 shrink-0" />
-              After purchasing, you&apos;ll be automatically connected to Claude
+              After starting your trial, you&apos;ll be automatically connected to Claude
             </div>
           )}
           {email && (
@@ -122,10 +81,10 @@ export function PlansClient({ email, next }: { email: string; next: string }) {
         {/* Trust bar */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
           {[
-            { icon: Shield,      label: "Secure payment", sub: "256-bit SSL" },
-            { icon: RefreshCw,   label: "Cancel anytime", sub: "No lock-in" },
-            { icon: Zap,         label: "Instant access", sub: "After payment" },
-            { icon: Headphones,  label: "Email support",  sub: "We reply fast" },
+            { icon: CreditCard,  label: "$0 charged today", sub: `First charge after ${TRIAL_DAYS} days` },
+            { icon: RefreshCw,   label: "Cancel anytime",   sub: "1 click, no questions" },
+            { icon: Zap,         label: "Instant access",   sub: "Full dashboard unlocked" },
+            { icon: Shield,      label: "Secure payment",   sub: "256-bit SSL" },
           ].map(({ icon: Icon, label, sub }) => (
             <div key={label} className="flex flex-col items-center gap-1 rounded-xl border border-border bg-card p-3 text-center">
               <Icon className="w-4 h-4 text-primary mb-0.5" />
@@ -169,6 +128,7 @@ export function PlansClient({ email, next }: { email: string; next: string }) {
           {PLANS.map((plan) => {
             const price = billing === "yearly" ? plan.yearlyPrice : plan.monthlyPrice;
             const productId = billing === "yearly" ? plan.yearlyProductId : plan.monthlyProductId;
+            const isLoading = loadingId === productId;
 
             return (
               <div
@@ -195,8 +155,8 @@ export function PlansClient({ email, next }: { email: string; next: string }) {
                   </div>
                   <p className="text-[10px] text-muted-foreground">
                     {billing === "yearly"
-                      ? `Billed $${plan.yearlyPrice * 12}/year · Save $${(plan.monthlyPrice - plan.yearlyPrice) * 12}/yr`
-                      : "Billed monthly · cancel anytime"}
+                      ? `After trial: $${plan.yearlyPrice * 12}/year · Save $${(plan.monthlyPrice - plan.yearlyPrice) * 12}/yr`
+                      : `After trial: $${plan.monthlyPrice}/month · cancel anytime`}
                   </p>
                   <div className="mt-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 border border-primary/20">
                     <span className="text-xs font-bold text-primary">{plan.credits}</span>
@@ -215,34 +175,40 @@ export function PlansClient({ email, next }: { email: string; next: string }) {
                   ))}
                 </ul>
 
-                <a
-                  href={checkoutUrl(productId, email, next)}
-                  className={`w-full py-2.5 rounded-lg text-xs font-semibold text-center transition-colors mt-1 ${
+                <button
+                  onClick={() => startTrial(productId)}
+                  disabled={loadingId !== null}
+                  className={`w-full py-2.5 rounded-lg text-xs font-semibold text-center transition-colors mt-1 disabled:opacity-60 flex items-center justify-center gap-1.5 ${
                     plan.highlight
                       ? "bg-primary text-primary-foreground hover:bg-primary/90"
                       : "bg-foreground text-background hover:bg-foreground/90"
                   }`}
                 >
-                  Get {plan.name}
-                </a>
+                  {isLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  {isLoading ? "Redirecting…" : `Start ${TRIAL_DAYS}-day free trial`}
+                </button>
               </div>
             );
           })}
         </div>
 
+        {error && (
+          <p className="text-center text-xs text-destructive mb-4">{error}</p>
+        )}
+
         {/* Bottom trust */}
         <div className="text-center space-y-3">
           <p className="text-[11px] text-muted-foreground">
             {fromClaude
-              ? "After completing your purchase you will be automatically connected to Claude."
-              : "After completing your purchase you will be redirected back to the dashboard automatically."}
+              ? "After starting your free trial you will be automatically connected to Claude."
+              : "After starting your free trial you will be redirected back to the dashboard automatically."}
           </p>
           <div className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
             <Lock className="w-3 h-3" />
             <span>Payments processed securely by <span className="font-medium text-foreground">Dodo Payments</span></span>
           </div>
           <p className="text-[10px] text-muted-foreground">
-            Cancel anytime · No hidden fees · Instant access after payment
+            We&apos;ll email you before your trial ends · Cancel anytime · No hidden fees
           </p>
         </div>
       </div>

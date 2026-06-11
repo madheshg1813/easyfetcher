@@ -1,9 +1,12 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Check, CreditCard, Download, Zap, ExternalLink } from "lucide-react";
+import { Check, CreditCard, Download, ExternalLink } from "lucide-react";
 import { prisma } from "@/lib/db";
 import type { Plan } from "@easyfetcher/db";
+import { StartTrialPlans } from "@/components/billing/start-trial";
+import { TrialManageCard } from "@/components/billing/trial-manage";
+import { PLANS } from "@/lib/billing/plans";
 
 export const metadata = { title: "Usage & Billing" };
 
@@ -90,7 +93,24 @@ export default async function BillingPage() {
   const hasInvoices = !isUnpaid && config.yearlyPrice !== null;
   const now = new Date();
 
-  const MARKETING_URL = "https://easyfetcher.com";
+  // ── Trial state ───────────────────────────────────────────────────────────
+  const sub = dbUser?.subscription;
+  const onTrial =
+    !isUnpaid && sub?.status === "active" && !!sub.trialEnd && sub.trialEnd.getTime() > now.getTime();
+  const trialDaysLeft = onTrial
+    ? Math.max(1, Math.ceil((sub!.trialEnd!.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+    : 0;
+
+  // What the card will be charged after the trial, based on the purchased product
+  const purchasedPlan = sub ? PLANS.find(
+    (p) => p.yearlyProductId === sub.dodoProductId || p.monthlyProductId === sub.dodoProductId
+  ) : undefined;
+  const isYearly = purchasedPlan?.yearlyProductId === sub?.dodoProductId;
+  const chargeAmount = purchasedPlan
+    ? isYearly
+      ? `$${purchasedPlan.yearlyPrice * 12}/year`
+      : `$${purchasedPlan.monthlyPrice}/month`
+    : "";
 
   return (
     <div className="space-y-5 max-w-4xl">
@@ -99,36 +119,20 @@ export default async function BillingPage() {
         <p className="text-sm text-muted-foreground mt-1">Your plan, credit balance, and feature usage this month.</p>
       </div>
 
-      {/* ── No active plan banner ── */}
+      {/* ── Trial status (active trial or scheduled cancellation) ── */}
+      {onTrial && (
+        <TrialManageCard
+          daysLeft={trialDaysLeft}
+          trialEnd={sub!.trialEnd!.toISOString()}
+          planName={purchasedPlan?.name ?? config.name}
+          chargeAmount={chargeAmount}
+          cancelScheduled={sub!.cancelAtPeriodEnd}
+        />
+      )}
+
+      {/* ── No active plan → start free trial ── */}
       {isUnpaid ? (
-        <div className="rounded-xl border-2 border-amber-500/40 bg-amber-500/5 p-6">
-          <div className="flex items-start justify-between gap-4 flex-wrap">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-2">
-                <Zap className="w-4 h-4 text-amber-500" />
-                <h2 className="text-base font-semibold text-foreground">No active subscription</h2>
-              </div>
-              <p className="text-sm text-muted-foreground mb-4">
-                Choose a plan to start connecting your data sources and querying them with AI.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {["Starter — $9/mo", "Pro — $24/mo", "Agency — $49/mo"].map((item) => (
-                  <span key={item} className="text-[11px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground font-medium">
-                    {item}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <a
-              href={`${MARKETING_URL}/pricing`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors shrink-0"
-            >
-              View pricing <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-          </div>
-        </div>
+        <StartTrialPlans />
       ) : (
         // ── Active paid plan card ────────────────────────────────────────────────
         <div className="rounded-xl border-2 border-primary/40 bg-card p-6">
@@ -136,7 +140,9 @@ export default async function BillingPage() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <h2 className="text-base font-semibold text-foreground">{config.name} plan</h2>
-                <span className="text-[11px] px-2 py-0.5 rounded-full bg-green-500/15 text-green-600 dark:text-green-400 font-semibold">Active</span>
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-green-500/15 text-green-600 dark:text-green-400 font-semibold">
+                  {onTrial ? "Free trial" : "Active"}
+                </span>
               </div>
               {config.yearlyPrice && (
                 <div className="flex items-baseline gap-1 mt-1 mb-1">
