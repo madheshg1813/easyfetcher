@@ -163,9 +163,9 @@ export default function HomePage() {
       <SiteNav />
 
       {/* Hero */}
-      <section className="pt-14 pb-20 px-4 sm:px-6" style={{ background: "linear-gradient(180deg, #fffbeb 0%, #ffffff 100%)" }}>
-        <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-gray-900 leading-[1.1] tracking-tight mb-5">
+      <section className="pt-14 sm:pt-20 lg:pt-24 pb-20 px-4 sm:px-6" style={{ background: "linear-gradient(180deg, #fffbeb 0%, #ffffff 100%)" }}>
+        <div className="max-w-5xl mx-auto text-center">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-900 leading-[1.1] tracking-tight mb-6">
             The SEO Operating System<br />
             for{" "}
             <span className="inline-flex items-center gap-3" style={{ color: "#D97757" }}>
@@ -174,26 +174,26 @@ export default function HomePage() {
               <img
                 src={IMAGES.claudeIcon}
                 alt="Claude"
-                className="w-8 h-8 sm:w-10 sm:h-10 md:w-11 md:h-11 object-contain"
+                className="w-8 h-8 sm:w-10 sm:h-10 md:w-11 md:h-11 lg:w-14 lg:h-14 object-contain"
                 style={{ marginTop: "6px" }}
               />
             </span>
           </h1>
 
-          <p className="text-base sm:text-xl text-gray-500 max-w-2xl mx-auto mb-8 leading-relaxed font-normal">
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-500 max-w-2xl lg:max-w-3xl mx-auto mb-8 lg:mb-10 leading-relaxed font-normal">
             Connect Google Search Console, GA4, and SEO data sources to Claude. Generate SEO audits, client reports, technical recommendations, keyword insights, rank tracking, and AI visibility reports from your real data.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-8">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-8 lg:mb-10">
             <Link
               href={SIGNUP_URL}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg bg-amber-500 text-gray-900 font-semibold text-base hover:bg-amber-600 transition-colors shadow-md shadow-amber-100"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 lg:px-10 py-3.5 lg:py-4 rounded-lg bg-[#0e1b2f] text-white font-semibold text-base lg:text-lg hover:bg-[#1c3050] transition-colors shadow-md shadow-[#0e1b2f]/10"
             >
-              Connect Claude <ArrowRight className="w-4 h-4" />
+              Connect Claude <ArrowRight className="w-4 h-4 lg:w-5 lg:h-5" />
             </Link>
             <a
               href="#features"
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 rounded-lg border border-gray-200 bg-white text-gray-700 font-semibold text-base hover:border-amber-200 hover:shadow-sm transition-all"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 lg:px-10 py-3.5 lg:py-4 rounded-lg border border-gray-200 bg-white text-gray-700 font-semibold text-base lg:text-lg hover:border-[#0e1b2f]/30 hover:shadow-sm transition-all"
             >
               Browse SEO Skills
             </a>
@@ -211,13 +211,13 @@ export default function HomePage() {
             ].map((item, i) => (
               <span
                 key={item.label}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-gray-200 text-gray-500 text-xs font-medium shadow-sm"
+                className="inline-flex items-center gap-1.5 px-3 lg:px-4 py-1.5 lg:py-2 rounded-full bg-white border border-gray-200 text-gray-500 text-xs lg:text-sm font-medium shadow-sm"
               >
                 {item.img ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.img} alt="" className="w-3.5 h-3.5 object-contain" />
+                  <img src={item.img} alt="" className="w-3.5 h-3.5 lg:w-4 lg:h-4 object-contain" />
                 ) : (
-                  <Zap className="w-3 h-3 text-amber-400" />
+                  <Zap className="w-3 h-3 lg:w-3.5 lg:h-3.5 text-amber-400" />
                 )}
                 {item.label}
               </span>
@@ -226,7 +226,7 @@ export default function HomePage() {
         </div>
 
         {/* Hero mockup — Claude SEO audit conversation */}
-        <div className="max-w-2xl mx-auto mt-14">
+        <div className="max-w-2xl lg:max-w-3xl mx-auto mt-14 lg:mt-16">
           <div className="rounded-2xl border border-gray-200 bg-white shadow-2xl shadow-gray-100/80 overflow-hidden">
             {/* Window chrome */}
             <div className="flex items-center gap-2 px-4 sm:px-5 py-3 bg-gray-50 border-b border-gray-100">
@@ -284,7 +284,7 @@ export default function HomePage() {
                     </ol>
                   </div>
 
-                  <button className="w-full mt-1 py-2 px-4 rounded-lg bg-amber-500 text-gray-900 text-xs font-semibold hover:bg-amber-600 transition-colors flex items-center justify-center gap-1.5">
+                  <button className="w-full mt-1 py-2 px-4 rounded-lg bg-[#0e1b2f] text-white text-xs font-semibold hover:bg-[#1c3050] transition-colors flex items-center justify-center gap-1.5">
                     Generate Detailed Report <ArrowRight className="w-3 h-3" />
                   </button>
                 </div>
@@ -304,8 +304,8 @@ export default function HomePage() {
                 <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center mx-auto mb-3">
                   <Icon className="w-5 h-5 text-amber-500" />
                 </div>
-                <p className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">{s.value}</p>
-                <p className="text-xs sm:text-sm text-gray-500 mt-1">{s.label}</p>
+                <p className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight">{s.value}</p>
+                <p className="text-xs sm:text-sm lg:text-base text-gray-500 mt-1">{s.label}</p>
               </div>
             );
           })}
@@ -317,10 +317,10 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <p className="text-sm font-semibold text-amber-500 uppercase tracking-wider mb-3">Features</p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight mb-4">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight mb-4">
               Everything you need to query<br className="hidden sm:block" />your marketing data with AI
             </h2>
-            <p className="text-base sm:text-lg text-gray-500 max-w-2xl mx-auto">
+            <p className="text-base sm:text-lg lg:text-xl text-gray-500 max-w-2xl mx-auto">
               EasyFetcher bridges your marketing platforms and AI tools in minutes, not months.
             </p>
           </div>
@@ -349,7 +349,7 @@ export default function HomePage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-12">
             <p className="text-sm font-semibold text-amber-500 uppercase tracking-wider mb-3">How it works</p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight mb-4">From Question to Deliverable in 3 Steps</h2>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight mb-4">From Question to Deliverable in 3 Steps</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
@@ -397,10 +397,10 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <p className="text-sm font-semibold text-amber-500 uppercase tracking-wider mb-3">Integrations</p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight mb-4">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight mb-4">
               All your SEO data,<br className="hidden sm:block" />in one AI-powered workspace
             </h2>
-            <p className="text-base sm:text-lg text-gray-500">Connect your Google SEO tools and query them in plain English.</p>
+            <p className="text-base sm:text-lg lg:text-xl text-gray-500">Connect your Google SEO tools and query them in plain English.</p>
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 max-w-3xl mx-auto">
@@ -420,7 +420,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <p className="text-sm font-semibold text-amber-500 uppercase tracking-wider mb-3">Customers</p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">Loved by marketers worldwide</h2>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight">Loved by marketers worldwide</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
@@ -452,8 +452,8 @@ export default function HomePage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-10">
             <p className="text-sm font-semibold text-amber-500 uppercase tracking-wider mb-3">Pricing</p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight mb-4">Simple, transparent pricing</h2>
-            <p className="text-base sm:text-lg text-gray-500 max-w-xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight mb-4">Simple, transparent pricing</h2>
+            <p className="text-base sm:text-lg lg:text-xl text-gray-500 max-w-xl mx-auto">
               All plans include every connector and AI skill. Pick the size that fits your workload.
             </p>
 
@@ -491,8 +491,8 @@ export default function HomePage() {
                   key={plan.id}
                   className={`relative rounded-2xl border bg-white flex flex-col p-7 transition-all hover:shadow-xl ${
                     plan.highlight
-                      ? "border-amber-400 ring-2 ring-amber-400/30 shadow-lg shadow-amber-100"
-                      : "border-gray-100 hover:border-amber-200"
+                      ? "border-[#0e1b2f] ring-2 ring-[#0e1b2f]/15 shadow-lg shadow-gray-200"
+                      : "border-gray-100 hover:border-[#0e1b2f]/20"
                   }`}
                 >
                   {plan.highlight && (
@@ -530,8 +530,8 @@ export default function HomePage() {
                     href={checkoutUrl}
                     className={`w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all hover:scale-[1.02] ${
                       plan.highlight
-                        ? "bg-amber-500 hover:bg-amber-600 text-gray-900 shadow-md shadow-amber-200"
-                        : "border-2 border-amber-400 text-amber-600 hover:bg-amber-50"
+                        ? "bg-[#0e1b2f] hover:bg-[#1c3050] text-white shadow-md shadow-gray-300"
+                        : "border-2 border-[#0e1b2f]/80 text-[#0e1b2f] hover:bg-[#0e1b2f]/5"
                     }`}
                   >
                     Get {plan.name} <ArrowRight className="w-4 h-4" />
@@ -551,7 +551,7 @@ export default function HomePage() {
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-12">
             <p className="text-sm font-semibold text-amber-500 uppercase tracking-wider mb-3">FAQ</p>
-            <h2 className="text-3xl sm:text-4xl font-extrabold text-gray-900 tracking-tight">Frequently asked questions</h2>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-gray-900 tracking-tight">Frequently asked questions</h2>
           </div>
 
           <FaqAccordion />
@@ -559,7 +559,7 @@ export default function HomePage() {
       </section>
 
       {/* CTA Banner */}
-      <section className="py-16 sm:py-24 px-4 sm:px-6 bg-gray-950">
+      <section className="py-16 sm:py-24 px-4 sm:px-6 bg-[#0e1b2f]">
         <div className="max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold mb-6 sm:mb-8">
             <Zap className="w-3.5 h-3.5" />
@@ -585,7 +585,7 @@ export default function HomePage() {
               View all plans
             </Link>
           </div>
-          <p className="text-gray-600 text-sm mt-5">Cancel anytime · Secure checkout via Dodo Payments</p>
+          <p className="text-gray-500 text-sm mt-5">Cancel anytime · Secure checkout via Dodo Payments</p>
         </div>
       </section>
 

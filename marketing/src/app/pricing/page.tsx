@@ -65,7 +65,7 @@ export default function PricingPage() {
             <Zap className="w-3.5 h-3.5" />
             Simple, transparent pricing
           </div>
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 tracking-tight leading-[1.1] mb-4">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-gray-900 tracking-tight leading-[1.1] mb-4">
             Pick the plan<br />
             <span className="text-amber-500">that fits your scale.</span>
           </h1>
@@ -111,8 +111,8 @@ export default function PricingPage() {
                   key={plan.id}
                   className={`relative rounded-3xl border bg-white flex flex-col p-8 transition-all hover:shadow-2xl ${
                     plan.highlight
-                      ? "border-amber-400 ring-2 ring-amber-400/30 shadow-xl shadow-amber-100"
-                      : "border-gray-100 shadow-sm hover:border-amber-200"
+                      ? "border-[#0e1b2f] ring-2 ring-[#0e1b2f]/15 shadow-xl shadow-gray-200"
+                      : "border-gray-100 shadow-sm hover:border-[#0e1b2f]/20"
                   }`}
                 >
                   {plan.highlight && (
@@ -141,8 +141,8 @@ export default function PricingPage() {
                     href={checkoutUrl}
                     className={`w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-bold text-sm transition-all hover:scale-[1.02] mb-7 ${
                       plan.highlight
-                        ? "bg-amber-500 hover:bg-amber-600 text-gray-900 shadow-lg shadow-amber-200"
-                        : "border-2 border-amber-400 text-amber-600 hover:bg-amber-50"
+                        ? "bg-[#0e1b2f] hover:bg-[#1c3050] text-white shadow-lg shadow-gray-300"
+                        : "border-2 border-[#0e1b2f]/80 text-[#0e1b2f] hover:bg-[#0e1b2f]/5"
                     }`}
                   >
                     Get {plan.name} <ArrowRight className="w-4 h-4" />
@@ -192,8 +192,8 @@ export default function PricingPage() {
           <h2 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight text-center mb-10">
             Compare plans
           </h2>
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <table className="w-full text-sm">
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden overflow-x-auto">
+            <table className="w-full text-sm min-w-[480px]">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/50">
                   <th className="text-left px-6 py-4 font-semibold text-gray-700">Feature</th>
@@ -243,7 +243,7 @@ export default function PricingPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 sm:py-20 px-4 sm:px-6 bg-gray-950">
+      <section className="py-16 sm:py-20 px-4 sm:px-6 bg-[#0e1b2f]">
         <div className="max-w-2xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold mb-6">
             <Zap className="w-3.5 h-3.5" />
@@ -269,7 +269,7 @@ export default function PricingPage() {
               Try Starter
             </a>
           </div>
-          <p className="text-gray-600 text-sm mt-5">Cancel anytime · Secure checkout via Dodo Payments</p>
+          <p className="text-gray-500 text-sm mt-5">Cancel anytime · Secure checkout via Dodo Payments</p>
         </div>
       </section>
 

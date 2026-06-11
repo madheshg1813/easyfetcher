@@ -11,22 +11,22 @@ export default function SiteNav() {
 
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-1 flex items-center justify-between">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5">
+        <Link href="/" className="flex items-center gap-2.5 sm:gap-3">
           <Image
             src="/ef-icon.png"
             alt="EasyFetcher"
-            width={32}
-            height={32}
-            className="h-8 w-8 object-contain"
+            width={44}
+            height={44}
+            className="h-9 w-9 sm:h-11 sm:w-11 object-contain"
             priority
           />
-          <span className="text-base font-bold text-gray-900 tracking-tight">Easy Fetcher</span>
+          <span className="text-xl sm:text-2xl tracking-tight font-medium text-gray-700">Easy Fetcher</span>
         </Link>
 
         {/* Desktop links */}
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
+        <div className="hidden md:flex items-center gap-8 text-[15px] font-medium text-gray-600">
           <a href="/#features" className="hover:text-amber-500 transition-colors">Features</a>
           <a href="/#connectors" className="hover:text-amber-500 transition-colors">Integrations</a>
           <Link href="/pricing" className="hover:text-amber-500 transition-colors">Pricing</Link>
@@ -35,12 +35,12 @@ export default function SiteNav() {
 
         {/* Desktop CTA */}
         <div className="hidden md:flex items-center gap-3">
-          <Link href={LOGIN_URL} className="text-sm font-medium text-gray-700 hover:text-amber-500 transition-colors px-4 py-2">
+          <Link href={LOGIN_URL} className="text-[15px] font-medium text-gray-700 hover:text-amber-500 transition-colors px-4 py-2">
             Sign in
           </Link>
           <Link
             href={SIGNUP_URL}
-            className="px-5 py-2.5 rounded-lg bg-amber-500 text-gray-900 text-sm font-semibold hover:bg-amber-600 transition-colors shadow-sm"
+            className="px-6 py-3 rounded-lg bg-[#0e1b2f] text-white text-[15px] font-semibold hover:bg-[#1c3050] transition-colors shadow-sm"
           >
             Get started free
           </Link>
@@ -50,7 +50,7 @@ export default function SiteNav() {
         <div className="flex md:hidden items-center gap-2">
           <Link
             href={SIGNUP_URL}
-            className="px-4 py-2 rounded-lg bg-amber-500 text-gray-900 text-sm font-semibold hover:bg-amber-600 transition-colors"
+            className="px-4 py-2 rounded-lg bg-[#0e1b2f] text-white text-sm font-semibold hover:bg-[#1c3050] transition-colors"
           >
             Get started
           </Link>

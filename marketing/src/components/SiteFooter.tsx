@@ -4,7 +4,7 @@ import { SIGNUP_URL, LOGIN_URL } from "@/lib/constants";
 
 export default function SiteFooter() {
   return (
-    <footer className="py-10 sm:py-12 px-4 sm:px-6 bg-gray-900">
+    <footer className="py-10 sm:py-12 px-4 sm:px-6 bg-[#0e1b2f]">
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row items-start justify-between gap-8 mb-8 sm:mb-10">
           <div>
@@ -12,11 +12,11 @@ export default function SiteFooter() {
               <Image
                 src="/ef-icon.png"
                 alt="EasyFetcher"
-                width={28}
-                height={28}
-                className="h-7 w-7 object-contain"
+                width={32}
+                height={32}
+                className="h-8 w-8 object-contain"
               />
-              <span className="text-base font-bold text-white tracking-tight">Easy Fetcher</span>
+              <span className="text-lg tracking-tight font-normal text-gray-300">Easy Fetcher</span>
             </div>
             <p className="text-gray-400 text-sm max-w-xs leading-relaxed">
               Connect your marketing data to Claude AI via the Model Context Protocol.
@@ -43,7 +43,7 @@ export default function SiteFooter() {
           </div>
         </div>
 
-        <div className="pt-6 sm:pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="pt-6 sm:pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-gray-500 text-sm">© {new Date().getFullYear()} EasyFetcher. All rights reserved.</p>
           <Link
             href={SIGNUP_URL}
