@@ -5,7 +5,6 @@ import { Zap, Menu, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { SIGNUP_URL, LOGIN_URL } from "@/lib/constants";
-import { IMAGES } from "@/lib/cloudinary";
 
 export default function SiteNav() {
   const [open, setOpen] = useState(false);
@@ -14,16 +13,16 @@ export default function SiteNav() {
     <nav className="sticky top-0 z-50 bg-white border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-1 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="flex items-center">
+        <Link href="/" className="flex items-center gap-2.5">
           <Image
-            src={IMAGES.logo}
+            src="/ef-icon.png"
             alt="EasyFetcher"
-            width={140}
-            height={36}
-            className="h-9 w-auto object-contain"
+            width={32}
+            height={32}
+            className="h-8 w-8 object-contain"
             priority
-            unoptimized
           />
+          <span className="text-base font-bold text-gray-900 tracking-tight">Easy Fetcher</span>
         </Link>
 
         {/* Desktop links */}
