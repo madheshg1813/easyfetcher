@@ -18,9 +18,9 @@ export default function SiteNav() {
           <Image
             src={IMAGES.logo}
             alt="EasyFetcher"
-            width={160}
-            height={64}
-            className="h-16 w-auto object-contain"
+            width={140}
+            height={36}
+            className="h-9 w-auto object-contain"
             priority
             unoptimized
           />

@@ -15,8 +15,8 @@ export default function SiteFooter() {
                 src={IMAGES.logo}
                 alt="EasyFetcher"
                 width={120}
-                height={32}
-                className="h-8 w-auto object-contain"
+                height={28}
+                className="h-7 w-auto object-contain brightness-0 invert"
                 unoptimized
               />
             </div>
