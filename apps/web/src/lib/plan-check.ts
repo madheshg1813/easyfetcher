@@ -1,11 +1,11 @@
 import type { Plan, Platform } from "@easyfetcher/db";
 
-const ALL_PLATFORMS: Platform[] = ["GSC", "GA4", "GOOGLE_ADS", "META_ADS", "REDDIT_ADS", "SHOPIFY", "BING_ADS", "INSTAGRAM", "LINKEDIN_ADS", "GOOGLE_MY_BUSINESS", "TIKTOK_ADS"];
+const ALL_PLATFORMS: Platform[] = ["GSC", "GA4", "GOOGLE_ADS", "META_ADS", "REDDIT_ADS", "SHOPIFY", "BING_ADS", "BING_WEBMASTER", "INSTAGRAM", "LINKEDIN_ADS", "GOOGLE_MY_BUSINESS", "TIKTOK_ADS"];
 
 // Which platforms each plan can access
 const PLAN_PLATFORMS: Record<Plan, Platform[]> = {
   FREE:       ["GSC"],
-  STARTER:    ["GSC", "GA4", "GOOGLE_MY_BUSINESS"],
+  STARTER:    ["GSC", "GA4", "GOOGLE_MY_BUSINESS", "BING_WEBMASTER"],
   PRO:        ALL_PLATFORMS,
   AGENCY:     ALL_PLATFORMS,
   ENTERPRISE: ALL_PLATFORMS,
@@ -48,7 +48,7 @@ export function canCreateWorkspace(userPlan: Plan, currentCount: number): boolea
 // Which plan is required for a platform
 export function requiredPlanForPlatform(platform: Platform): Plan {
   if (platform === "GSC") return "FREE";
-  if (["GA4", "GOOGLE_MY_BUSINESS"].includes(platform)) return "STARTER";
+  if (["GA4", "GOOGLE_MY_BUSINESS", "BING_WEBMASTER"].includes(platform)) return "STARTER";
   return "PRO";
 }
 

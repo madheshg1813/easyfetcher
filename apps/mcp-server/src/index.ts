@@ -529,6 +529,124 @@ server.tool(
   }
 );
 
+// ─── bing_top_queries ─────────────────────────────────────────────────────────
+server.tool(
+  "bing_top_queries",
+  "Get top search queries from Bing Webmaster with clicks, impressions and position",
+  {
+    days: z.number().min(1).max(90).default(28).describe("Days to look back (default 28)"),
+    limit: z.number().min(1).max(100).default(20).describe("Number of queries to return"),
+  },
+  async ({ days, limit }) => {
+    const user = await getUser();
+    if (!user) return { content: [{ type: "text" as const, text: "Invalid API key" }] };
+
+    const conn = user.connections.find((c) => c.platform === "BING_WEBMASTER");
+    if (!conn?.siteUrl) return { content: [{ type: "text" as const, text: "Bing Webmaster is not connected. Visit your EasyFetcher dashboard to connect it." }] };
+
+    const accessToken = decrypt(conn.accessToken);
+    const siteUrl = conn.siteUrl === "bing_webmaster" ? undefined : conn.siteUrl;
+    if (!siteUrl) return { content: [{ type: "text" as const, text: "Bing site URL not found. Try reconnecting Bing Webmaster." }] };
+
+    const endDate = new Date();
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const fmt = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+
+    const params = new URLSearchParams({
+      siteUrl,
+      startDate: fmt(startDate),
+      endDate: fmt(endDate),
+    });
+
+    const res = await fetch(
+      `https://ssl.bing.com/webmaster/api.svc/json/GetKeywordStats?${params.toString()}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+
+    if (!res.ok) {
+      return { content: [{ type: "text" as const, text: `Bing API error: ${res.status}` }] };
+    }
+
+    const data = await res.json() as { d?: Array<{ Query?: string; Impressions?: number; Clicks?: number; Position?: number }> };
+    const rows = (data.d ?? []).slice(0, limit);
+
+    if (rows.length === 0) {
+      return { content: [{ type: "text" as const, text: `No Bing query data found for ${siteUrl} in the last ${days} days.` }] };
+    }
+
+    const header = `Top ${rows.length} Bing queries for ${siteUrl} (last ${days} days):\n\n`;
+    const table = rows.map((r, i) => {
+      const query = r.Query ?? "unknown";
+      const clicks = (r.Clicks ?? 0).toString();
+      const impressions = (r.Impressions ?? 0).toString();
+      const pos = (r.Position ?? 0).toFixed(1);
+      const ctr = r.Impressions ? ((r.Clicks ?? 0) / r.Impressions * 100).toFixed(1) + "%" : "0%";
+      return `${i + 1}. "${query}"\n   Clicks: ${clicks} | Impressions: ${impressions} | CTR: ${ctr} | Position: ${pos}`;
+    }).join("\n\n");
+
+    return { content: [{ type: "text" as const, text: header + table }] };
+  }
+);
+
+// ─── bing_top_pages ───────────────────────────────────────────────────────────
+server.tool(
+  "bing_top_pages",
+  "Get top performing pages from Bing Webmaster with clicks, impressions and position",
+  {
+    days: z.number().min(1).max(90).default(28).describe("Days to look back (default 28)"),
+    limit: z.number().min(1).max(100).default(20).describe("Number of pages to return"),
+  },
+  async ({ days, limit }) => {
+    const user = await getUser();
+    if (!user) return { content: [{ type: "text" as const, text: "Invalid API key" }] };
+
+    const conn = user.connections.find((c) => c.platform === "BING_WEBMASTER");
+    if (!conn?.siteUrl) return { content: [{ type: "text" as const, text: "Bing Webmaster is not connected." }] };
+
+    const accessToken = decrypt(conn.accessToken);
+    const siteUrl = conn.siteUrl === "bing_webmaster" ? undefined : conn.siteUrl;
+    if (!siteUrl) return { content: [{ type: "text" as const, text: "Bing site URL not found. Try reconnecting Bing Webmaster." }] };
+
+    const endDate = new Date();
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const fmt = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+
+    const params = new URLSearchParams({
+      siteUrl,
+      startDate: fmt(startDate),
+      endDate: fmt(endDate),
+    });
+
+    const res = await fetch(
+      `https://ssl.bing.com/webmaster/api.svc/json/GetPageStats?${params.toString()}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+
+    if (!res.ok) {
+      return { content: [{ type: "text" as const, text: `Bing API error: ${res.status}` }] };
+    }
+
+    const data = await res.json() as { d?: Array<{ Page?: string; Impressions?: number; Clicks?: number; Position?: number }> };
+    const rows = (data.d ?? []).slice(0, limit);
+
+    if (rows.length === 0) {
+      return { content: [{ type: "text" as const, text: `No Bing page data found for ${siteUrl} in the last ${days} days.` }] };
+    }
+
+    const header = `Top ${rows.length} Bing pages for ${siteUrl} (last ${days} days):\n\n`;
+    const table = rows.map((r, i) => {
+      const page = r.Page ?? "unknown";
+      const clicks = (r.Clicks ?? 0).toString();
+      const impressions = (r.Impressions ?? 0).toString();
+      const ctr = r.Impressions ? ((r.Clicks ?? 0) / r.Impressions * 100).toFixed(1) + "%" : "0%";
+      const pos = (r.Position ?? 0).toFixed(1);
+      return `${i + 1}. ${page}\n   Clicks: ${clicks} | Impressions: ${impressions} | CTR: ${ctr} | Position: ${pos}`;
+    }).join("\n\n");
+
+    return { content: [{ type: "text" as const, text: header + table }] };
+  }
+);
+
 // ─── Start ─────────────────────────────────────────────────────────────────────
 async function main() {
   const transport = new StdioServerTransport();

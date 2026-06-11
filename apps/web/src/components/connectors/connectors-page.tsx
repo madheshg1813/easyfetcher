@@ -57,6 +57,14 @@ const CONNECTORS = [
     connectUrl: "/api/connect/google?platform=GOOGLE_MY_BUSINESS",
     comingSoon: false,
   },
+  {
+    id: "BING_WEBMASTER",
+    name: "Bing Webmaster",
+    description: "Bing organic clicks, impressions, rankings",
+    logo: "/connectors/bing.svg",
+    connectUrl: "/api/connect/bing",
+    comingSoon: false,
+  },
 ] as const;
 
 const CONNECTOR_LOGOS: Record<string, string> = {
