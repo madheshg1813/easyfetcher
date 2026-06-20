@@ -6,8 +6,6 @@ import { checkConnectionAllowed } from "@/lib/plan-check";
 import { saveConnection } from "@/lib/save-connection";
 import type { Plan } from "@easyfetcher/db";
 
-const BING_API = "https://ssl.bing.com/webmaster/api.svc/json";
-
 export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth();
@@ -38,20 +36,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "plan_limit", requiredPlan: check.requiredPlan }, { status: 403 });
     }
 
-    // Validate key by fetching sites
-    const sitesRes = await fetch(`${BING_API}/GetUserSites?apikey=${encodeURIComponent(apiKey)}`);
-    if (!sitesRes.ok) {
-      return NextResponse.json({ error: "Invalid API key — make sure you copied it correctly from Bing Webmaster Settings → API access." }, { status: 400 });
-    }
-
-    const sitesData = await sitesRes.json() as { d?: string[] };
-    const sites = sitesData.d ?? [];
-
     const encryptedKey = encrypt(apiKey);
-    const siteUrl = sites[0] ?? "bing_webmaster";
-    const label = sites[0]
-      ? sites[0].replace(/^https?:\/\//, "").replace(/\/$/, "")
-      : "Bing Webmaster Account";
+    const siteUrl = "bing_webmaster";
+    const label = "Bing Webmaster Account";
 
     await saveConnection(
       dbUser.id,
