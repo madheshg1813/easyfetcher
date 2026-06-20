@@ -14,7 +14,8 @@ export async function GET(request: NextRequest) {
   const error = searchParams.get("error");
 
   if (error || !code || !state) {
-    return NextResponse.redirect(new URL("/dashboard/sources?error=oauth_cancelled", request.url));
+    const detail = encodeURIComponent(error ?? "missing_code_or_state");
+    return NextResponse.redirect(new URL(`/dashboard/sources?error=oauth_cancelled&detail=${detail}`, request.url));
   }
 
   let userId: string;
