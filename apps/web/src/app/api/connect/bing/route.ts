@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { checkConnectionAllowed } from "@/lib/plan-check";
 import type { Plan } from "@easyfetcher/db";
 
-const MS_AUTHORIZE = "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize";
+const MS_AUTHORIZE = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize";
 // offline_access gives us a refresh token so we can renew without re-prompting the user
 const BING_SCOPES = "https://ssl.bing.com/webmaster/api offline_access";
 

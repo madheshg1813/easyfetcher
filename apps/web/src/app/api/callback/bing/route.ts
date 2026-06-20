@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { encrypt } from "@easyfetcher/db";
 import { saveConnection } from "@/lib/save-connection";
 
-const MS_TOKEN_URL = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
+const MS_TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
 const BING_API = "https://ssl.bing.com/webmaster/api.svc/json";
 
 export async function GET(request: NextRequest) {
