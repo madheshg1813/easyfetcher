@@ -4,9 +4,8 @@ import { prisma } from "@/lib/db";
 import { checkConnectionAllowed } from "@/lib/plan-check";
 import type { Plan } from "@easyfetcher/db";
 
-const MS_AUTHORIZE = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize";
-// offline_access gives us a refresh token so we can renew without re-prompting the user
-const BING_SCOPES = "https://ssl.bing.com/webmaster/api offline_access";
+const MS_AUTHORIZE = "https://login.live.com/oauth20_authorize.srf";
+const BING_SCOPES = "https://ssl.bing.com/webmaster/api";
 
 export async function GET(request: NextRequest) {
   try {
@@ -51,8 +50,6 @@ export async function GET(request: NextRequest) {
       redirect_uri: redirectUri,
       scope: BING_SCOPES,
       state,
-      response_mode: "query",
-      prompt: "consent",
     });
 
     return NextResponse.redirect(`${MS_AUTHORIZE}?${params.toString()}`);

@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import { encrypt } from "@easyfetcher/db";
 import { saveConnection } from "@/lib/save-connection";
 
-const MS_TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
+const MS_TOKEN_URL = "https://login.live.com/oauth20_token.srf";
 const BING_API = "https://ssl.bing.com/webmaster/api.svc/json";
 
 export async function GET(request: NextRequest) {
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
         client_id: process.env.BING_CLIENT_ID!,
         client_secret: process.env.BING_CLIENT_SECRET!,
         redirect_uri: redirectUri,
-        scope: "https://ssl.bing.com/webmaster/api offline_access",
+        scope: "https://ssl.bing.com/webmaster/api",
       }),
     });
   } catch (err) {
