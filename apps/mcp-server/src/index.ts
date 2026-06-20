@@ -558,9 +558,9 @@ server.tool(
       endDate: fmt(endDate),
     });
 
+    params.append("apikey", accessToken);
     const res = await fetch(
-      `https://ssl.bing.com/webmaster/api.svc/json/GetKeywordStats?${params.toString()}`,
-      { headers: { Authorization: `Bearer ${accessToken}` } }
+      `https://ssl.bing.com/webmaster/api.svc/json/GetKeywordStats?${params.toString()}`
     );
 
     if (!res.ok) {
@@ -617,9 +617,9 @@ server.tool(
       endDate: fmt(endDate),
     });
 
+    params.append("apikey", accessToken);
     const res = await fetch(
-      `https://ssl.bing.com/webmaster/api.svc/json/GetPageStats?${params.toString()}`,
-      { headers: { Authorization: `Bearer ${accessToken}` } }
+      `https://ssl.bing.com/webmaster/api.svc/json/GetPageStats?${params.toString()}`
     );
 
     if (!res.ok) {

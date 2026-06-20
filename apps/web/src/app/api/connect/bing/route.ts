@@ -1,20 +1,21 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { encrypt } from "@easyfetcher/db";
 import { checkConnectionAllowed } from "@/lib/plan-check";
+import { saveConnection } from "@/lib/save-connection";
 import type { Plan } from "@easyfetcher/db";
 
-const MS_AUTHORIZE = "https://login.live.com/oauth20_authorize.srf";
-const BING_SCOPES = "https://ssl.bing.com/webmaster/api";
+const BING_API = "https://ssl.bing.com/webmaster/api.svc/json";
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    if (!process.env.BING_CLIENT_ID) {
-      return NextResponse.json({ error: "Bing OAuth not configured yet" }, { status: 503 });
-    }
+    const body = await request.json();
+    const apiKey = (body.apiKey ?? "").trim();
+    if (!apiKey) return NextResponse.json({ error: "API key is required" }, { status: 400 });
 
     let dbUser = await prisma.user.findUnique({
       where: { clerkId: userId },
@@ -34,30 +35,39 @@ export async function GET(request: NextRequest) {
 
     const check = checkConnectionAllowed(dbUser.plan as Plan, "BING_WEBMASTER", dbUser._count.connections);
     if (!check.allowed) {
-      const base = process.env.NEXT_PUBLIC_APP_URL ?? `${new URL(request.url).protocol}//${new URL(request.url).host}`;
-      const url = new URL("/dashboard/sources", base);
-      url.searchParams.set("error", "plan_limit");
-      url.searchParams.set("requiredPlan", check.requiredPlan);
-      return NextResponse.redirect(url);
+      return NextResponse.json({ error: "plan_limit", requiredPlan: check.requiredPlan }, { status: 403 });
     }
 
-    const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/api/callback/bing`;
-    const state = Buffer.from(JSON.stringify({ userId, platform: "BING_WEBMASTER" })).toString("base64url");
+    // Validate key by fetching sites
+    const sitesRes = await fetch(`${BING_API}/GetUserSites?apikey=${encodeURIComponent(apiKey)}`);
+    if (!sitesRes.ok) {
+      return NextResponse.json({ error: "Invalid API key — make sure you copied it correctly from Bing Webmaster Settings → API access." }, { status: 400 });
+    }
 
-    const params = new URLSearchParams({
-      client_id: process.env.BING_CLIENT_ID!,
-      response_type: "code",
-      redirect_uri: redirectUri,
-      scope: BING_SCOPES,
-      state,
-    });
+    const sitesData = await sitesRes.json() as { d?: string[] };
+    const sites = sitesData.d ?? [];
 
-    return NextResponse.redirect(`${MS_AUTHORIZE}?${params.toString()}`);
-  } catch (err) {
-    console.error("[connect/bing] unhandled error:", err);
-    return NextResponse.json(
-      { error: "Internal server error", detail: err instanceof Error ? err.message : String(err) },
-      { status: 500 }
+    const encryptedKey = encrypt(apiKey);
+    const siteUrl = sites[0] ?? "bing_webmaster";
+    const label = sites[0]
+      ? sites[0].replace(/^https?:\/\//, "").replace(/\/$/, "")
+      : "Bing Webmaster Account";
+
+    await saveConnection(
+      dbUser.id,
+      null,
+      "BING_WEBMASTER",
+      encryptedKey,
+      null,
+      null,
+      dbUser.email,
+      siteUrl,
+      label,
     );
+
+    return NextResponse.json({ success: true, label });
+  } catch (err) {
+    console.error("[connect/bing] error:", err);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

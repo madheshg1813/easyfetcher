@@ -62,7 +62,7 @@ const CONNECTORS = [
     name: "Bing Webmaster",
     description: "Bing organic clicks, impressions, rankings",
     logo: "/connectors/bing.svg",
-    connectUrl: "/api/connect/bing",
+    connectUrl: "",
     comingSoon: false,
   },
 ] as const;
@@ -295,7 +295,38 @@ function ConnectorCard({
 }) {
   const [loading, setLoading] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
+  const [showApiForm, setShowApiForm] = useState(false);
+  const [apiKey, setApiKey] = useState("");
+  const [apiError, setApiError] = useState<string | null>(null);
   const router = useRouter();
+
+  const isApiKeyConnector = connector.id === "BING_WEBMASTER";
+
+  const handleApiKeySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!apiKey.trim()) return;
+    setLoading("submit");
+    setApiError(null);
+    try {
+      const res = await fetch("/api/connect/bing", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ apiKey: apiKey.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setApiError(data.error ?? "Connection failed. Please try again.");
+        return;
+      }
+      setShowApiForm(false);
+      setApiKey("");
+      router.refresh();
+    } catch {
+      setApiError("Connection failed. Please try again.");
+    } finally {
+      setLoading(null);
+    }
+  };
 
   const handleDisconnect = async (connectionId?: string) => {
     if (loading) return;
@@ -347,6 +378,13 @@ function ConnectorCard({
           <span className="flex items-center gap-1 text-[11px] px-2 py-1 rounded-md bg-muted text-muted-foreground font-medium shrink-0">
             <Lock className="w-3 h-3" /> Coming soon
           </span>
+        ) : isApiKeyConnector ? (
+          <button
+            onClick={() => { setShowApiForm((v) => !v); setApiError(null); }}
+            className="px-3 py-1.5 rounded-md border border-border text-xs font-medium text-foreground hover:bg-accent transition-colors shrink-0"
+          >
+            Connect
+          </button>
         ) : (
           <a
             href={connector.connectUrl}
@@ -356,6 +394,58 @@ function ConnectorCard({
           </a>
         )}
       </div>
+
+      {/* API key form (Bing Webmaster) */}
+      {!isConnected && isApiKeyConnector && showApiForm && (
+        <div className="border-t border-border bg-muted/30 px-4 py-3">
+          <form onSubmit={handleApiKeySubmit} className="space-y-2.5">
+            <div>
+              <label className="text-[11px] font-medium text-muted-foreground block mb-1">
+                API key
+              </label>
+              <input
+                type="text"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder="Paste your Bing Webmaster API key"
+                className="w-full px-3 py-2 text-xs rounded-md border border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
+                autoFocus
+              />
+              <p className="text-[10px] text-muted-foreground mt-1">
+                Get it from{" "}
+                <a
+                  href="https://www.bing.com/webmasters/home"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  Bing Webmaster Tools
+                </a>
+                {" "}→ Settings → API access
+              </p>
+            </div>
+            {apiError && (
+              <p className="text-[11px] text-destructive">{apiError}</p>
+            )}
+            <div className="flex items-center gap-2">
+              <button
+                type="submit"
+                disabled={loading === "submit" || !apiKey.trim()}
+                className="px-3 py-1.5 rounded-md bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50"
+              >
+                {loading === "submit" ? "Connecting…" : "Connect"}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setShowApiForm(false); setApiError(null); setApiKey(""); }}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* Connected sites dropdown */}
       {isConnected && open && (
@@ -378,12 +468,14 @@ function ConnectorCard({
             </div>
           ))}
           <div className="flex items-center justify-between pt-1">
-            <a
-              href={connector.connectUrl}
-              className="text-[11px] text-primary hover:underline font-medium"
-            >
-              + Add another site
-            </a>
+            {!isApiKeyConnector && (
+              <a
+                href={connector.connectUrl}
+                className="text-[11px] text-primary hover:underline font-medium"
+              >
+                + Add another site
+              </a>
+            )}
             {connections.length > 1 && (
               <button
                 onClick={() => handleDisconnect()}
