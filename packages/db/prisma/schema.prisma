@@ -60,6 +60,8 @@ model User {
   apiKey            String        @unique @default(cuid())
   onboarded         Boolean       @default(false)
   activeWorkspaceId String?
+  mcpCallsUsed      Int           @default(0)
+  mcpCallsResetAt   DateTime?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
   workspaces         Workspace[]

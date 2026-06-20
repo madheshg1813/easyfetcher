@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma, decrypt } from "@easyfetcher/db";
 import { google } from "googleapis";
+import { getMcpCallLimit } from "@/lib/plan-check";
+import type { Plan } from "@easyfetcher/db";
 
 // ─── Connector tool imports ───────────────────────────────────────────────────
 import { gscTool, executeGscTool } from "./tools/gsc";
@@ -38,6 +40,38 @@ async function getUserFromToken(request: NextRequest) {
     if (user) return user;
   }
   return null;
+}
+
+// ─── MCP quota check + increment ─────────────────────────────────────────────
+async function checkAndIncrementQuota(userId: string, plan: Plan): Promise<{ allowed: boolean; used: number; limit: number }> {
+  const limit = getMcpCallLimit(plan);
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { mcpCallsUsed: true, mcpCallsResetAt: true },
+  });
+  if (!user) return { allowed: false, used: 0, limit };
+
+  const now = new Date();
+  let used = user.mcpCallsUsed;
+
+  // Reset counter if the monthly window has passed
+  if (!user.mcpCallsResetAt || user.mcpCallsResetAt <= now) {
+    used = 0;
+    const nextReset = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    await prisma.user.update({
+      where: { id: userId },
+      data: { mcpCallsUsed: 0, mcpCallsResetAt: nextReset },
+    });
+  }
+
+  // -1 = unlimited (Enterprise)
+  if (limit !== -1 && used >= limit) {
+    return { allowed: false, used, limit };
+  }
+
+  await prisma.user.update({ where: { id: userId }, data: { mcpCallsUsed: { increment: 1 } } });
+  return { allowed: true, used: used + 1, limit };
 }
 
 // ─── OAuth client factory ─────────────────────────────────────────────────────
@@ -291,6 +325,19 @@ export async function POST(request: NextRequest) {
   if (method === "tools/call") {
     const toolName = params.name as string;
     const toolArgs = (params.arguments ?? {}) as Record<string, unknown>;
+
+    // Check monthly quota before running any tool
+    const quota = await checkAndIncrementQuota(user.id, user.plan as Plan);
+    if (!quota.allowed) {
+      const limitStr = quota.limit === -1 ? "unlimited" : quota.limit.toString();
+      return rpcResult(id, {
+        content: [{
+          type: "text",
+          text: `Monthly limit reached. You've used ${quota.used} / ${limitStr} AI queries this month. Upgrade your plan or wait until next month for your quota to reset.`,
+        }],
+      });
+    }
+
     try {
       const result = await executeTool(toolName, toolArgs, user);
       return rpcResult(id, result);

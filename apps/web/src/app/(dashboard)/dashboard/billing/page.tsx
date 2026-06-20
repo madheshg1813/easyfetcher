@@ -7,6 +7,7 @@ import type { Plan } from "@easyfetcher/db";
 import { StartTrialPlans } from "@/components/billing/start-trial";
 import { TrialManageCard } from "@/components/billing/trial-manage";
 import { PLANS } from "@/lib/billing/plans";
+import { getMcpCallLimit } from "@/lib/plan-check";
 
 export const metadata = { title: "Usage & Billing" };
 
@@ -72,7 +73,10 @@ export default async function BillingPage() {
 
   const dbUser = await prisma.user.findUnique({
     where: { clerkId: userId },
-    include: {
+    select: {
+      plan: true,
+      mcpCallsUsed: true,
+      mcpCallsResetAt: true,
       _count: { select: { promptRuns: true } },
       activityLogs: {
         orderBy: { createdAt: "desc" },
@@ -90,6 +94,12 @@ export default async function BillingPage() {
   const creditsRemaining = Math.max((creditsLimit || 0) - creditsUsed, 0);
   const progress = creditsLimit >= 9999 ? 5 : creditsLimit === 0 ? 0 : Math.min((creditsUsed / creditsLimit) * 100, 100);
   const hasUsage = creditsUsed > 0;
+
+  // MCP / AI query usage
+  const mcpLimit = getMcpCallLimit(plan);
+  const mcpUsed = dbUser?.mcpCallsUsed ?? 0;
+  const mcpIsUnlimited = mcpLimit === -1;
+  const mcpProgress = mcpIsUnlimited ? 5 : mcpLimit === 0 ? 0 : Math.min((mcpUsed / mcpLimit) * 100, 100);
   const hasInvoices = !isUnpaid && config.yearlyPrice !== null;
   const now = new Date();
 
@@ -177,9 +187,10 @@ export default async function BillingPage() {
         </div>
       )}
 
-      {/* ── Credits used + Top feature ── */}
+      {/* ── Usage stats ── */}
       {!isUnpaid && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Credits */}
           <div className="rounded-xl border border-border bg-card p-5">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Credits used this month</p>
             <p className="text-3xl font-bold text-foreground">
@@ -193,34 +204,30 @@ export default async function BillingPage() {
               <span className="text-[11px] text-muted-foreground">{creditsLimit >= 9999 ? "∞" : creditsLimit}</span>
             </div>
             <p className="text-[11px] text-muted-foreground mt-2">↻ Resets in {daysUntilReset()} days on {resetDate()}</p>
+            <p className="text-[10px] text-muted-foreground mt-1">For backlink checks, rank tracking, AI overviews, keyword volume</p>
           </div>
 
+          {/* AI queries */}
           <div className="rounded-xl border border-border bg-card p-5">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Top feature used</p>
-            {!hasUsage ? (
-              <div className="flex flex-col items-center justify-center h-24 text-center">
-                <p className="text-sm text-muted-foreground">No usage yet this month</p>
-                <p className="text-xs text-muted-foreground mt-1">Connect a source and start asking Claude!</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {[
-                  { name: "AI citation tracking", pct: 44 },
-                  { name: "Rank tracker",          pct: 33 },
-                  { name: "SEO audit",             pct: 23 },
-                ].map((item) => (
-                  <div key={item.name}>
-                    <div className="flex justify-between mb-1">
-                      <p className="text-xs font-medium text-foreground">{item.name}</p>
-                      <p className="text-[11px] text-muted-foreground">{item.pct}%</p>
-                    </div>
-                    <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div className="h-full bg-primary rounded-full" style={{ width: `${item.pct}%` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">AI queries used this month</p>
+            <p className="text-3xl font-bold text-foreground">
+              {mcpUsed}{" "}
+              <span className="text-xl text-muted-foreground font-normal">
+                / {mcpIsUnlimited ? "∞" : mcpLimit}
+              </span>
+            </p>
+            <div className="mt-3 h-2 bg-muted rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${mcpProgress >= 90 ? "bg-destructive" : "bg-primary"}`}
+                style={{ width: `${mcpProgress}%` }}
+              />
+            </div>
+            <div className="flex justify-between mt-1">
+              <span className="text-[11px] text-muted-foreground">0</span>
+              <span className="text-[11px] text-muted-foreground">{mcpIsUnlimited ? "∞" : mcpLimit}</span>
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-2">↻ Resets in {daysUntilReset()} days on {resetDate()}</p>
+            <p className="text-[10px] text-muted-foreground mt-1">Every Claude tool call (GSC, GA4, Bing, PageSpeed, etc.)</p>
           </div>
         </div>
       )}

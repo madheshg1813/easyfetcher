@@ -21,7 +21,6 @@ export default async function DashboardLayout({
       include: {
         workspaces: { orderBy: { sortOrder: "asc" } },
         subscription: true,
-        _count: { select: { promptRuns: true } },
       },
     }),
     headers(),
@@ -60,7 +59,7 @@ export default async function DashboardLayout({
         userEmail={userEmail}
         userImageUrl={userImageUrl}
         plan={plan}
-        mcpCallsUsed={dbUser?._count.promptRuns ?? 0}
+        mcpCallsUsed={dbUser?.mcpCallsUsed ?? 0}
         locked={locked}
       />
       <main className="flex-1 overflow-auto min-w-0">

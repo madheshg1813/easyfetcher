@@ -45,6 +45,19 @@ export function canCreateWorkspace(userPlan: Plan, currentCount: number): boolea
   return currentCount < WORKSPACE_LIMITS[userPlan];
 }
 
+// Monthly MCP call limits per plan (-1 = unlimited)
+export const MCP_CALL_LIMITS: Record<Plan, number> = {
+  FREE:       0,
+  STARTER:    500,
+  PRO:        2000,
+  AGENCY:     10000,
+  ENTERPRISE: -1,
+};
+
+export function getMcpCallLimit(plan: Plan): number {
+  return MCP_CALL_LIMITS[plan];
+}
+
 // Which plan is required for a platform
 export function requiredPlanForPlatform(platform: Platform): Plan {
   if (platform === "GSC") return "FREE";
