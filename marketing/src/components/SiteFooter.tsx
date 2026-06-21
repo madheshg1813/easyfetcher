@@ -16,7 +16,7 @@ export default function SiteFooter() {
                 height={32}
                 className="h-8 w-8 object-contain"
               />
-              <span className="text-lg tracking-tight font-normal text-gray-300">Easy Fetcher</span>
+              <span className="text-lg tracking-tight font-bold text-white">Easy Fetcher</span>
             </div>
             <p className="text-gray-400 text-sm max-w-xs leading-relaxed">
               Connect your marketing data to Claude AI via the Model Context Protocol.

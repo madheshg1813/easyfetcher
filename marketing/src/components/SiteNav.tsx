@@ -22,7 +22,7 @@ export default function SiteNav() {
             className="h-9 w-9 sm:h-11 sm:w-11 object-contain"
             priority
           />
-          <span className="text-xl sm:text-2xl tracking-tight font-medium text-gray-700">Easy Fetcher</span>
+          <span className="text-xl sm:text-2xl tracking-tight font-bold text-gray-900">Easy Fetcher</span>
         </Link>
 
         {/* Desktop links */}

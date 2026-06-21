@@ -7,9 +7,14 @@ export const DODO_PRODUCTS = {
   STARTER_MONTHLY: "pdt_0Ng5y8DYr4SO7bAbztKe1",
   PRO_MONTHLY:     "pdt_0Ng5yT8aBWnSvfhryKLOC",
   AGENCY_MONTHLY:  "pdt_0Ng5ykFTysYI4D73Jx37I",
+  // TODO: replace with the real $4 one-time Try Plan product ID from Dodo.
+  // Until set, the Try Plan CTA routes users to signup (where the $4 plan
+  // can be selected during onboarding).
+  TRY_PLAN:        "",
 } as const;
 
 const APP_URL = "https://app.easyfetcher.com";
+const SIGNUP_URL = `${APP_URL}/signup`;
 const DODO_BASE = "https://checkout.dodopayments.com/buy";
 
 /**
@@ -20,6 +25,38 @@ const DODO_BASE = "https://checkout.dodopayments.com/buy";
 export function getDodoCheckoutUrl(productId: string): string {
   const redirectUrl = encodeURIComponent(`${APP_URL}/signup`);
   return `${DODO_BASE}/${productId}?quantity=1&redirect_url=${redirectUrl}`;
+}
+
+// ─── Try Plan (one-time $4 / 15 days) ────────────────────────────────────────
+
+export interface TryPlanInfo {
+  readonly name: string;
+  readonly price: number;        // one-time charge in USD
+  readonly days: number;         // validity window
+  readonly productId: string;    // empty until the Dodo product is created
+  readonly description: string;
+  readonly features: readonly string[];
+}
+
+export const TRY_PLAN: TryPlanInfo = {
+  name: "Try Plan",
+  price: 4,
+  days: 15,
+  productId: DODO_PRODUCTS.TRY_PLAN,
+  description: "Not sure yet? Try the full product for the price of a coffee.",
+  features: [
+    "25 credits total",
+    "75 AI queries total",
+    "All features from the Agency plan",
+  ],
+};
+
+/**
+ * CTA target for the Try Plan. Uses the direct Dodo checkout when the product
+ * ID is set; otherwise falls back to signup so the link is never broken.
+ */
+export function getTryPlanUrl(): string {
+  return TRY_PLAN.productId ? getDodoCheckoutUrl(TRY_PLAN.productId) : SIGNUP_URL;
 }
 
 // ─── Plan metadata ─────────────────────────────────────────────────────────────
@@ -37,6 +74,19 @@ export interface PlanInfo {
   readonly features: readonly string[];
 }
 
+// Feature set shared across every paid plan.
+const COMMON_FEATURES = [
+  "All Connectors",
+  "AI Skills",
+  "Prompt Library Access",
+  "Keywords Tracking",
+  "Backlink Tracking",
+  "Competitor Research",
+  "SEO Audit",
+  "Technical Audit",
+  "Unlimited Clients",
+] as const;
+
 export const PLANS: readonly PlanInfo[] = [
   {
     id: "STARTER",
@@ -49,9 +99,7 @@ export const PLANS: readonly PlanInfo[] = [
     description: "Perfect for solo marketers and indie makers.",
     features: [
       "50 credits / month",
-      "GSC, GA4 & Google My Business",
-      "All Claude Skills included",
-      "1 workspace · up to 5 sites",
+      ...COMMON_FEATURES,
       "Email support",
     ],
   },
@@ -67,10 +115,7 @@ export const PLANS: readonly PlanInfo[] = [
     description: "For freelancers managing multiple clients.",
     features: [
       "125 credits / month",
-      "All connectors — 10+ platforms",
-      "All Claude Skills included",
-      "3 workspaces · unlimited sites",
-      "OAuth calls always free",
+      ...COMMON_FEATURES,
       "Priority email support",
     ],
   },
@@ -85,11 +130,8 @@ export const PLANS: readonly PlanInfo[] = [
     description: "For agencies running at scale.",
     features: [
       "275 credits / month",
-      "All connectors — 10+ platforms",
-      "All Claude Skills included",
-      "15 workspaces · unlimited sites",
+      ...COMMON_FEATURES,
       "Dedicated Slack support",
-      "1 year data retention",
     ],
   },
 ];

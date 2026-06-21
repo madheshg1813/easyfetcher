@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Check, ArrowRight, Zap, ChevronDown, Shield, RefreshCw } from "lucide-react";
+import { Check, ArrowRight, Zap, ChevronDown, Shield, RefreshCw, Sparkles } from "lucide-react";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
-import { PLANS, getDodoCheckoutUrl } from "@/lib/dodo";
+import { PLANS, getDodoCheckoutUrl, TRY_PLAN, getTryPlanUrl } from "@/lib/dodo";
+import { DESTINATIONS } from "@/lib/cloudinary";
 
 const faqs = [
   {
@@ -70,9 +71,23 @@ export default function PricingPage() {
             <span className="text-amber-500">that fits your scale.</span>
           </h1>
           <p className="text-base sm:text-lg text-gray-500 leading-relaxed">
-            Every plan includes all connectors, all Claude Skills, and the full AI prompt library.
+            Every plan includes all connectors, all AI Skills, and the full prompt library.
             No hidden fees.
           </p>
+
+          {/* Works with — AI assistants */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-x-6 gap-y-3 mt-7">
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Works with</span>
+            <div className="flex items-center gap-5 sm:gap-7">
+              {DESTINATIONS.map((dest) => (
+                <span key={dest.name} className="inline-flex items-center gap-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={dest.img} alt={dest.name} className="w-6 h-6 object-contain" />
+                  <span className="text-sm font-semibold text-gray-700">{dest.name}</span>
+                </span>
+              ))}
+            </div>
+          </div>
 
           {/* Billing toggle */}
           <div className="flex items-center justify-center gap-4 mt-8">
@@ -101,6 +116,44 @@ export default function PricingPage() {
       {/* Plan Cards */}
       <section className="pb-20 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto">
+          {/* Try Plan banner */}
+          <div className="mb-10 rounded-2xl border border-amber-200 bg-amber-50/60 p-6 sm:p-7">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-5 lg:gap-8">
+              <div className="flex-1">
+                <div className="flex flex-wrap items-center gap-2 mb-3">
+                  <span className="inline-flex items-center gap-1.5 text-amber-600 text-xs font-bold uppercase tracking-wider">
+                    <Sparkles className="w-3.5 h-3.5" /> {TRY_PLAN.name}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-amber-100 border border-amber-200 text-amber-700 text-[11px] font-bold">
+                    One-time
+                  </span>
+                </div>
+                <p className="text-lg font-bold text-gray-900 mb-3">{TRY_PLAN.description}</p>
+                <div className="flex flex-wrap gap-x-5 gap-y-2">
+                  {TRY_PLAN.features.map((f) => (
+                    <span key={f} className="inline-flex items-center gap-1.5 text-sm text-gray-600">
+                      <Check className="w-4 h-4 text-amber-500 shrink-0" />
+                      {f}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <a
+                href={getTryPlanUrl()}
+                className="w-full lg:w-auto shrink-0 inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-[#0e1b2f] text-white font-bold text-sm hover:bg-[#1c3050] transition-colors"
+              >
+                Get started for ${TRY_PLAN.price} <ArrowRight className="w-4 h-4" />
+              </a>
+            </div>
+          </div>
+
+          {/* Subscription divider */}
+          <div className="flex items-center gap-4 mb-8">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="text-sm font-medium text-gray-400 whitespace-nowrap">Or subscribe for full access</span>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {PLANS.map((plan) => {
               const price = isYearly ? plan.yearlyPrice : plan.monthlyPrice;
@@ -205,14 +258,17 @@ export default function PricingPage() {
               <tbody className="divide-y divide-gray-50">
                 {[
                   ["Credits / month", "50", "125", "275"],
-                  ["Workspaces", "1", "3", "15"],
-                  ["Sites / accounts", "Up to 5", "Unlimited", "Unlimited"],
-                  ["All connectors (10+)", "✓", "✓", "✓"],
-                  ["Claude Skills", "✓", "✓", "✓"],
-                  ["Full prompt library", "✓", "✓", "✓"],
-                  ["OAuth calls (GSC/GA4/GMB)", "Free", "Free", "Free"],
+                  ["All Connectors", "✓", "✓", "✓"],
+                  ["AI Skills", "✓", "✓", "✓"],
+                  ["Prompt Library Access", "✓", "✓", "✓"],
+                  ["Keywords Tracking", "✓", "✓", "✓"],
+                  ["Backlink Tracking", "✓", "✓", "✓"],
+                  ["Competitor Research", "✓", "✓", "✓"],
+                  ["SEO Audit", "✓", "✓", "✓"],
+                  ["Technical Audit", "✓", "✓", "✓"],
+                  ["Unlimited Clients", "✓", "✓", "✓"],
+                  ["Works with ChatGPT, Claude & Perplexity", "✓", "✓", "✓"],
                   ["Support", "Email", "Priority email", "Dedicated Slack"],
-                  ["Data retention", "90 days", "90 days", "1 year"],
                 ].map(([feature, starter, pro, agency]) => (
                   <tr key={feature} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-3.5 font-medium text-gray-700">{feature}</td>

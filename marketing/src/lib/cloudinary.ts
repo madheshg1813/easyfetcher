@@ -7,6 +7,11 @@ function cdnUrl(publicId: string) {
 export const IMAGES = {
   logo: cdnUrl("easyfetcher/logo/logo"),
   claudeIcon: cdnUrl("easyfetcher/connectors/claude-color"),
+  destinations: {
+    claude: cdnUrl("easyfetcher/destinations/claude"),
+    chatgpt: cdnUrl("easyfetcher/destinations/chatgpt"),
+    perplexity: cdnUrl("easyfetcher/destinations/perplexity"),
+  },
   connectors: {
     gsc: cdnUrl("easyfetcher/connectors/gsc"),
     ga4: cdnUrl("easyfetcher/connectors/google-analytics"),
@@ -24,3 +29,10 @@ export const IMAGES = {
     googleTrends: cdnUrl("easyfetcher/connectors/google-trends"),
   },
 } as const;
+
+// AI assistants EasyFetcher's MCP connects to (with brand accent colors).
+export const DESTINATIONS = [
+  { name: "Claude", img: IMAGES.destinations.claude, color: "#D97757" },
+  { name: "ChatGPT", img: IMAGES.destinations.chatgpt, color: "#10A37F" },
+  { name: "Perplexity", img: IMAGES.destinations.perplexity, color: "#20808D" },
+] as const;

@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { Zap, BarChart2, Globe, Shield, ArrowRight, Check, Star, TrendingUp, Users, Clock, ChevronDown } from "lucide-react";
+import { Zap, BarChart2, Globe, Shield, ArrowRight, Check, Star, TrendingUp, Users, Clock, ChevronDown, Sparkles } from "lucide-react";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import SiteFooter from "@/components/SiteFooter";
 import { SIGNUP_URL } from "@/lib/constants";
-import { PLANS, getDodoCheckoutUrl } from "@/lib/dodo";
-import { IMAGES } from "@/lib/cloudinary";
+import { PLANS, getDodoCheckoutUrl, TRY_PLAN, getTryPlanUrl } from "@/lib/dodo";
+import { IMAGES, DESTINATIONS } from "@/lib/cloudinary";
 
 const features = [
   {
@@ -166,30 +166,34 @@ export default function HomePage() {
       <section className="pt-14 sm:pt-20 lg:pt-24 pb-20 px-4 sm:px-6" style={{ background: "linear-gradient(180deg, #fffbeb 0%, #ffffff 100%)" }}>
         <div className="max-w-5xl mx-auto text-center">
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-900 leading-[1.1] tracking-tight mb-6">
-            The SEO Operating System<br />
-            for{" "}
-            <span className="inline-flex items-center gap-3" style={{ color: "#D97757" }}>
-              Claude
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={IMAGES.claudeIcon}
-                alt="Claude"
-                className="w-8 h-8 sm:w-10 sm:h-10 md:w-11 md:h-11 lg:w-14 lg:h-14 object-contain"
-                style={{ marginTop: "6px" }}
-              />
-            </span>
+            Make Better SEO Decisions<br />
+            with <span style={{ color: "#16a34a" }}>AI</span> <span className="text-gray-900">&amp;</span> <span style={{ color: "#16a34a" }}>Data</span>
           </h1>
 
-          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-500 max-w-2xl lg:max-w-3xl mx-auto mb-8 lg:mb-10 leading-relaxed font-normal">
-            Connect Google Search Console, GA4, and SEO data sources to Claude. Generate SEO audits, client reports, technical recommendations, keyword insights, rank tracking, and AI visibility reports from your real data.
+          <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-500 max-w-2xl lg:max-w-3xl mx-auto mb-7 lg:mb-9 leading-relaxed font-normal">
+            Connect Google Search Console, GA4, and SEO data sources to Claude, ChatGPT, and Perplexity. Generate SEO audits, client reports, technical recommendations, keyword insights, rank tracking, and AI visibility reports from your real data.
           </p>
+
+          {/* Works with — AI assistants */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-x-6 gap-y-3 mb-8 lg:mb-10">
+            <span className="text-xs lg:text-sm font-semibold uppercase tracking-wider text-gray-400">Works with</span>
+            <div className="flex items-center gap-5 sm:gap-7">
+              {DESTINATIONS.map((dest) => (
+                <span key={dest.name} className="inline-flex items-center gap-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={dest.img} alt={dest.name} className="w-6 h-6 lg:w-7 lg:h-7 object-contain" />
+                  <span className="text-sm lg:text-base font-semibold text-gray-700">{dest.name}</span>
+                </span>
+              ))}
+            </div>
+          </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 mb-8 lg:mb-10">
             <Link
               href={SIGNUP_URL}
               className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 lg:px-10 py-3.5 lg:py-4 rounded-lg bg-[#0e1b2f] text-white font-semibold text-base lg:text-lg hover:bg-[#1c3050] transition-colors shadow-md shadow-[#0e1b2f]/10"
             >
-              Connect Claude <ArrowRight className="w-4 h-4 lg:w-5 lg:h-5" />
+              Get Started <ArrowRight className="w-4 h-4 lg:w-5 lg:h-5" />
             </Link>
             <a
               href="#features"
@@ -478,6 +482,44 @@ export default function HomePage() {
                 </span>
               </div>
             </div>
+          </div>
+
+          {/* Try Plan banner */}
+          <div className="mb-8 rounded-2xl border border-amber-200 bg-amber-50/60 p-5 sm:p-6">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-8">
+              <div className="flex-1">
+                <div className="flex flex-wrap items-center gap-2 mb-2.5">
+                  <span className="inline-flex items-center gap-1.5 text-amber-600 text-xs font-bold uppercase tracking-wider">
+                    <Sparkles className="w-3.5 h-3.5" /> {TRY_PLAN.name}
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-amber-100 border border-amber-200 text-amber-700 text-[11px] font-bold">
+                    One-time
+                  </span>
+                </div>
+                <p className="text-base sm:text-lg font-bold text-gray-900 mb-2.5">{TRY_PLAN.description}</p>
+                <div className="flex flex-wrap gap-x-5 gap-y-1.5">
+                  {TRY_PLAN.features.map((f) => (
+                    <span key={f} className="inline-flex items-center gap-1.5 text-sm text-gray-600">
+                      <Check className="w-4 h-4 text-amber-500 shrink-0" />
+                      {f}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <a
+                href={getTryPlanUrl()}
+                className="w-full lg:w-auto shrink-0 inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-[#0e1b2f] text-white font-bold text-sm hover:bg-[#1c3050] transition-colors"
+              >
+                Get started for ${TRY_PLAN.price} <ArrowRight className="w-4 h-4" />
+              </a>
+            </div>
+          </div>
+
+          {/* Subscription divider */}
+          <div className="flex items-center gap-4 mb-8">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="text-sm font-medium text-gray-400 whitespace-nowrap">Or subscribe for full access</span>
+            <div className="flex-1 h-px bg-gray-200" />
           </div>
 
           {/* 3-plan grid */}
