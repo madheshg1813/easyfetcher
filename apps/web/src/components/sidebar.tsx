@@ -22,6 +22,7 @@ const ACCOUNT_NAV = [
 
 const PLAN_LABELS: Record<Plan, string> = {
   FREE: "Free plan",
+  TRY: "Try plan",
   STARTER: "Starter plan",
   PRO: "Pro plan",
   AGENCY: "Agency plan",
@@ -30,6 +31,7 @@ const PLAN_LABELS: Record<Plan, string> = {
 
 const PLAN_PRICES: Record<Plan, string> = {
   FREE: "Free",
+  TRY: "$4 one-time",
   STARTER: "$7/mo",
   PRO: "$12/mo",
   AGENCY: "$67/mo",
@@ -37,11 +39,12 @@ const PLAN_PRICES: Record<Plan, string> = {
 };
 
 const PLAN_LIMITS: Record<Plan, number> = {
-  FREE: 50,
-  STARTER: 1000,
-  PRO: 50,
-  AGENCY: 200,
-  ENTERPRISE: 9999,
+  FREE:       0,
+  TRY:        75,
+  STARTER:    500,
+  PRO:        2000,
+  AGENCY:     10000,
+  ENTERPRISE: -1,
 };
 
 interface SidebarProps {
@@ -61,7 +64,8 @@ export function Sidebar({ userName, userImageUrl, plan, mcpCallsUsed = 0, locked
   const pathname = usePathname();
   const { signOut } = useClerk();
   const limit = PLAN_LIMITS[plan];
-  const progress = Math.min((mcpCallsUsed / limit) * 100, 100);
+  const isUnlimited = limit === -1;
+  const progress = isUnlimited ? 5 : limit === 0 ? 0 : Math.min((mcpCallsUsed / limit) * 100, 100);
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
@@ -99,7 +103,7 @@ export function Sidebar({ userName, userImageUrl, plan, mcpCallsUsed = 0, locked
         {locked && (
           <p className="px-3 text-[10px] leading-relaxed text-muted-foreground">
             <Lock className="w-3 h-3 inline mr-1 align-[-1px]" />
-            Start your free trial to unlock the dashboard.
+            Choose a plan to unlock the dashboard.
           </p>
         )}
       </nav>
@@ -141,14 +145,19 @@ export function Sidebar({ userName, userImageUrl, plan, mcpCallsUsed = 0, locked
           </div>
         </div>
 
-        {/* MCP calls */}
+        {/* AI queries usage */}
         <div>
           <div className="flex justify-between mb-1">
-            <span className="text-[10px] text-muted-foreground">MCP calls</span>
-            <span className="text-[10px] text-muted-foreground">{mcpCallsUsed} / {limit}</span>
+            <span className="text-[10px] text-muted-foreground">AI queries</span>
+            <span className="text-[10px] text-muted-foreground">
+              {mcpCallsUsed} / {isUnlimited ? "∞" : limit}
+            </span>
           </div>
           <div className="h-1.5 bg-muted rounded-full overflow-hidden">
-            <div className="h-full bg-primary rounded-full" style={{ width: `${progress}%` }} />
+            <div
+              className={`h-full rounded-full transition-all ${progress >= 90 ? "bg-destructive" : "bg-primary"}`}
+              style={{ width: `${isUnlimited ? 5 : progress}%` }}
+            />
           </div>
         </div>
       </div>

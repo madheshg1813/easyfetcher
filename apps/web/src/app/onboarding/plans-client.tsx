@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import { Zap, Check, Shield, RefreshCw, CreditCard, Lock, Sparkles, Loader2 } from "lucide-react";
-import { PLANS, TRIAL_DAYS } from "@/lib/billing/plans";
+import { PLANS } from "@/lib/billing/plans";
 
 export function PlansClient({ email, next }: { email: string; next: string }) {
   const [billing, setBilling] = useState<"yearly" | "monthly">("yearly");
@@ -55,12 +55,11 @@ export function PlansClient({ email, next }: { email: string; next: string }) {
         <div className="text-center mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-5">
             <Zap className="w-3.5 h-3.5 text-primary" />
-            <span className="text-xs font-semibold text-primary">Try EasyFetcher free for {TRIAL_DAYS} days</span>
+            <span className="text-xs font-semibold text-primary">Start using EasyFetcher today</span>
           </div>
-          <h1 className="text-3xl font-bold text-foreground mb-3">Start your free trial</h1>
+          <h1 className="text-3xl font-bold text-foreground mb-3">Choose your plan</h1>
           <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-            <span className="font-semibold text-foreground">$0 today.</span> Add a payment method, get full access for{" "}
-            {TRIAL_DAYS} days, and cancel anytime before your first charge.
+            Pick a plan that fits your needs. All plans include full access to Claude Skills and your connected data sources.
           </p>
           {fromClaude && (
             <div className="mt-4 inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-xs text-blue-600 dark:text-blue-400 font-medium">
@@ -81,7 +80,7 @@ export function PlansClient({ email, next }: { email: string; next: string }) {
         {/* Trust bar */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
           {[
-            { icon: CreditCard,  label: "$0 charged today", sub: `First charge after ${TRIAL_DAYS} days` },
+            { icon: CreditCard,  label: "Secure payment", sub: "256-bit SSL encryption" },
             { icon: RefreshCw,   label: "Cancel anytime",   sub: "1 click, no questions" },
             { icon: Zap,         label: "Instant access",   sub: "Full dashboard unlocked" },
             { icon: Shield,      label: "Secure payment",   sub: "256-bit SSL" },
@@ -155,8 +154,8 @@ export function PlansClient({ email, next }: { email: string; next: string }) {
                   </div>
                   <p className="text-[10px] text-muted-foreground">
                     {billing === "yearly"
-                      ? `After trial: $${plan.yearlyPrice * 12}/year · Save $${(plan.monthlyPrice - plan.yearlyPrice) * 12}/yr`
-                      : `After trial: $${plan.monthlyPrice}/month · cancel anytime`}
+                      ? `$${plan.yearlyPrice * 12}/year · Save $${(plan.monthlyPrice - plan.yearlyPrice) * 12}/yr`
+                      : `$${plan.monthlyPrice}/month · cancel anytime`}
                   </p>
                   <div className="mt-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 border border-primary/20">
                     <span className="text-xs font-bold text-primary">{plan.credits}</span>
@@ -185,7 +184,7 @@ export function PlansClient({ email, next }: { email: string; next: string }) {
                   }`}
                 >
                   {isLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  {isLoading ? "Redirecting…" : `Start ${TRIAL_DAYS}-day free trial`}
+                  {isLoading ? "Redirecting…" : "Subscribe"}
                 </button>
               </div>
             );
@@ -200,15 +199,15 @@ export function PlansClient({ email, next }: { email: string; next: string }) {
         <div className="text-center space-y-3">
           <p className="text-[11px] text-muted-foreground">
             {fromClaude
-              ? "After starting your free trial you will be automatically connected to Claude."
-              : "After starting your free trial you will be redirected back to the dashboard automatically."}
+              ? "After subscribing you will be automatically connected to Claude."
+              : "After subscribing you will be redirected back to the dashboard automatically."}
           </p>
           <div className="flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
             <Lock className="w-3 h-3" />
             <span>Payments processed securely by <span className="font-medium text-foreground">Dodo Payments</span></span>
           </div>
           <p className="text-[10px] text-muted-foreground">
-            We&apos;ll email you before your trial ends · Cancel anytime · No hidden fees
+            Cancel anytime · No hidden fees
           </p>
         </div>
       </div>

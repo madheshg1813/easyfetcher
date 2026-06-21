@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 import { TrialBanner } from "@/components/trial-banner";
+import { TryBanner } from "@/components/try-banner";
 import { prisma } from "@/lib/db";
 import type { Plan } from "@easyfetcher/db";
 
@@ -21,7 +22,6 @@ export default async function DashboardLayout({
       include: {
         workspaces: { orderBy: { sortOrder: "asc" } },
         subscription: true,
-        _count: { select: { promptRuns: true } },
       },
     }),
     headers(),
@@ -36,19 +36,27 @@ export default async function DashboardLayout({
   const userImageUrl = clerkUser?.imageUrl ?? "";
 
   const plan: Plan = dbUser?.plan ?? "FREE";
+  const now = Date.now();
 
-  // Gate: users without a plan can only see the billing page (to start a trial)
-  const locked = plan === "FREE";
+  // TRY plan expiry
+  const tryExpiredAt = dbUser?.tryPlanExpiresAt;
+  const tryExpired = plan === "TRY" && !!tryExpiredAt && tryExpiredAt.getTime() <= now;
+  const onTry = plan === "TRY" && !!tryExpiredAt && tryExpiredAt.getTime() > now;
+  const tryDaysLeft = onTry
+    ? Math.max(1, Math.ceil((tryExpiredAt!.getTime() - now) / (1000 * 60 * 60 * 24)))
+    : 0;
+
+  // Gate: users without a paid plan can only see the billing page
+  const locked = plan === "FREE" || tryExpired;
   const pathname = headerList.get("x-pathname") ?? "";
   if (locked && !pathname.startsWith("/dashboard/billing")) {
     redirect("/dashboard/billing");
   }
 
-  // Trial state for the cross-dashboard banner
+  // Subscription trial state for the cross-dashboard banner
   const sub = dbUser?.subscription;
-  const now = Date.now();
   const onTrial =
-    !locked && sub?.status === "active" && !!sub.trialEnd && sub.trialEnd.getTime() > now;
+    !locked && !onTry && sub?.status === "active" && !!sub.trialEnd && sub.trialEnd.getTime() > now;
   const trialDaysLeft = onTrial
     ? Math.max(1, Math.ceil((sub!.trialEnd!.getTime() - now) / (1000 * 60 * 60 * 24)))
     : 0;
@@ -60,10 +68,16 @@ export default async function DashboardLayout({
         userEmail={userEmail}
         userImageUrl={userImageUrl}
         plan={plan}
-        mcpCallsUsed={dbUser?._count.promptRuns ?? 0}
+        mcpCallsUsed={dbUser?.mcpCallsUsed ?? 0}
         locked={locked}
       />
       <main className="flex-1 overflow-auto min-w-0">
+        {onTry && (
+          <TryBanner
+            daysLeft={tryDaysLeft}
+            expiresAt={tryExpiredAt!.toISOString()}
+          />
+        )}
         {onTrial && (
           <TrialBanner
             daysLeft={trialDaysLeft}
