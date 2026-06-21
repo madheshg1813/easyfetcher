@@ -5,6 +5,7 @@ const ALL_PLATFORMS: Platform[] = ["GSC", "GA4", "GOOGLE_ADS", "META_ADS", "REDD
 // Which platforms each plan can access
 const PLAN_PLATFORMS: Record<Plan, Platform[]> = {
   FREE:       ["GSC"],
+  TRY:        ["GSC", "GA4"],
   STARTER:    ["GSC", "GA4", "GOOGLE_MY_BUSINESS", "BING_WEBMASTER"],
   PRO:        ALL_PLATFORMS,
   AGENCY:     ALL_PLATFORMS,
@@ -14,6 +15,7 @@ const PLAN_PLATFORMS: Record<Plan, Platform[]> = {
 // Max connections per workspace
 const WORKSPACE_CONNECTION_LIMITS: Record<Plan, number> = {
   FREE:       1,
+  TRY:        5,
   STARTER:    5,
   PRO:        999,
   AGENCY:     999,
@@ -23,6 +25,7 @@ const WORKSPACE_CONNECTION_LIMITS: Record<Plan, number> = {
 // Max workspaces per user
 const WORKSPACE_LIMITS: Record<Plan, number> = {
   FREE:       1,
+  TRY:        1,
   STARTER:    1,
   PRO:        3,
   AGENCY:     15,
@@ -48,6 +51,7 @@ export function canCreateWorkspace(userPlan: Plan, currentCount: number): boolea
 // Monthly MCP call limits per plan (-1 = unlimited)
 export const MCP_CALL_LIMITS: Record<Plan, number> = {
   FREE:       0,
+  TRY:        75,
   STARTER:    500,
   PRO:        2000,
   AGENCY:     10000,
@@ -61,7 +65,8 @@ export function getMcpCallLimit(plan: Plan): number {
 // Which plan is required for a platform
 export function requiredPlanForPlatform(platform: Platform): Plan {
   if (platform === "GSC") return "FREE";
-  if (["GA4", "GOOGLE_MY_BUSINESS", "BING_WEBMASTER"].includes(platform)) return "STARTER";
+  if (["GA4"].includes(platform)) return "TRY";
+  if (["GOOGLE_MY_BUSINESS", "BING_WEBMASTER"].includes(platform)) return "STARTER";
   return "PRO";
 }
 
@@ -81,7 +86,7 @@ export function checkConnectionAllowed(
     return {
       allowed: false,
       reason: `You've reached the connection limit for your ${userPlan} plan`,
-      requiredPlan: userPlan === "FREE" ? "STARTER" : userPlan === "STARTER" ? "PRO" : "AGENCY",
+      requiredPlan: userPlan === "FREE" || userPlan === "TRY" ? "STARTER" : userPlan === "STARTER" ? "PRO" : "AGENCY",
     };
   }
   return { allowed: true };

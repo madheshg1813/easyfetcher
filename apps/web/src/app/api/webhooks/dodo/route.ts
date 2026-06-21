@@ -1,7 +1,7 @@
 import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/db";
-import { PRODUCT_PLAN_MAP } from "@/lib/billing/plans";
+import { PRODUCT_PLAN_MAP, TRY_PLAN_PRODUCT_ID } from "@/lib/billing/plans";
 
 type DodoEvent = {
   type: string;
@@ -56,7 +56,34 @@ export async function POST(req: Request) {
   const { type, data } = event;
   console.log(`📦 Dodo webhook: ${type}`);
 
-  // ── subscription.active or payment.succeeded → activate plan ──────────────
+  // ── payment.succeeded for TRY plan (one-time $4) ──────────────────────────
+  if (type === "payment.succeeded" && data.product_id === TRY_PLAN_PRODUCT_ID) {
+    const customerEmail = data.customer?.email;
+    const user = customerEmail
+      ? await prisma.user.findUnique({ where: { email: customerEmail } })
+      : null;
+
+    if (!user) {
+      console.warn("Dodo TRY webhook: no user found for email", customerEmail);
+      return new Response("OK", { status: 200 });
+    }
+
+    const expiresAt = new Date(Date.now() + 15 * 24 * 60 * 60 * 1000);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        plan: "TRY",
+        tryPlanExpiresAt: expiresAt,
+        mcpCallsUsed: 0,
+        mcpCallsResetAt: expiresAt, // Don't auto-reset until plan expires
+      },
+    });
+
+    console.log(`✅ Try plan activated: ${customerEmail} → expires ${expiresAt.toISOString()}`);
+    return new Response("OK", { status: 200 });
+  }
+
+  // ── subscription.active or payment.succeeded → activate subscription plan ──
   if (type === "subscription.active" || type === "payment.succeeded") {
     const productId     = data.product_id;
     const customerId    = data.customer?.customer_id;
@@ -64,7 +91,8 @@ export async function POST(req: Request) {
     const subId         = data.subscription_id ?? data.payment_id ?? "";
     const plan          = productId ? PRODUCT_PLAN_MAP[productId] : undefined;
 
-    if (!productId || !customerId || !plan) {
+    // Skip TRY plan (handled above) and unknown products
+    if (!productId || !customerId || !plan || plan === "TRY") {
       console.warn("Dodo webhook: missing product_id, customer_id, or unknown plan", {
         productId, customerId, plan,
       });
@@ -84,11 +112,6 @@ export async function POST(req: Request) {
       ? new Date(data.next_billing_date)
       : new Date(Date.now() + 31 * 24 * 60 * 60 * 1000);
 
-    // Subscriptions that start with a free trial arrive as `active` with the
-    // first charge scheduled at trial end (= next_billing_date)
-    const isTrial = (data.trial_period_days ?? 0) > 0;
-    const trialEnd = isTrial ? periodEnd : null;
-
     await prisma.$transaction([
       prisma.subscription.upsert({
         where: { userId: user.id },
@@ -99,7 +122,6 @@ export async function POST(req: Request) {
           dodoSubId:       subId,
           status:          "active",
           currentPeriodEnd: periodEnd,
-          trialEnd,
           cancelAtPeriodEnd: data.cancel_at_next_billing_date ?? false,
         },
         update: {
@@ -108,18 +130,16 @@ export async function POST(req: Request) {
           dodoSubId:       subId,
           status:          "active",
           currentPeriodEnd: periodEnd,
-          // keep the original trialEnd once set (trial→paid renewal omits it)
-          ...(isTrial ? { trialEnd } : {}),
           cancelAtPeriodEnd: data.cancel_at_next_billing_date ?? false,
         },
       }),
       prisma.user.update({
         where: { id: user.id },
-        data:  { plan },
+        data:  { plan, tryPlanExpiresAt: null }, // clear Try expiry on subscription upgrade
       }),
     ]);
 
-    console.log(`✅ Plan activated: ${customerEmail} → ${plan}${isTrial ? " (7-day trial)" : ""}`);
+    console.log(`✅ Subscription activated: ${customerEmail} → ${plan}`);
   }
 
   // ── subscription.cancelled / expired → downgrade to FREE ──────────────────

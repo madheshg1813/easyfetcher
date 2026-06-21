@@ -13,6 +13,7 @@ const categoryLabels: Record<PromptCategory, string> = {
 
 const planBadgeStyles: Record<Plan, string> = {
   FREE: "bg-green-500/15 text-green-600 dark:text-green-400",
+  TRY: "bg-primary/15 text-primary",
   STARTER: "bg-blue-500/20 text-blue-600 dark:text-blue-400",
   PRO: "bg-amber-500/20 text-amber-600 dark:text-amber-400",
   AGENCY: "bg-purple-500/20 text-purple-600 dark:text-purple-400",
@@ -34,7 +35,7 @@ export default async function PromptsPage() {
   ]);
 
   const userPlan: Plan = dbUser?.plan ?? "FREE";
-  const planOrder: Plan[] = ["FREE", "STARTER", "PRO", "AGENCY", "ENTERPRISE"];
+  const planOrder: Plan[] = ["FREE", "TRY", "STARTER", "PRO", "AGENCY", "ENTERPRISE"];
   const userPlanIndex = planOrder.indexOf(userPlan);
 
   const grouped = prompts.reduce(

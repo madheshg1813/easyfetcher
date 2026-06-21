@@ -1,12 +1,12 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Check, CreditCard, Download, ExternalLink } from "lucide-react";
+import { Check, CreditCard, Download, ExternalLink, Clock } from "lucide-react";
 import { prisma } from "@/lib/db";
 import type { Plan } from "@easyfetcher/db";
 import { StartTrialPlans } from "@/components/billing/start-trial";
 import { TrialManageCard } from "@/components/billing/trial-manage";
-import { PLANS } from "@/lib/billing/plans";
+import { PLANS, TRY_PLAN_CONFIG } from "@/lib/billing/plans";
 import { getMcpCallLimit } from "@/lib/plan-check";
 
 export const metadata = { title: "Usage & Billing" };
@@ -22,6 +22,10 @@ const PLAN_CONFIG: Record<Plan, {
   FREE: {
     name: "No active plan", yearlyPrice: null, monthlyPrice: null, credits: 0,
     features: [],
+  },
+  TRY: {
+    name: "Try", yearlyPrice: null, monthlyPrice: null, credits: 25,
+    features: TRY_PLAN_CONFIG.features,
   },
   STARTER: {
     name: "Starter", yearlyPrice: 9, monthlyPrice: 14, credits: 50,
@@ -77,6 +81,7 @@ export default async function BillingPage() {
       plan: true,
       mcpCallsUsed: true,
       mcpCallsResetAt: true,
+      tryPlanExpiresAt: true,
       _count: { select: { promptRuns: true } },
       activityLogs: {
         orderBy: { createdAt: "desc" },
@@ -87,7 +92,17 @@ export default async function BillingPage() {
   });
 
   const plan: Plan = dbUser?.plan ?? "FREE";
-  const isUnpaid = plan === "FREE";
+  const now = new Date();
+
+  // TRY plan state
+  const tryExpiredAt = dbUser?.tryPlanExpiresAt;
+  const isTryActive = plan === "TRY" && !!tryExpiredAt && tryExpiredAt.getTime() > now.getTime();
+  const isTryExpired = plan === "TRY" && !!tryExpiredAt && tryExpiredAt.getTime() <= now.getTime();
+  const tryDaysLeft = isTryActive
+    ? Math.max(1, Math.ceil((tryExpiredAt!.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+    : 0;
+
+  const isUnpaid = plan === "FREE" || isTryExpired;
   const config = PLAN_CONFIG[plan];
   const creditsLimit = config.credits;
   const creditsUsed = Math.min(dbUser?._count.promptRuns ?? 0, creditsLimit || 0);
@@ -100,18 +115,16 @@ export default async function BillingPage() {
   const mcpUsed = dbUser?.mcpCallsUsed ?? 0;
   const mcpIsUnlimited = mcpLimit === -1;
   const mcpProgress = mcpIsUnlimited ? 5 : mcpLimit === 0 ? 0 : Math.min((mcpUsed / mcpLimit) * 100, 100);
-  const hasInvoices = !isUnpaid && config.yearlyPrice !== null;
-  const now = new Date();
+  const hasInvoices = !isUnpaid && !isTryActive && config.yearlyPrice !== null;
 
-  // ── Trial state ───────────────────────────────────────────────────────────
+  // ── Subscription trial state ───────────────────────────────────────────────
   const sub = dbUser?.subscription;
   const onTrial =
-    !isUnpaid && sub?.status === "active" && !!sub.trialEnd && sub.trialEnd.getTime() > now.getTime();
+    !isUnpaid && !isTryActive && sub?.status === "active" && !!sub.trialEnd && sub.trialEnd.getTime() > now.getTime();
   const trialDaysLeft = onTrial
     ? Math.max(1, Math.ceil((sub!.trialEnd!.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
     : 0;
 
-  // What the card will be charged after the trial, based on the purchased product
   const purchasedPlan = sub ? PLANS.find(
     (p) => p.yearlyProductId === sub.dodoProductId || p.monthlyProductId === sub.dodoProductId
   ) : undefined;
@@ -129,7 +142,7 @@ export default async function BillingPage() {
         <p className="text-sm text-muted-foreground mt-1">Your plan, credit balance, and feature usage this month.</p>
       </div>
 
-      {/* ── Trial status (active trial or scheduled cancellation) ── */}
+      {/* ── Trial status (subscription trial) ── */}
       {onTrial && (
         <TrialManageCard
           daysLeft={trialDaysLeft}
@@ -140,11 +153,57 @@ export default async function BillingPage() {
         />
       )}
 
-      {/* ── No active plan → start free trial ── */}
-      {isUnpaid ? (
-        <StartTrialPlans />
-      ) : (
-        // ── Active paid plan card ────────────────────────────────────────────────
+      {/* ── No active plan / Try expired → show plan chooser ── */}
+      {isUnpaid && <StartTrialPlans tryExpired={isTryExpired} />}
+
+      {/* ── TRY plan active card ── */}
+      {isTryActive && (
+        <div className="rounded-xl border-2 border-primary/40 bg-card p-6">
+          <div className="flex items-start justify-between gap-4 flex-wrap">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-1">
+                <h2 className="text-base font-semibold text-foreground">Try plan</h2>
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-green-500/15 text-green-600 dark:text-green-400 font-semibold">
+                  Active
+                </span>
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold">
+                  One-time · ${TRY_PLAN_CONFIG.price}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 mt-1 mb-3">
+                <Clock className="w-3.5 h-3.5 text-amber-500" />
+                <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">
+                  {tryDaysLeft} {tryDaysLeft === 1 ? "day" : "days"} remaining · expires{" "}
+                  {tryExpiredAt!.toLocaleDateString("en-US", { month: "long", day: "numeric" })}
+                </p>
+              </div>
+              <ul className="space-y-1.5">
+                {config.features.map((f) => (
+                  <li key={f} className="flex items-center gap-2 text-xs text-foreground">
+                    <Check className="w-3.5 h-3.5 text-primary shrink-0" />
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="text-right shrink-0">
+              <p className="text-5xl font-bold text-foreground">{creditsRemaining}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">credits remaining</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Upgrade section for TRY active users ── */}
+      {isTryActive && (
+        <div>
+          <p className="text-sm font-semibold text-foreground mb-3">Upgrade to a full plan</p>
+          <StartTrialPlans tryExpired={false} />
+        </div>
+      )}
+
+      {/* ── Active paid plan card (subscriptions) ── */}
+      {!isUnpaid && !isTryActive && (
         <div className="rounded-xl border-2 border-primary/40 bg-card p-6">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="flex-1 min-w-0">
@@ -159,13 +218,15 @@ export default async function BillingPage() {
                   <p className="text-2xl font-bold text-foreground">${config.yearlyPrice}</p>
                   <span className="text-sm text-muted-foreground">/ month</span>
                   <span className="ml-2 text-[11px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-semibold">
-                    {dbUser?.subscription ? "Active" : "Yearly"}
+                    {isYearly ? "Yearly" : "Monthly"}
                   </span>
                 </div>
               )}
               {config.yearlyPrice && (
                 <p className="text-xs text-muted-foreground mb-4">
-                  Billed ${config.yearlyPrice * 12}/year · Cancel anytime
+                  {isYearly
+                    ? `Billed $${config.yearlyPrice * 12}/year · Cancel anytime`
+                    : `Billed $${config.monthlyPrice}/month · Cancel anytime`}
                 </p>
               )}
               <ul className="space-y-1.5">
@@ -192,7 +253,7 @@ export default async function BillingPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Credits */}
           <div className="rounded-xl border border-border bg-card p-5">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Credits used this month</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Credits used</p>
             <p className="text-3xl font-bold text-foreground">
               {creditsUsed} <span className="text-xl text-muted-foreground font-normal">/ {creditsLimit >= 9999 ? "∞" : creditsLimit}</span>
             </p>
@@ -203,13 +264,17 @@ export default async function BillingPage() {
               <span className="text-[11px] text-muted-foreground">0</span>
               <span className="text-[11px] text-muted-foreground">{creditsLimit >= 9999 ? "∞" : creditsLimit}</span>
             </div>
-            <p className="text-[11px] text-muted-foreground mt-2">↻ Resets in {daysUntilReset()} days on {resetDate()}</p>
+            {isTryActive ? (
+              <p className="text-[11px] text-muted-foreground mt-2">Total for your 15-day Try plan</p>
+            ) : (
+              <p className="text-[11px] text-muted-foreground mt-2">↻ Resets in {daysUntilReset()} days on {resetDate()}</p>
+            )}
             <p className="text-[10px] text-muted-foreground mt-1">For backlink checks, rank tracking, AI overviews, keyword volume</p>
           </div>
 
           {/* AI queries */}
           <div className="rounded-xl border border-border bg-card p-5">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">AI queries used this month</p>
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">AI queries used</p>
             <p className="text-3xl font-bold text-foreground">
               {mcpUsed}{" "}
               <span className="text-xl text-muted-foreground font-normal">
@@ -226,7 +291,11 @@ export default async function BillingPage() {
               <span className="text-[11px] text-muted-foreground">0</span>
               <span className="text-[11px] text-muted-foreground">{mcpIsUnlimited ? "∞" : mcpLimit}</span>
             </div>
-            <p className="text-[11px] text-muted-foreground mt-2">↻ Resets in {daysUntilReset()} days on {resetDate()}</p>
+            {isTryActive ? (
+              <p className="text-[11px] text-muted-foreground mt-2">Total for your 15-day Try plan</p>
+            ) : (
+              <p className="text-[11px] text-muted-foreground mt-2">↻ Resets in {daysUntilReset()} days on {resetDate()}</p>
+            )}
             <p className="text-[10px] text-muted-foreground mt-1">Every Claude tool call (GSC, GA4, Bing, PageSpeed, etc.)</p>
           </div>
         </div>
@@ -314,7 +383,7 @@ export default async function BillingPage() {
         )}
       </div>
 
-      {/* ── Payment method (only on paid plan) ── */}
+      {/* ── Payment method (only on paid subscription plan) ── */}
       {hasInvoices && (
         <div className="rounded-xl border border-border bg-card p-5 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">

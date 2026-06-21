@@ -1,10 +1,26 @@
 // ─── Single source of truth for plans + Dodo product IDs ─────────────────────
 import type { Plan } from "@easyfetcher/db";
 
-export const TRIAL_DAYS = 7;
+export const TRY_PLAN_PRODUCT_ID = "pdt_0NhVdmu2tm83Syx4wykSQ";
+
+export const TRY_PLAN_CONFIG = {
+  name: "Try",
+  price: 4,
+  credits: 25,
+  aiQueries: 75,
+  validityDays: 15,
+  productId: TRY_PLAN_PRODUCT_ID,
+  features: [
+    "25 credits total",
+    "75 AI queries total",
+    "GSC & GA4 connected",
+    "PageSpeed Insights free",
+    "Valid for 15 days",
+  ],
+};
 
 export interface PlanConfig {
-  id: Exclude<Plan, "FREE" | "ENTERPRISE">;
+  id: Exclude<Plan, "FREE" | "TRY" | "ENTERPRISE">;
   name: string;
   yearlyPrice: number;   // effective $/mo when billed yearly
   monthlyPrice: number;  // $/mo when billed monthly
@@ -67,12 +83,15 @@ export const PLANS: PlanConfig[] = [
 ];
 
 // product_id → Plan (used by webhook + checkout validation)
-export const PRODUCT_PLAN_MAP: Record<string, Plan> = Object.fromEntries(
-  PLANS.flatMap((p) => [
-    [p.yearlyProductId, p.id],
-    [p.monthlyProductId, p.id],
-  ])
-);
+export const PRODUCT_PLAN_MAP: Record<string, Plan> = {
+  ...Object.fromEntries(
+    PLANS.flatMap((p) => [
+      [p.yearlyProductId, p.id],
+      [p.monthlyProductId, p.id],
+    ])
+  ),
+  [TRY_PLAN_PRODUCT_ID]: "TRY",
+};
 
 export function isKnownProductId(productId: string): boolean {
   return productId in PRODUCT_PLAN_MAP;

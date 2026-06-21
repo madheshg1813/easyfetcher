@@ -22,6 +22,7 @@ const ACCOUNT_NAV = [
 
 const PLAN_LABELS: Record<Plan, string> = {
   FREE: "Free plan",
+  TRY: "Try plan",
   STARTER: "Starter plan",
   PRO: "Pro plan",
   AGENCY: "Agency plan",
@@ -30,6 +31,7 @@ const PLAN_LABELS: Record<Plan, string> = {
 
 const PLAN_PRICES: Record<Plan, string> = {
   FREE: "Free",
+  TRY: "$4 one-time",
   STARTER: "$7/mo",
   PRO: "$12/mo",
   AGENCY: "$67/mo",
@@ -38,6 +40,7 @@ const PLAN_PRICES: Record<Plan, string> = {
 
 const PLAN_LIMITS: Record<Plan, number> = {
   FREE:       0,
+  TRY:        75,
   STARTER:    500,
   PRO:        2000,
   AGENCY:     10000,
@@ -100,7 +103,7 @@ export function Sidebar({ userName, userImageUrl, plan, mcpCallsUsed = 0, locked
         {locked && (
           <p className="px-3 text-[10px] leading-relaxed text-muted-foreground">
             <Lock className="w-3 h-3 inline mr-1 align-[-1px]" />
-            Start your free trial to unlock the dashboard.
+            Choose a plan to unlock the dashboard.
           </p>
         )}
       </nav>

@@ -1,15 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { Zap, Check, Shield, CreditCard, RefreshCw, Loader2 } from "lucide-react";
-import { PLANS, TRIAL_DAYS } from "@/lib/billing/plans";
+import { Zap, Check, Shield, Lock, Loader2, Sparkles } from "lucide-react";
+import { PLANS, TRY_PLAN_PRODUCT_ID, TRY_PLAN_CONFIG } from "@/lib/billing/plans";
 
-export function StartTrialPlans() {
+interface PaymentPlansProps {
+  tryExpired?: boolean;
+}
+
+export function StartTrialPlans({ tryExpired = false }: PaymentPlansProps) {
   const [billing, setBilling] = useState<"yearly" | "monthly">("yearly");
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function startTrial(productId: string) {
+  async function checkout(productId: string) {
     setLoadingId(productId);
     setError(null);
     try {
@@ -30,34 +34,65 @@ export function StartTrialPlans() {
   return (
     <div className="rounded-xl border-2 border-primary/40 bg-card p-6">
       {/* Header */}
-      <div className="text-center mb-6">
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 mb-3">
-          <Zap className="w-3.5 h-3.5 text-primary" />
-          <span className="text-xs font-semibold text-primary">Try EasyFetcher free for {TRIAL_DAYS} days</span>
+      {tryExpired ? (
+        <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 mb-6">
+          <p className="text-sm font-semibold text-destructive">Your Try plan has ended</p>
+          <p className="text-xs text-destructive/80 mt-0.5">
+            Choose a subscription below to continue using EasyFetcher.
+          </p>
         </div>
-        <h2 className="text-xl font-bold text-foreground mb-1.5">Start your free trial</h2>
-        <p className="text-sm text-muted-foreground max-w-md mx-auto">
-          Add a payment method to unlock the full dashboard. <span className="font-semibold text-foreground">$0 today</span> — your
-          first charge is after {TRIAL_DAYS} days, and you can cancel anytime before that.
-        </p>
-      </div>
+      ) : (
+        <div className="text-center mb-6">
+          <h2 className="text-xl font-bold text-foreground mb-1.5">Choose a plan to get started</h2>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto">
+            Start with a $4 Try plan for 15 days, or jump straight into a subscription.
+          </p>
+        </div>
+      )}
 
-      {/* Trust row */}
-      <div className="flex items-center justify-center gap-5 mb-6 flex-wrap">
-        {[
-          { icon: CreditCard, label: "$0 charged today" },
-          { icon: RefreshCw,  label: "Cancel anytime in 1 click" },
-          { icon: Shield,     label: "Secure checkout via Dodo Payments" },
-        ].map(({ icon: Icon, label }) => (
-          <div key={label} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-            <Icon className="w-3.5 h-3.5 text-primary" />
-            {label}
+      {/* Try plan card — only for initial sign-up */}
+      {!tryExpired && (
+        <div className="rounded-xl border-2 border-primary/30 bg-primary/5 p-5 mb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-1.5 mb-1">
+              <Sparkles className="w-3.5 h-3.5 text-primary" />
+              <span className="text-xs font-bold text-primary uppercase tracking-wider">Try plan</span>
+              <span className="ml-1 text-[10px] px-1.5 py-0.5 rounded-full bg-primary/15 text-primary font-semibold">
+                One-time · ${TRY_PLAN_CONFIG.price}
+              </span>
+            </div>
+            <p className="text-sm text-foreground font-medium">Test everything for {TRY_PLAN_CONFIG.validityDays} days</p>
+            <ul className="mt-2 flex flex-wrap gap-x-5 gap-y-1">
+              {TRY_PLAN_CONFIG.features.map((f) => (
+                <li key={f} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                  <Check className="w-3 h-3 text-primary shrink-0" />
+                  {f}
+                </li>
+              ))}
+            </ul>
           </div>
-        ))}
+          <button
+            onClick={() => checkout(TRY_PLAN_PRODUCT_ID)}
+            disabled={loadingId !== null}
+            className="shrink-0 px-5 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-60 flex items-center gap-2"
+          >
+            {loadingId === TRY_PLAN_PRODUCT_ID && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+            Get started for ${TRY_PLAN_CONFIG.price}
+          </button>
+        </div>
+      )}
+
+      {/* Divider */}
+      <div className="flex items-center gap-3 mb-5">
+        <div className="flex-1 h-px bg-border" />
+        <span className="text-xs text-muted-foreground font-medium">
+          {tryExpired ? "Choose a subscription to continue" : "Or subscribe for full access"}
+        </span>
+        <div className="flex-1 h-px bg-border" />
       </div>
 
       {/* Billing toggle */}
-      <div className="flex justify-center mb-6">
+      <div className="flex justify-center mb-5">
         <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
           <button
             onClick={() => setBilling("monthly")}
@@ -85,7 +120,7 @@ export function StartTrialPlans() {
         </div>
       </div>
 
-      {/* Plans */}
+      {/* Subscription plan cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
         {PLANS.map((plan) => {
           const price = billing === "yearly" ? plan.yearlyPrice : plan.monthlyPrice;
@@ -115,8 +150,8 @@ export function StartTrialPlans() {
                 </div>
                 <p className="text-[10px] text-muted-foreground">
                   {billing === "yearly"
-                    ? `After trial: $${plan.yearlyPrice * 12}/year`
-                    : `After trial: $${plan.monthlyPrice}/month`}
+                    ? `$${plan.yearlyPrice * 12}/year billed annually`
+                    : `$${plan.monthlyPrice}/month billed monthly`}
                 </p>
                 <div className="mt-3 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-primary/10 border border-primary/20">
                   <span className="text-xs font-bold text-primary">{plan.credits}</span>
@@ -136,7 +171,7 @@ export function StartTrialPlans() {
               </ul>
 
               <button
-                onClick={() => startTrial(productId)}
+                onClick={() => checkout(productId)}
                 disabled={loadingId !== null}
                 className={`w-full py-2.5 rounded-lg text-xs font-semibold text-center transition-colors mt-1 disabled:opacity-60 flex items-center justify-center gap-1.5 ${
                   plan.highlight
@@ -145,7 +180,7 @@ export function StartTrialPlans() {
                 }`}
               >
                 {isLoading && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                {isLoading ? "Redirecting…" : `Start ${TRIAL_DAYS}-day free trial`}
+                {isLoading ? "Redirecting…" : "Subscribe"}
               </button>
             </div>
           );
@@ -156,9 +191,17 @@ export function StartTrialPlans() {
         <p className="text-center text-xs text-destructive mb-3">{error}</p>
       )}
 
-      <p className="text-center text-[10px] text-muted-foreground">
-        We&apos;ll email you before your trial ends · Cancel anytime from this page · No hidden fees
-      </p>
+      <div className="flex items-center justify-center gap-5 flex-wrap">
+        {[
+          { icon: Shield, label: "Secure checkout via Dodo Payments" },
+          { icon: Lock, label: "Cancel subscription anytime" },
+        ].map(({ icon: Icon, label }) => (
+          <div key={label} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <Icon className="w-3.5 h-3.5 text-primary" />
+            {label}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
