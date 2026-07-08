@@ -12,17 +12,89 @@ export const metadata: Metadata = {
   },
 };
 
+const SITE_URL = "https://www.easyfetcher.com";
+
+// ── Organization Schema ──
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": `${SITE_URL}/#organization`,
+  name: "Easy Fetcher",
+  url: SITE_URL,
+  logo: {
+    "@type": "ImageObject",
+    url: `${SITE_URL}/ef-icon.png`,
+    width: 512,
+    height: 512,
+  },
+  sameAs: [],
+  contactPoint: {
+    "@type": "ContactPoint",
+    contactType: "customer support",
+    url: `${SITE_URL}`,
+    availableLanguage: "English",
+  },
+  description:
+    "Easy Fetcher is an SEO SaaS that connects marketing data sources to AI tools like Claude, ChatGPT, and Perplexity via the Model Context Protocol.",
+};
+
+// ── WebSite Schema ──
+const webSiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": `${SITE_URL}/#website`,
+  name: "Easy Fetcher",
+  url: SITE_URL,
+  publisher: { "@id": `${SITE_URL}/#organization` },
+  inLanguage: "en-US",
+  potentialAction: {
+    "@type": "SearchAction",
+    target: `${SITE_URL}/blog?q={search_term_string}`,
+    "query-input": "required name=search_term_string",
+  },
+};
+
+// ── WebPage Schema (Homepage) ──
+const webPageSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "@id": `${SITE_URL}/#webpage`,
+  url: SITE_URL,
+  name: "Easy Fetcher – SEO MCP & Superpowers for Claude",
+  description:
+    "Connect your SEO tools to Claude and unlock powerful SEO skills. Audit websites, monitor rankings, analyze traffic, and generate reports in seconds.",
+  isPartOf: { "@id": `${SITE_URL}/#website` },
+  about: { "@id": `${SITE_URL}/#organization` },
+  inLanguage: "en-US",
+};
+
+// ── BreadcrumbList Schema ──
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: SITE_URL,
+    },
+  ],
+};
+
+// ── SoftwareApplication Schema ──
 const softwareSchema = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   name: "Easy Fetcher",
-  url: "https://www.easyfetcher.com",
+  url: SITE_URL,
   applicationCategory: "BusinessApplication",
   applicationSubCategory: "SEO Software",
   operatingSystem: "Web, Claude Desktop",
   description:
     "Easy Fetcher is the SEO operating system for Claude. Connect Google Search Console, GA4, PageSpeed Insights, and more to generate SEO audits, client reports, rank tracking, and AI visibility analysis directly inside Claude.",
-  screenshot: "https://www.easyfetcher.com/og-image.png",
+  screenshot: `${SITE_URL}/og-image.png`,
+  publisher: { "@id": `${SITE_URL}/#organization` },
   featureList: [
     "SEO Audits",
     "Technical Site Audits",
@@ -83,6 +155,7 @@ const softwareSchema = {
   },
 };
 
+// ── HowTo Schema ──
 const howToSchema = {
   "@context": "https://schema.org",
   "@type": "HowTo",
@@ -96,25 +169,26 @@ const howToSchema = {
       position: 1,
       name: "Install Easy Fetcher",
       text: "Create your Easy Fetcher account and add the Easy Fetcher MCP URL to Claude Desktop. Setup takes under 5 minutes.",
-      url: "https://www.easyfetcher.com/#how-it-works",
+      url: `${SITE_URL}/#how-it-works`,
     },
     {
       "@type": "HowToStep",
       position: 2,
       name: "Ask Claude What You Need",
       text: "Ask Claude to run an SEO audit, create a client report, track your rankings, or analyze AI visibility. Connect data sources like Google Search Console and GA4 if required.",
-      url: "https://www.easyfetcher.com/#how-it-works",
+      url: `${SITE_URL}/#how-it-works`,
     },
     {
       "@type": "HowToStep",
       position: 3,
       name: "Receive Ready-to-Use Output",
       text: "Get reports, audits, recommendations, opportunities, and insights delivered directly in Claude — without switching tools.",
-      url: "https://www.easyfetcher.com/#how-it-works",
+      url: `${SITE_URL}/#how-it-works`,
     },
   ],
 };
 
+// ── FAQ Schema ──
 const faqSchema = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -175,14 +249,27 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="antialiased">
         {children}
+        {/* Global schemas: Organization + WebSite + WebPage + Breadcrumb */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [organizationSchema, webSiteSchema, webPageSchema, breadcrumbSchema],
+            }),
+          }}
+        />
+        {/* SoftwareApplication schema */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(softwareSchema) }}
         />
+        {/* HowTo schema */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }}
         />
+        {/* FAQ schema */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
@@ -191,3 +278,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
+

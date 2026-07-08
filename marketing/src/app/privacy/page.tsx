@@ -7,8 +7,18 @@ export const metadata = {
   description: "Learn how EasyFetcher collects, uses, and protects your personal and marketing data.",
 };
 
+const privacyBreadcrumb = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: "https://www.easyfetcher.com" },
+    { "@type": "ListItem", position: 2, name: "Privacy Policy", item: "https://www.easyfetcher.com/privacy" },
+  ],
+};
+
 export default function PrivacyPage() {
   return (
+    <>
     <div className="min-h-screen bg-white text-gray-900" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
       <SiteNav />
 
@@ -103,5 +113,10 @@ export default function PrivacyPage() {
 
       <SiteFooter />
     </div>
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(privacyBreadcrumb) }}
+    />
+    </>
   );
 }

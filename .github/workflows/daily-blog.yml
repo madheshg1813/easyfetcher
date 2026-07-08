@@ -1,0 +1,37 @@
+name: Daily Blog Publish
+
+# Publishes the next queued blog draft (marketing/content/blog-queue) to Sanity,
+# one per run. Creating the document fires the existing Sanity webhook, which
+# revalidates the /blogs pages on the live site.
+
+on:
+  schedule:
+    - cron: "0 9 * * *" # every day at 09:00 UTC
+  workflow_dispatch: {} # allow manual "Run workflow" from the Actions tab
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: marketing
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: marketing/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Publish next queued blog
+        env:
+          SANITY_API_TOKEN: ${{ secrets.SANITY_API_TOKEN }}
+          NEXT_PUBLIC_SANITY_PROJECT_ID: ry0w69he
+          NEXT_PUBLIC_SANITY_DATASET: production
+        run: node scripts/publish-next-blog.mjs

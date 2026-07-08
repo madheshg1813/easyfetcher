@@ -7,10 +7,13 @@ function cdnUrl(publicId: string) {
 export const IMAGES = {
   logo: cdnUrl("easyfetcher/logo/logo"),
   claudeIcon: cdnUrl("easyfetcher/connectors/claude-color"),
+  // Face-centered square crop for the round avatar.
+  authorMadhesh: `https://res.cloudinary.com/${CLOUD}/image/upload/c_fill,g_face,w_400,h_400,f_auto,q_auto/easyfetcher/author/madhesh`,
   destinations: {
     claude: cdnUrl("easyfetcher/destinations/claude"),
     chatgpt: cdnUrl("easyfetcher/destinations/chatgpt"),
     perplexity: cdnUrl("easyfetcher/destinations/perplexity"),
+    gemini: cdnUrl("easyfetcher/destinations/gemini"),
   },
   connectors: {
     gsc: cdnUrl("easyfetcher/connectors/gsc"),

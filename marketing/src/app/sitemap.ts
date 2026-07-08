@@ -1,8 +1,20 @@
 import type { MetadataRoute } from "next";
+import { getBlogPosts } from "@/lib/sanity";
+import type { BlogListItem } from "@/lib/blog";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export const revalidate = 3600;
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://www.easyfetcher.com";
-  
+
+  const posts = (await getBlogPosts().catch(() => [])) as BlogListItem[];
+  const blogEntries: MetadataRoute.Sitemap = posts.map((p) => ({
+    url: `${baseUrl}/blogs/${p.slug.current}`,
+    lastModified: p.publishedAt ? new Date(p.publishedAt) : new Date(),
+    changeFrequency: "monthly",
+    priority: 0.6,
+  }));
+
   return [
     {
       url: baseUrl,
@@ -16,6 +28,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.8,
     },
+    {
+      url: `${baseUrl}/blogs`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.7,
+    },
+    ...blogEntries,
     {
       url: `${baseUrl}/privacy`,
       lastModified: new Date(),

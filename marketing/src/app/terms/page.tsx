@@ -7,8 +7,18 @@ export const metadata = {
   description: "Read the Terms of Service for using EasyFetcher and our MCP integrations.",
 };
 
+const termsBreadcrumb = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: "https://www.easyfetcher.com" },
+    { "@type": "ListItem", position: 2, name: "Terms of Service", item: "https://www.easyfetcher.com/terms" },
+  ],
+};
+
 export default function TermsPage() {
   return (
+    <>
     <div className="min-h-screen bg-white text-gray-900" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
       <SiteNav />
 
@@ -116,5 +126,10 @@ export default function TermsPage() {
 
       <SiteFooter />
     </div>
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(termsBreadcrumb) }}
+    />
+    </>
   );
 }

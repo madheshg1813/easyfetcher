@@ -32,6 +32,17 @@ export const blogPost = defineType({
       options: { hotspot: true },
     }),
     defineField({
+      name: "coverLabel",
+      title: "Cover Label (short word on generated cover, e.g. \"Skills\")",
+      type: "string",
+    }),
+    defineField({
+      name: "coverLogo",
+      title: "Cover Logo",
+      type: "string",
+      options: { list: ["claude", "chatgpt", "perplexity", "gemini"] },
+    }),
+    defineField({
       name: "publishedAt",
       title: "Published At",
       type: "datetime",
@@ -58,6 +69,43 @@ export const blogPost = defineType({
             defineField({ name: "alt", type: "string", title: "Alt text" }),
             defineField({ name: "caption", type: "string", title: "Caption" }),
           ],
+        },
+        {
+          type: "object",
+          name: "table",
+          title: "Table",
+          fields: [
+            defineField({
+              name: "rows",
+              type: "array",
+              of: [
+                {
+                  type: "object",
+                  name: "tableRow",
+                  fields: [
+                    defineField({ name: "header", type: "boolean" }),
+                    defineField({ name: "cells", type: "array", of: [{ type: "string" }] }),
+                  ],
+                },
+              ],
+            }),
+          ],
+        },
+      ],
+    }),
+    defineField({
+      name: "faqs",
+      title: "FAQs",
+      type: "array",
+      of: [
+        {
+          type: "object",
+          name: "faq",
+          fields: [
+            defineField({ name: "q", title: "Question", type: "string" }),
+            defineField({ name: "a", title: "Answer", type: "text", rows: 4 }),
+          ],
+          preview: { select: { title: "q" } },
         },
       ],
     }),
