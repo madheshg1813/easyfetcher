@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma, decrypt } from "@easyfetcher/db";
 import { google } from "googleapis";
 import { getMcpCallLimit } from "@/lib/plan-check";
+import { buildCacheKey, getCached, setCached } from "@/lib/mcp-cache";
+import { isTokenExpiringSoon, refreshGoogleToken } from "@/lib/token-refresh";
 import type { Plan } from "@easyfetcher/db";
 
 // ─── Connector tool imports ───────────────────────────────────────────────────
@@ -93,6 +95,17 @@ function makeOAuth2Client(accessToken: string, refreshToken: string | null, expi
 type UserWithConnections = NonNullable<Awaited<ReturnType<typeof getUserFromToken>>>;
 export type Connection = UserWithConnections["connections"][0];
 
+// Proactively refresh a Google token if it's expiring within 5 min, saving new token to DB
+async function getRefreshedConn(conn: Connection): Promise<Connection> {
+  if (!isTokenExpiringSoon(conn)) return conn;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return await refreshGoogleToken(conn as any) as unknown as Connection;
+  } catch {
+    return conn; // graceful fallback — token may still work, let the API call surface the real error
+  }
+}
+
 // ─── All tools list ───────────────────────────────────────────────────────────
 const TOOLS = [
   trendsTool,
@@ -181,28 +194,32 @@ async function executeTool(name: string, args: Record<string, unknown>, user: Us
   if (name === "gsc_query") {
     const result = resolveConnection("GSC", args.site_url as string | undefined, user);
     if ("error" in result) return text(result.error);
-    return executeGscTool(args.metric as "top_queries" | "top_pages" | "keyword_detail", args, result.conn, text, makeOAuth2Client);
+    const conn = await getRefreshedConn(result.conn);
+    return executeGscTool(args.metric as "top_queries" | "top_pages" | "keyword_detail", args, conn, text, makeOAuth2Client);
   }
 
   // GSC URL Inspection
   if (name === "gsc_url_inspect") {
     const result = resolveConnection("GSC", args.site_url as string | undefined, user);
     if ("error" in result) return text(result.error);
-    return executeUrlInspection(args, result.conn, text, makeOAuth2Client);
+    const conn = await getRefreshedConn(result.conn);
+    return executeUrlInspection(args, conn, text, makeOAuth2Client);
   }
 
   // GA4
   if (name === "ga4_query") {
     const result = resolveConnection("GA4", args.property_name as string | undefined, user);
     if ("error" in result) return text(result.error);
-    return executeGa4Tool(args.metric as "traffic" | "top_pages" | "traffic_sources" | "devices" | "geo", args, result.conn, text, makeOAuth2Client);
+    const conn = await getRefreshedConn(result.conn);
+    return executeGa4Tool(args.metric as "traffic" | "top_pages" | "traffic_sources" | "devices" | "geo", args, conn, text, makeOAuth2Client);
   }
 
   // GMB
   if (name === "gmb_query") {
     const result = resolveConnection("GOOGLE_MY_BUSINESS", args.account_name as string | undefined, user);
     if ("error" in result) return text(result.error);
-    return executeGmbTool(args.metric as "overview" | "reviews", args, result.conn, text, makeOAuth2Client);
+    const conn = await getRefreshedConn(result.conn);
+    return executeGmbTool(args.metric as "overview" | "reviews", args, conn, text, makeOAuth2Client);
   }
 
   // PageSpeed Insights
@@ -226,10 +243,11 @@ async function executeTool(name: string, args: Record<string, unknown>, user: Us
   if (name === "bing_webmaster_query") {
     const bingConn = user.connections.find((c) => (c.platform as string) === "BING_WEBMASTER");
     if (!bingConn) return text("Bing Webmaster is not connected. Visit your EasyFetcher dashboard to connect it.");
+    const refreshedBingConn = await getRefreshedConn(bingConn);
     return executeBingWebmasterTool(
       args.metric as "top_queries" | "top_pages",
       args,
-      bingConn,
+      refreshedBingConn,
       text
     );
   }
@@ -326,7 +344,12 @@ export async function POST(request: NextRequest) {
     const toolName = params.name as string;
     const toolArgs = (params.arguments ?? {}) as Record<string, unknown>;
 
-    // Check monthly quota before running any tool
+    // Check cache first — a hit doesn't consume quota (no external API call)
+    const cacheKey = buildCacheKey(user.id, toolName, toolArgs);
+    const cached = await getCached(toolName, cacheKey);
+    if (cached) return rpcResult(id, cached);
+
+    // Cache miss — check monthly quota before calling external APIs
     const quota = await checkAndIncrementQuota(user.id, user.plan as Plan);
     if (!quota.allowed) {
       const limitStr = quota.limit === -1 ? "unlimited" : quota.limit.toString();
@@ -340,6 +363,7 @@ export async function POST(request: NextRequest) {
 
     try {
       const result = await executeTool(toolName, toolArgs, user);
+      setCached(toolName, cacheKey, result); // fire-and-forget, doesn't delay response
       return rpcResult(id, result);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
