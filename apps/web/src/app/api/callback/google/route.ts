@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { encrypt } from "@easyfetcher/db";
 import type { Platform } from "@easyfetcher/db";
 import { saveConnection } from "@/lib/save-connection";
+import { track } from "@/lib/posthog";
 
 // ─── Main callback handler ────────────────────────────────────────────────────
 export async function GET(request: NextRequest) {
@@ -194,6 +195,7 @@ export async function GET(request: NextRequest) {
         label,
       );
 
+      track(dbUser.id, "source_connected", { platform, siteUrl, label });
       return NextResponse.redirect(new URL(`/dashboard/sources?connected=${platform}`, request.url));
     } catch (err: any) {
       console.error("[callback/google] single-site save failed:", err);

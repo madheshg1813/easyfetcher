@@ -4,6 +4,7 @@ import { google } from "googleapis";
 import { getMcpCallLimit } from "@/lib/plan-check";
 import { buildCacheKey, getCached, setCached } from "@/lib/mcp-cache";
 import { isTokenExpiringSoon, refreshGoogleToken } from "@/lib/token-refresh";
+import { track } from "@/lib/posthog";
 import type { Plan } from "@easyfetcher/db";
 
 // ─── Connector tool imports ───────────────────────────────────────────────────
@@ -347,12 +348,16 @@ export async function POST(request: NextRequest) {
     // Check cache first — a hit doesn't consume quota (no external API call)
     const cacheKey = buildCacheKey(user.id, toolName, toolArgs);
     const cached = await getCached(toolName, cacheKey);
-    if (cached) return rpcResult(id, cached);
+    if (cached) {
+      track(user.id, "mcp_tool_called", { tool: toolName, plan: user.plan, cache: "hit" });
+      return rpcResult(id, cached);
+    }
 
     // Cache miss — check monthly quota before calling external APIs
     const quota = await checkAndIncrementQuota(user.id, user.plan as Plan);
     if (!quota.allowed) {
       const limitStr = quota.limit === -1 ? "unlimited" : quota.limit.toString();
+      track(user.id, "mcp_quota_hit", { plan: user.plan, used: quota.used, limit: quota.limit });
       return rpcResult(id, {
         content: [{
           type: "text",
@@ -364,9 +369,11 @@ export async function POST(request: NextRequest) {
     try {
       const result = await executeTool(toolName, toolArgs, user);
       setCached(toolName, cacheKey, result); // fire-and-forget, doesn't delay response
+      track(user.id, "mcp_tool_called", { tool: toolName, plan: user.plan, cache: "miss", quotaUsed: quota.used, quotaLimit: quota.limit });
       return rpcResult(id, result);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
+      track(user.id, "mcp_tool_error", { tool: toolName, plan: user.plan, error: msg });
       return rpcError(id, -32000, `Tool error: ${msg}`);
     }
   }

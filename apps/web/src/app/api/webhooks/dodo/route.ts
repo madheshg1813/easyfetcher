@@ -2,6 +2,7 @@ import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/db";
 import { PRODUCT_PLAN_MAP, TRY_PLAN_PRODUCT_ID } from "@/lib/billing/plans";
+import { track, identify } from "@/lib/posthog";
 
 type DodoEvent = {
   type: string;
@@ -79,6 +80,8 @@ export async function POST(req: Request) {
       },
     });
 
+    track(user.id, "plan_purchased", { plan: "TRY", price: 4, type: "one_time", email: customerEmail ?? undefined });
+    identify(user.id, { plan: "TRY", email: customerEmail ?? undefined });
     console.log(`✅ Try plan activated: ${customerEmail} → expires ${expiresAt.toISOString()}`);
     return new Response("OK", { status: 200 });
   }
@@ -139,6 +142,8 @@ export async function POST(req: Request) {
       }),
     ]);
 
+    track(user.id, "plan_purchased", { plan, type: "subscription", email: customerEmail ?? undefined, productId: productId ?? undefined });
+    identify(user.id, { plan, email: customerEmail ?? undefined });
     console.log(`✅ Subscription activated: ${customerEmail} → ${plan}`);
   }
 
@@ -162,6 +167,8 @@ export async function POST(req: Request) {
           data:  { plan: "FREE" },
         }),
       ]);
+      track(subscription.userId, "plan_cancelled", { event: type });
+      identify(subscription.userId, { plan: "FREE" });
       console.log(`🔴 Subscription ${type}: userId=${subscription.userId} → FREE`);
     }
   }

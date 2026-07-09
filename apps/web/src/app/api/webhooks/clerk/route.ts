@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import type { WebhookEvent } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
 import { randomBytes } from "crypto";
+import { track, identify } from "@/lib/posthog";
 
 function generateApiKey(): string {
   return "ef_" + randomBytes(24).toString("hex");
@@ -98,6 +99,11 @@ export async function POST(req: Request) {
         where: { id: newUser.id },
         data: { activeWorkspaceId: ws.id },
       });
+
+      // PostHog: identify + signup event
+      identify(newUser.id, { email, name: name ?? undefined, plan: "FREE", createdAt: new Date().toISOString() });
+      track(newUser.id, "user_signed_up", { email, name: name ?? undefined });
+
       console.log(`✅ User created in DB: ${email} (${id})`);
     } catch (err) {
       console.error("Failed to create user in DB:", err);

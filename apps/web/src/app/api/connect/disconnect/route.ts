@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { invalidateUserCache } from "@/lib/mcp-cache";
+import { track } from "@/lib/posthog";
 import type { Platform } from "@easyfetcher/db";
 
 export async function POST(request: NextRequest) {
@@ -51,6 +52,7 @@ export async function POST(request: NextRequest) {
 
   // Invalidate cached MCP responses so next tool call gets fresh data
   invalidateUserCache(dbUser.id).catch(() => {/* ignore — cache expires via TTL anyway */});
+  track(dbUser.id, "source_disconnected", { platform, connectionId: connectionId ?? null });
 
   return NextResponse.json({ success: true });
 }
