@@ -7,6 +7,48 @@ import { isTokenExpiringSoon, refreshGoogleToken } from "@/lib/token-refresh";
 import { track } from "@/lib/posthog";
 import type { Plan } from "@easyfetcher/db";
 
+// ─── MCP client detection ─────────────────────────────────────────────────────
+function detectClient(request: NextRequest): string {
+  const ua = (request.headers.get("user-agent") ?? "").toLowerCase();
+  if (ua.includes("claude") || ua.includes("anthropic")) return "Claude";
+  if (ua.includes("chatgpt") || ua.includes("openai"))   return "ChatGPT";
+  if (ua.includes("cursor"))                              return "Cursor";
+  if (ua.includes("grok") || ua.includes("xai"))         return "Grok";
+  if (ua.includes("copilot"))                            return "Copilot";
+  const referer = (request.headers.get("referer") ?? "").toLowerCase();
+  if (referer.includes("claude.ai"))  return "Claude";
+  if (referer.includes("chatgpt.com") || referer.includes("chat.openai.com")) return "ChatGPT";
+  return ua.slice(0, 40) || "unknown";
+}
+
+// ─── Result quality detection ─────────────────────────────────────────────────
+type McpResultContent = { content: { type: string; text: string }[] };
+function classifyResult(result: McpResultContent, toolName: string): "ok" | "no_data" | "error" | "auth_error" {
+  const text = result.content?.[0]?.text ?? "";
+  if (/re.?connect|token expired|re.?authenticat|permission denied/i.test(text)) return "auth_error";
+  if (/not connected|no.*connection|visit your easyfetcher/i.test(text))         return "error";
+  if (/no (search |page |keyword |data |query |result|review)/i.test(text))      return "no_data";
+  if (/monthly limit reached|quota/i.test(text))                                 return "error";
+  return "ok";
+}
+
+// ─── Safe args summary (no sensitive values, just shape) ─────────────────────
+function summariseArgs(toolName: string, args: Record<string, unknown>): Record<string, string | number | boolean> {
+  const safe: Record<string, string | number | boolean> = {};
+  if (typeof args.metric   === "string")  safe.metric   = args.metric;
+  if (typeof args.days     === "number")  safe.days     = args.days;
+  if (typeof args.limit    === "number")  safe.limit    = args.limit;
+  if (typeof args.strategy === "string")  safe.strategy = args.strategy;
+  if (typeof args.keywords === "object" && Array.isArray(args.keywords)) safe.keyword_count = args.keywords.length;
+  // Only log the domain/site, not full path, for privacy
+  const site = (args.site_url ?? args.domain ?? args.url ?? "") as string;
+  if (site) {
+    try { safe.domain = new URL(site.startsWith("http") ? site : `https://${site}`).hostname; }
+    catch { safe.domain = site.slice(0, 50); }
+  }
+  return safe;
+}
+
 // ─── Connector tool imports ───────────────────────────────────────────────────
 import { gscTool, executeGscTool } from "./tools/gsc";
 import { ga4Tool, executeGa4Tool } from "./tools/ga4";
@@ -308,6 +350,15 @@ export async function POST(request: NextRequest) {
   const { id, method, params = {} } = body;
 
   if (method === "initialize") {
+    // Capture client info from the initialize handshake
+    const clientInfo = params.clientInfo as { name?: string; version?: string } | undefined;
+    const clientName = clientInfo?.name ?? detectClient(request);
+    // We don't have a userId yet at initialize time — track anonymously by UA
+    track("anonymous", "mcp_client_connected", {
+      client: clientName,
+      clientVersion: clientInfo?.version ?? "unknown",
+      userAgent: (request.headers.get("user-agent") ?? "").slice(0, 100),
+    });
     return rpcResult(id, {
       protocolVersion: "2025-06-18",
       capabilities: { tools: {} },
@@ -344,12 +395,14 @@ export async function POST(request: NextRequest) {
   if (method === "tools/call") {
     const toolName = params.name as string;
     const toolArgs = (params.arguments ?? {}) as Record<string, unknown>;
+    const client   = detectClient(request);
+    const argsSummary = summariseArgs(toolName, toolArgs);
 
     // Check cache first — a hit doesn't consume quota (no external API call)
     const cacheKey = buildCacheKey(user.id, toolName, toolArgs);
     const cached = await getCached(toolName, cacheKey);
     if (cached) {
-      track(user.id, "mcp_tool_called", { tool: toolName, plan: user.plan, cache: "hit" });
+      track(user.id, "mcp_tool_called", { tool: toolName, plan: user.plan, cache: "hit", client, ...argsSummary });
       return rpcResult(id, cached);
     }
 
@@ -357,7 +410,7 @@ export async function POST(request: NextRequest) {
     const quota = await checkAndIncrementQuota(user.id, user.plan as Plan);
     if (!quota.allowed) {
       const limitStr = quota.limit === -1 ? "unlimited" : quota.limit.toString();
-      track(user.id, "mcp_quota_hit", { plan: user.plan, used: quota.used, limit: quota.limit });
+      track(user.id, "mcp_quota_hit", { plan: user.plan, used: quota.used, limit: quota.limit, client });
       return rpcResult(id, {
         content: [{
           type: "text",
@@ -368,12 +421,26 @@ export async function POST(request: NextRequest) {
 
     try {
       const result = await executeTool(toolName, toolArgs, user);
-      setCached(toolName, cacheKey, result); // fire-and-forget, doesn't delay response
-      track(user.id, "mcp_tool_called", { tool: toolName, plan: user.plan, cache: "miss", quotaUsed: quota.used, quotaLimit: quota.limit });
+      setCached(toolName, cacheKey, result);
+
+      const quality = classifyResult(result, toolName);
+      track(user.id, "mcp_tool_called", {
+        tool: toolName, plan: user.plan, cache: "miss", client,
+        result: quality, quotaUsed: quota.used, quotaLimit: quota.limit,
+        ...argsSummary,
+      });
+
+      // Fire a separate event for bad outcomes so they show up in their own charts
+      if (quality === "no_data") {
+        track(user.id, "mcp_no_data", { tool: toolName, client, plan: user.plan, ...argsSummary });
+      } else if (quality === "auth_error") {
+        track(user.id, "mcp_auth_error", { tool: toolName, client, plan: user.plan });
+      }
+
       return rpcResult(id, result);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      track(user.id, "mcp_tool_error", { tool: toolName, plan: user.plan, error: msg });
+      track(user.id, "mcp_tool_error", { tool: toolName, plan: user.plan, client, error: msg.slice(0, 200) });
       return rpcError(id, -32000, `Tool error: ${msg}`);
     }
   }
