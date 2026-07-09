@@ -62,6 +62,7 @@ import {
 import { urlInspectionTool, executeUrlInspection } from "./tools/url-inspection";
 import { pagespeedTool, executePagespeedTool } from "./tools/pagespeed";
 import { bingWebmasterTool, executeBingWebmasterTool } from "./tools/bing";
+import { gscSitemapsTool, executeGscSitemaps } from "./tools/gsc-sitemaps";
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 
@@ -159,6 +160,7 @@ const TOOLS = [
   },
   gscTool,
   urlInspectionTool,
+  gscSitemapsTool,
   ga4Tool,
   gmbTool,
   rankCheckDirectTool,
@@ -241,12 +243,20 @@ async function executeTool(name: string, args: Record<string, unknown>, user: Us
     return executeGscTool(args.metric as "top_queries" | "top_pages" | "keyword_detail", args, conn, text, makeOAuth2Client);
   }
 
-  // GSC URL Inspection
+  // GSC URL Inspection (single or batch)
   if (name === "gsc_url_inspect") {
     const result = resolveConnection("GSC", args.site_url as string | undefined, user);
     if ("error" in result) return text(result.error);
     const conn = await getRefreshedConn(result.conn);
     return executeUrlInspection(args, conn, text, makeOAuth2Client);
+  }
+
+  // GSC Sitemaps
+  if (name === "gsc_sitemaps") {
+    const result = resolveConnection("GSC", args.site_url as string | undefined, user);
+    if ("error" in result) return text(result.error);
+    const conn = await getRefreshedConn(result.conn);
+    return executeGscSitemaps(args, conn, text, makeOAuth2Client);
   }
 
   // GA4
@@ -363,7 +373,7 @@ export async function POST(request: NextRequest) {
       protocolVersion: "2025-06-18",
       capabilities: { tools: {} },
       serverInfo: { name: "easyfetcher", version: "2.0.0" },
-      instructions: "EasyFetcher provides marketing data from Google Search Console, Google Analytics 4, Google My Business, Google Trends, Bing Webmaster, real-time SERP rank checking, PageSpeed/Core Web Vitals, and SE Ranking data (backlinks, AI overviews, traffic, keyword volumes).\n\nTOOL SELECTION RULES:\n- User asks to check keyword rankings / positions / where a site ranks → use rank_check_direct\n- User asks about backlinks / link profile / who links to a domain → use backlink_check\n- User asks about AI Overviews / AI citations / SGE presence → use ai_overview_check\n- User asks about website traffic / monthly visitors / audience → use traffic_data\n- User asks about keyword volume / search demand / CPC / difficulty → use keyword_volume\n- User asks about GSC traffic, impressions, clicks, CTR → use gsc_query\n- User asks if a URL is indexed / indexing status / why a page isn't in Google / URL inspection → use gsc_url_inspect\n- User asks about website analytics, sessions, pageviews → use ga4_query\n- User asks about Google Business Profile / reviews → use gmb_query\n- User asks about search trends → use trends_query\n- User asks about page speed / Core Web Vitals / LCP / CLS / performance score / Lighthouse → use pagespeed_query\n- User asks about Bing clicks, impressions, queries, or Bing organic performance → use bing_webmaster_query\n\nIMPORTANT: Only call the tool that matches what the user asked. Do not call multiple tools unless explicitly asked.\nrank_check_direct, backlink_check, ai_overview_check, traffic_data, keyword_volume, trends_query, and pagespeed_query need no connection — call them directly with the URL or domain.\nFor GSC/GA4/GMB/Bing: call list_connections first, then the query tool.\n\nCRITICAL: If a tool returns an error stating that the user has multiple connections, YOU MUST stop and explicitly ask the user which connection they want to use, listing the available options provided in the error message.",
+      instructions: "EasyFetcher provides marketing data from Google Search Console, Google Analytics 4, Google My Business, Google Trends, Bing Webmaster, real-time SERP rank checking, PageSpeed/Core Web Vitals, and SE Ranking data (backlinks, AI overviews, traffic, keyword volumes).\n\nTOOL SELECTION RULES:\n- User asks to check keyword rankings / positions / where a site ranks → use rank_check_direct\n- User asks about backlinks / link profile / who links to a domain → use backlink_check\n- User asks about AI Overviews / AI citations / SGE presence → use ai_overview_check\n- User asks about website traffic / monthly visitors / audience → use traffic_data\n- User asks about keyword volume / search demand / CPC / difficulty → use keyword_volume\n- User asks about GSC traffic, impressions, clicks, CTR → use gsc_query\n- User asks if a URL is indexed / indexing status / why a page isn't in Google / URL inspection → use gsc_url_inspect (supports single url or urls array up to 10)\n- User asks about sitemap health / how many pages indexed / indexing coverage / crawl issues → use gsc_sitemaps\n- User asks about website analytics, sessions, pageviews → use ga4_query\n- User asks about Google Business Profile / reviews → use gmb_query\n- User asks about search trends → use trends_query\n- User asks about page speed / Core Web Vitals / LCP / CLS / performance score / Lighthouse → use pagespeed_query\n- User asks about Bing clicks, impressions, queries, or Bing organic performance → use bing_webmaster_query\n\nIMPORTANT: Only call the tool that matches what the user asked. Do not call multiple tools unless explicitly asked.\nrank_check_direct, backlink_check, ai_overview_check, traffic_data, keyword_volume, trends_query, and pagespeed_query need no connection — call them directly with the URL or domain.\nFor GSC/GA4/GMB/Bing: call list_connections first, then the query tool.\n\nCRITICAL: If a tool returns an error stating that the user has multiple connections, YOU MUST stop and explicitly ask the user which connection they want to use, listing the available options provided in the error message.",
     });
   }
 
