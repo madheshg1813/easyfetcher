@@ -1,0 +1,29 @@
+name: Daily Skills Publish
+
+# Skills pages are code (Next.js routes gated by each skill's `publishedAt` date
+# in marketing/src/lib/skills.ts), not Sanity content — so there's nothing to
+# push to a CMS. This job just triggers a daily production rebuild: on each build
+# only skills whose publishedAt date has arrived are generated, so scheduled
+# pages go live on their date automatically (2/day as dated in skills.ts).
+#
+# SETUP (one-time): in Vercel → Project → Settings → Git → Deploy Hooks, create a
+# hook on the production branch, then add its URL as the repo secret
+# VERCEL_DEPLOY_HOOK_URL (Settings → Secrets and variables → Actions).
+
+on:
+  schedule:
+    - cron: "0 9 * * *" # every day at 09:00 UTC (matches the blog cron)
+  workflow_dispatch: {} # allow manual "Run workflow" from the Actions tab
+
+jobs:
+  redeploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger production rebuild (picks up newly-due skills)
+        run: |
+          if [ -z "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}" ]; then
+            echo "✗ VERCEL_DEPLOY_HOOK_URL secret is not set — see setup notes in this workflow."
+            exit 1
+          fi
+          curl -fsS -X POST "${{ secrets.VERCEL_DEPLOY_HOOK_URL }}"
+          echo "✓ Triggered production rebuild."
