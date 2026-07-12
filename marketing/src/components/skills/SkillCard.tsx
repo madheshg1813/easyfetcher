@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { skillUrl, type Skill, type Category } from "@/lib/skills";
+import { SIGNUP_URL } from "@/lib/constants";
 import Icon from "./Icon";
 import { SourceChips, Button } from "./primitives";
 import { SkillMedia } from "./Thumbnail";
 
-export function SkillCard({ skill, onInstall }: { skill: Skill; onInstall: (s: Skill) => void }) {
+export function SkillCard({ skill }: { skill: Skill }) {
   const url = skillUrl(skill.id);
   return (
     <article className="ef-card" style={{
@@ -26,8 +27,9 @@ export function SkillCard({ skill, onInstall }: { skill: Skill; onInstall: (s: S
           <SourceChips sources={skill.sources} />
         </div>
         <div style={{ display: "flex", gap: 9, marginTop: 4, alignItems: "center" }}>
-          <Button size="sm" style={{ flex: 1 }} onClick={() => onInstall(skill)}
-            leading={<Icon name="download" size={15} />}>Download Skill</Button>
+          <Link href={SIGNUP_URL} style={{ flex: 1 }}>
+            <Button size="sm" style={{ width: "100%" }} leading={<Icon name="download" size={15} />}>Download Skill</Button>
+          </Link>
           <Link href={url} className="ef-viewlink">View skill <Icon name="arrow-up-right" size={14} /></Link>
         </div>
       </div>

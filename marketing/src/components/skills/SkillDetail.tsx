@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { SIGNUP_URL } from "@/lib/constants";
@@ -13,7 +12,6 @@ import OutputPreview from "./OutputPreview";
 import SetupSteps from "./SetupSteps";
 import Testimonials from "./Testimonials";
 import SkillsFaq from "./SkillsFaq";
-import InstallModal from "./InstallModal";
 import { HERO_MOCKS, OUTPUT_MOCKS } from "./mocks";
 import WhyChoose, { WHY_CHOOSE } from "./WhyChoose";
 
@@ -31,8 +29,6 @@ function Breadcrumb({ skill }: { skill: Skill }) {
 }
 
 export default function SkillDetail({ skill }: { skill: Skill }) {
-  const [modalSkill, setModalSkill] = useState<Skill | null>(null);
-
   const det = getDetail(skill.id);
   const related = relatedSkills(skill);
   const whyPoints = WHY_CHOOSE[skill.id];
@@ -119,7 +115,7 @@ export default function SkillDetail({ skill }: { skill: Skill }) {
             <Link href="/skills#skills" className="ef-viewlink" style={{ fontSize: 14.5 }}>Browse all skills <Icon name="arrow-up-right" size={15} /></Link>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 20 }}>
-            {related.map((s) => <SkillCard key={s.id} skill={s} onInstall={setModalSkill} />)}
+            {related.map((s) => <SkillCard key={s.id} skill={s} />)}
           </div>
         </div>
       </section>
@@ -138,13 +134,11 @@ export default function SkillDetail({ skill }: { skill: Skill }) {
             Free to download and use with your own EasyFetcher data sources.
           </p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 26, flexWrap: "wrap" }}>
-            <Button size="lg" variant="amber" onClick={() => setModalSkill(skill)} leading={<Icon name="download" size={17} />}>Download Skill</Button>
+            <Link href={SIGNUP_URL}><Button size="lg" variant="amber" leading={<Icon name="download" size={17} />}>Download Skill</Button></Link>
             <Link href="/skills"><Button size="lg" variant="outline" style={{ background: "transparent", color: "#fff", borderColor: "rgba(255,255,255,.3)" }}>Explore more skills</Button></Link>
           </div>
         </div>
       </section>
-
-      <InstallModal skill={modalSkill} onClose={() => setModalSkill(null)} />
     </>
   );
 }

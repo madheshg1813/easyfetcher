@@ -5,7 +5,6 @@ import { type Skill, type Category, type CategoryId } from "@/lib/skills";
 import Icon from "./Icon";
 import { Eyebrow } from "./primitives";
 import { SkillCard, CategoryTile } from "./SkillCard";
-import InstallModal from "./InstallModal";
 
 type FilterId = "all" | CategoryId;
 
@@ -14,7 +13,6 @@ type FilterId = "all" | CategoryId;
 export default function SkillsExplorer({ skills, categories }: { skills: Skill[]; categories: Category[] }) {
   const [cat, setCat] = useState<FilterId>("all");
   const [q, setQ] = useState("");
-  const [modalSkill, setModalSkill] = useState<Skill | null>(null);
 
   const pick = (id: CategoryId) => {
     setCat(id);
@@ -76,7 +74,7 @@ export default function SkillsExplorer({ skills, categories }: { skills: Skill[]
           {/* Grid */}
           {filtered.length ? (
             <div className="ef-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 20 }}>
-              {filtered.map((s) => <SkillCard key={s.id} skill={s} onInstall={setModalSkill} />)}
+              {filtered.map((s) => <SkillCard key={s.id} skill={s} />)}
             </div>
           ) : (
             <div style={{ textAlign: "center", padding: "60px 0", color: "var(--gray)" }}>
@@ -109,7 +107,6 @@ export default function SkillsExplorer({ skills, categories }: { skills: Skill[]
         </div>
       </section>
 
-      <InstallModal skill={modalSkill} onClose={() => setModalSkill(null)} />
     </>
   );
 }
