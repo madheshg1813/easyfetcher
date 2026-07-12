@@ -31,6 +31,7 @@ export default function SiteFooter() {
               <ul className="space-y-3 text-sm text-gray-400">
                 <li><a href="/#features" className="hover:text-white transition-colors">Features</a></li>
                 <li><a href="/#connectors" className="hover:text-white transition-colors">Integrations</a></li>
+                <li><Link href="/skills" className="hover:text-white transition-colors">Skills</Link></li>
                 <li><Link href="/pricing" className="hover:text-white transition-colors">Pricing</Link></li>
                 <li><Link href="/blogs" className="hover:text-white transition-colors">Blog</Link></li>
               </ul>

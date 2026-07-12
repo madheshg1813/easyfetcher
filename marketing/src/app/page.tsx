@@ -8,6 +8,7 @@ import SiteFooter from "@/components/SiteFooter";
 import { SIGNUP_URL } from "@/lib/constants";
 import { PLANS, getDodoCheckoutUrl, TRY_PLAN, getTryPlanUrl } from "@/lib/dodo";
 import { IMAGES, DESTINATIONS } from "@/lib/cloudinary";
+import { TESTIMONIALS as testimonials } from "@/lib/testimonials";
 
 const features = [
   {
@@ -46,27 +47,6 @@ const stats = [
   { icon: Zap, value: "99.9%", label: "Uptime SLA" },
 ];
 
-
-const testimonials = [
-  {
-    quote: "EasyFetcher cut my reporting time in half. I just ask Claude a question and get the answer from my real GA4 data.",
-    name: "Sarah K.",
-    role: "SEO Consultant",
-    stars: 5,
-  },
-  {
-    quote: "Finally a tool that connects all my client data sources to AI without me having to write Python scripts.",
-    name: "Marcus R.",
-    role: "Digital Marketing Agency Owner",
-    stars: 5,
-  },
-  {
-    quote: "The GSC integration alone is worth it. I get keyword insights in seconds that used to take me 30 minutes.",
-    name: "Priya M.",
-    role: "Growth Marketer",
-    stars: 5,
-  },
-];
 
 const faqs = [
   {

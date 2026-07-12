@@ -30,6 +30,13 @@ export const IMAGES = {
     bing: cdnUrl("easyfetcher/connectors/bing"),
     claude: cdnUrl("easyfetcher/connectors/claude"),
     googleTrends: cdnUrl("easyfetcher/connectors/google-trends"),
+    // AI assistants (for the AI Traffic Report)
+    chatgpt: cdnUrl("easyfetcher/connectors/chatgpt"),
+    gemini: cdnUrl("easyfetcher/connectors/gemini"),
+    perplexity: cdnUrl("easyfetcher/connectors/perplexity"),
+    grok: cdnUrl("easyfetcher/connectors/grok"),
+    copilot: cdnUrl("easyfetcher/connectors/copilot"),
+    meta: cdnUrl("easyfetcher/connectors/meta"),
   },
 } as const;
 

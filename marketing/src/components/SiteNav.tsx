@@ -31,6 +31,7 @@ export default function SiteNav() {
         <div className="hidden md:flex items-center gap-8 text-[15px] font-semibold text-gray-500">
           <a href="/#features" className="hover:text-gray-900 transition-colors">Features</a>
           <a href="/#connectors" className="hover:text-gray-900 transition-colors">Integrations</a>
+          <Link href="/skills" className="hover:text-gray-900 transition-colors">Skills</Link>
           <Link href="/pricing" className="hover:text-gray-900 transition-colors">Pricing</Link>
           <Link href="/blogs" className="hover:text-gray-900 transition-colors">Blog</Link>
           <a href="/#testimonials" className="hover:text-gray-900 transition-colors">Customers</a>
@@ -72,6 +73,7 @@ export default function SiteNav() {
         <div className="md:hidden border-t border-gray-100/80 bg-white/95 backdrop-blur-xl px-4 py-3 flex flex-col gap-1">
           <a href="/#features" onClick={() => setOpen(false)} className="py-2.5 px-3 rounded-xl text-sm font-semibold text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors">Features</a>
           <a href="/#connectors" onClick={() => setOpen(false)} className="py-2.5 px-3 rounded-xl text-sm font-semibold text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors">Integrations</a>
+          <Link href="/skills" onClick={() => setOpen(false)} className="py-2.5 px-3 rounded-xl text-sm font-semibold text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors">Skills</Link>
           <Link href="/pricing" onClick={() => setOpen(false)} className="py-2.5 px-3 rounded-xl text-sm font-semibold text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors">Pricing</Link>
           <Link href="/blogs" onClick={() => setOpen(false)} className="py-2.5 px-3 rounded-xl text-sm font-semibold text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors">Blog</Link>
           <a href="/#testimonials" onClick={() => setOpen(false)} className="py-2.5 px-3 rounded-xl text-sm font-semibold text-gray-700 hover:bg-amber-50 hover:text-amber-600 transition-colors">Customers</a>
