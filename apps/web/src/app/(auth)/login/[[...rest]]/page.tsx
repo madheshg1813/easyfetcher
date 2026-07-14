@@ -1,5 +1,4 @@
 import { SignIn } from "@clerk/nextjs";
-import { Zap } from "lucide-react";
 import Link from "next/link";
 
 export const metadata = {
@@ -11,8 +10,10 @@ export default function LoginPage() {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center px-4">
       <div className="mb-8 flex flex-col items-center gap-2">
         <Link href="/" className="flex items-center gap-2">
-          <Zap className="w-6 h-6 text-primary" />
-          <span className="text-xl font-bold text-primary">EasyFetcher</span>
+          <img src="/ef-icon.png" alt="" width={32} height={32} className="w-8 h-8 object-contain" aria-hidden />
+          <span className="text-xl font-bold tracking-tight text-foreground">
+            Easy <span className="text-amber-500">Fetcher</span>
+          </span>
         </Link>
         <p className="text-sm text-muted-foreground">
           Sign in to your account
