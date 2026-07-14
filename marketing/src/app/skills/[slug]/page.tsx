@@ -14,8 +14,12 @@ export function generateStaticParams() {
   return publishedSkills().map((s) => ({ slug: s.id }));
 }
 
-export const dynamicParams = false;
-// Rebuild daily (daily-skills.yml) so scheduled skills start being built on their date.
+// generateStaticParams only runs at build time, but publishedAt dates roll over
+// daily — so a skill that goes live after the last build is absent from the
+// prerendered set. dynamicParams must stay true or those slugs hard-404 until a
+// rebuild, even though /skills already lists them. Unpublished and unknown slugs
+// are still gated below by the isPublished/notFound check, at request time.
+export const dynamicParams = true;
 export const revalidate = 3600;
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
