@@ -77,10 +77,15 @@ export default async function SkillDetailPage({ params }: { params: Promise<{ sl
   };
 
   return (
-    <div className="ef-skills">
+    <>
       <SkillsTheme />
+      {/* SiteNav/SiteFooter stay outside .ef-skills: the wrapper redefines
+          Tailwind theme tokens (--radius-*, --shadow-*) and resets `a` colours,
+          which silently restyled the shared nav — its dark CTA lost its white
+          text and its corner radius. Neither component uses the skills theme. */}
       <SiteNav />
 
+      <div className="ef-skills">
       <div className="wrap" style={{ paddingTop: 20 }}>
         <Link href="/skills" className="ef-crumb" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 14, fontWeight: 600 }}>
           <ArrowLeft className="w-4 h-4" /> All Claude skills
@@ -88,11 +93,12 @@ export default async function SkillDetailPage({ params }: { params: Promise<{ sl
       </div>
 
       <SkillDetail skill={skill} />
+      </div>
       <SiteFooter />
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-    </div>
+    </>
   );
 }
