@@ -42,19 +42,23 @@ export default function SkillsPage() {
   const skills = publishedSkills();
   const categories = publishedCategories();
   return (
-    <div className="ef-skills">
+    <>
       <SkillsTheme />
+      {/* SiteNav/SiteFooter stay outside .ef-skills — see the note in
+          skills/[slug]/page.tsx. */}
       <SiteNav />
-      <SkillsHero count={skills.length} />
-      <SkillsExplorer skills={skills} categories={categories} />
-      <SetupSteps />
-      <Testimonials />
-      <SkillsFaq />
+      <div className="ef-skills">
+        <SkillsHero count={skills.length} />
+        <SkillsExplorer skills={skills} categories={categories} />
+        <SetupSteps />
+        <Testimonials />
+        <SkillsFaq />
+      </div>
       <SiteFooter />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
-    </div>
+    </>
   );
 }
