@@ -40,11 +40,7 @@ export default function SignUpPage() {
       <div className="flex flex-col px-6 sm:px-10 lg:px-16 py-7">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <span className="w-9 h-9 rounded-[9px] grid place-items-center bg-[#0e1b2f]">
-              <svg viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-[19px] h-[19px]" aria-hidden>
-                <circle cx="12" cy="12" r="2.2" /><path d="M12 12 19 7" /><path d="M4.2 12a7.8 7.8 0 0 1 7.8-7.8" /><path d="M6.9 12a5.1 5.1 0 0 1 5.1-5.1" />
-              </svg>
-            </span>
+            <img src="/ef-icon.png" alt="" width={36} height={36} className="w-9 h-9 object-contain" aria-hidden />
             <span className="text-lg font-extrabold tracking-tight text-[#14181f]">
               Easy <span className="text-amber-500">Fetcher</span>
             </span>
