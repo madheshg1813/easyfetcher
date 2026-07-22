@@ -1,12 +1,12 @@
 import type { Plan, Platform } from "@easyfetcher/db";
 
-const ALL_PLATFORMS: Platform[] = ["GSC", "GA4", "GOOGLE_ADS", "META_ADS", "REDDIT_ADS", "SHOPIFY", "BING_ADS", "BING_WEBMASTER", "INSTAGRAM", "LINKEDIN_ADS", "GOOGLE_MY_BUSINESS", "TIKTOK_ADS"];
+const ALL_PLATFORMS: Platform[] = ["GSC", "GA4", "GOOGLE_ADS", "META_ADS", "REDDIT_ADS", "SHOPIFY", "BING_ADS", "INSTAGRAM", "LINKEDIN_ADS", "TIKTOK_ADS"];
 
 // Which platforms each plan can access
 const PLAN_PLATFORMS: Record<Plan, Platform[]> = {
   FREE:       ["GSC"],
   TRY:        ["GSC", "GA4"],
-  STARTER:    ["GSC", "GA4", "GOOGLE_MY_BUSINESS", "BING_WEBMASTER"],
+  STARTER:    ["GSC", "GA4"],
   PRO:        ALL_PLATFORMS,
   AGENCY:     ALL_PLATFORMS,
   ENTERPRISE: ALL_PLATFORMS,
@@ -66,7 +66,6 @@ export function getMcpCallLimit(plan: Plan): number {
 export function requiredPlanForPlatform(platform: Platform): Plan {
   if (platform === "GSC") return "FREE";
   if (["GA4"].includes(platform)) return "TRY";
-  if (["GOOGLE_MY_BUSINESS", "BING_WEBMASTER"].includes(platform)) return "STARTER";
   return "PRO";
 }
 
