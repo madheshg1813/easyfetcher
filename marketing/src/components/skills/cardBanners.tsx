@@ -209,8 +209,164 @@ function SeoAuditBanner() {
   );
 }
 
+function TechnicalSeoAuditBanner() {
+  const R = 16, CIRC = 2 * Math.PI * R;
+  const cats: [string, number, string][] = [
+    ["Perf", 65, C.warn],
+    ["A11y", 94, C.green],
+    ["Best Prac", 91, C.green],
+    ["SEO", 84, C.warn],
+  ];
+  const vitals: [string, string, string, string][] = [
+    ["LCP", "4.2s", "Poor", C.red],
+    ["INP", "248ms", "Needs work", C.warn],
+    ["CLS", "0.06", "Good", C.green],
+  ];
+  return (
+    <Wrap>
+      <svg viewBox="0 0 320 168" style={{ width: "100%", height: "100%", display: "block" }} preserveAspectRatio="xMidYMid meet">
+        {/* header */}
+        <text x="16" y="22" fontFamily="Inter" fontSize="9.5" fontWeight="800" fill={C.ink}>Technical SEO Audit</text>
+        <text x="16" y="34" fontFamily="Inter" fontSize="7" fontWeight="600" fill={C.slate}>PageSpeed · Crawl diagnostics</text>
+
+        {/* lighthouse category rings */}
+        {cats.map(([label, score, color], i) => {
+          const cx = 42 + i * 68, cy = 76;
+          return (
+            <g key={label}>
+              <circle cx={cx} cy={cy} r={R} fill="none" stroke={C.line} strokeWidth="5" />
+              <circle cx={cx} cy={cy} r={R} fill="none" stroke={color} strokeWidth="5" strokeLinecap="round"
+                strokeDasharray={CIRC} strokeDashoffset={CIRC * (1 - score / 100)} transform={`rotate(-90 ${cx} ${cy})`} />
+              <text x={cx} y={cy + 3.5} fontFamily="Inter" fontSize="10" fontWeight="800" fill={C.ink} textAnchor="middle">{score}</text>
+              <text x={cx} y={cy + 27} fontFamily="Inter" fontSize="6.8" fontWeight="700" fill={C.inkSoft} textAnchor="middle">{label}</text>
+            </g>
+          );
+        })}
+
+        {/* core web vitals */}
+        <text x="16" y="129" fontFamily="Inter" fontSize="6.4" fontWeight="700" letterSpacing="0.4" fill={C.slate}>CORE WEB VITALS</text>
+        {vitals.map(([t, v, pill, color], i) => {
+          const x = 16 + i * 100;
+          return (
+            <g key={t}>
+              <rect x={x} y="136" width="88" height="24" rx="7" fill={color} opacity="0.12" />
+              <text x={x + 10} y="146" fontFamily="Inter" fontSize="6.2" fontWeight="700" letterSpacing="0.3" fill={C.inkSoft}>{t}</text>
+              <text x={x + 10} y="156" fontFamily="Inter" fontSize="9" fontWeight="800" fill={color}>{v}</text>
+              <text x={x + 78} y="152" fontFamily="Inter" fontSize="6" fontWeight="700" fill={color} textAnchor="end">{pill}</text>
+            </g>
+          );
+        })}
+      </svg>
+    </Wrap>
+  );
+}
+
+function SeoReportBanner() {
+  const kpis: [string, string, string, boolean][] = [
+    ["IMPRESSIONS", "1.67M", "▲ 12.4%", true],
+    ["CLICKS", "82.3K", "▲ 8.1%", true],
+    ["CTR", "4.92%", "▼ 0.3%", false],
+  ];
+  // Negated so higher click counts plot toward the top of the band.
+  const trend = spark([61, 64, 63, 66, 65, 70, 82].map((v) => -v), 16, 122, 288, 30);
+  return (
+    <Wrap>
+      <svg viewBox="0 0 320 168" style={{ width: "100%", height: "100%", display: "block" }} preserveAspectRatio="xMidYMid meet">
+        {/* header */}
+        <text x="16" y="22" fontFamily="Inter" fontSize="9.5" fontWeight="800" fill={C.ink}>SEO Report</text>
+        <text x="16" y="34" fontFamily="Inter" fontSize="7" fontWeight="600" fill={C.slate}>Search Console · GA4 · narrated</text>
+
+        {/* kpi tiles */}
+        {kpis.map(([k, v, d, up], i) => {
+          const x = 16 + i * 100;
+          return (
+            <g key={k}>
+              <rect x={x} y="44" width="88" height="46" rx="8" fill={C.panel} stroke={C.line} />
+              <text x={x + 10} y="58" fontFamily="Inter" fontSize="5.8" fontWeight="700" letterSpacing="0.4" fill={C.slate}>{k}</text>
+              <text x={x + 10} y="76" fontFamily="Inter" fontSize="13" fontWeight="800" fill={C.ink}>{v}</text>
+              <text x={x + 10} y="86" fontFamily="Inter" fontSize="6" fontWeight="700" fill={up ? C.green : C.red}>{d}</text>
+            </g>
+          );
+        })}
+
+        {/* clicks trend */}
+        <text x="16" y="110" fontFamily="Inter" fontSize="6.4" fontWeight="700" letterSpacing="0.4" fill={C.slate}>CLICKS DYNAMICS</text>
+        <text x="304" y="110" fontFamily="Inter" fontSize="6.4" fontWeight="700" fill={C.green} textAnchor="end">▲ 8.1%</text>
+        <path d={`${trend.d} L 304 152 L 16 152 Z`} fill={C.orange} opacity="0.08" />
+        <path d={trend.d} fill="none" stroke={C.orange} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+        <circle cx={trend.last[0]} cy={trend.last[1]} r="3" fill={C.orange} />
+        <text x="16" y="164" fontFamily="Inter" fontSize="6.5" fontWeight="600" fill={C.slate}>Overview · Landing Pages · Queries · AI Traffic · Blog</text>
+      </svg>
+    </Wrap>
+  );
+}
+
+function AiTrafficReportBanner() {
+  const kpis: [string, string, string][] = [
+    ["SESSIONS", "7.79K", "▲41%"],
+    ["USERS", "6.68K", "▲38%"],
+    ["SIGNUPS", "407", "▲30%"],
+  ];
+  // Traffic share by AI source — brand colours, proportions match the mock.
+  const seg: [string, number][] = [
+    ["#10a37f", 46], ["#2f5fd0", 30], ["#20b8cd", 9],
+    ["#f0900e", 6], ["#d97757", 5], ["#94a3b8", 4],
+  ];
+  const legend: [string, string][] = [
+    ["#10a37f", "ChatGPT"], ["#2f5fd0", "Copilot"], ["#20b8cd", "Perplexity"], ["#f0900e", "Gemini"],
+  ];
+  const BARX = 16, BARW = 288;
+  let run = 0;
+  return (
+    <Wrap>
+      <svg viewBox="0 0 320 168" style={{ width: "100%", height: "100%", display: "block" }} preserveAspectRatio="xMidYMid meet">
+        {/* header */}
+        <text x="16" y="22" fontFamily="Inter" fontSize="9.5" fontWeight="800" fill={C.ink}>AI Traffic Report</text>
+        <text x="16" y="34" fontFamily="Inter" fontSize="7" fontWeight="600" fill={C.slate}>GA4 · ChatGPT · Perplexity · Gemini referrals</text>
+
+        {/* KPI tiles */}
+        {kpis.map(([k, v, d], i) => {
+          const x = 16 + i * 100;
+          return (
+            <g key={k}>
+              <rect x={x} y="44" width="88" height="44" rx="8" fill={C.panel} stroke={C.line} />
+              <text x={x + 10} y="58" fontFamily="Inter" fontSize="5.8" fontWeight="700" letterSpacing="0.4" fill={C.slate}>{k}</text>
+              <text x={x + 10} y="75" fontFamily="Inter" fontSize="14" fontWeight="800" fill={C.ink}>{v}</text>
+              <text x={x + 10} y="84" fontFamily="Inter" fontSize="6" fontWeight="700" fill={C.green}>{d}</text>
+            </g>
+          );
+        })}
+
+        {/* traffic share bar */}
+        <text x="16" y="108" fontFamily="Inter" fontSize="6.4" fontWeight="700" letterSpacing="0.4" fill={C.slate}>TRAFFIC BY AI SOURCE</text>
+        <text x="304" y="108" fontFamily="Inter" fontSize="6.4" fontWeight="700" fill={C.slate} textAnchor="end">Sessions</text>
+        {seg.map(([color, pct], i) => {
+          const w = (pct / 100) * BARW;
+          const x = BARX + run;
+          run += w;
+          return <rect key={i} x={x} y="114" width={Math.max(w - 1, 0)} height="16" rx={i === 0 || i === seg.length - 1 ? 3 : 0} fill={color} />;
+        })}
+
+        {/* legend */}
+        {legend.map(([color, name], i) => {
+          const x = 16 + i * 74;
+          return (
+            <g key={name}>
+              <circle cx={x + 3} cy="150" r="3" fill={color} />
+              <text x={x + 10} y="153" fontFamily="Inter" fontSize="7.5" fontWeight="600" fill={C.inkSoft}>{name}</text>
+            </g>
+          );
+        })}
+      </svg>
+    </Wrap>
+  );
+}
+
 export const CARD_BANNERS: Record<string, ComponentType> = {
   "keyword-rank-tracker": RankTrackerBanner,
   "competitor-rank-watch": CompetitorRankBanner,
   "seo-audit": SeoAuditBanner,
+  "technical-seo-audit": TechnicalSeoAuditBanner,
+  "seo-report-generator": SeoReportBanner,
+  "ai-traffic-report": AiTrafficReportBanner,
 };

@@ -53,6 +53,10 @@ export interface SkillDetail {
   long: string;
   outputs: string[];
   sample?: SkillSample;
+  // Optional SEO overrides. When set, they replace the default templated
+  // <title> / meta description for this skill's page. Keep descriptions ≤160 chars.
+  metaTitle?: string;
+  metaDescription?: string;
 }
 
 export const CATEGORIES: Category[] = [
@@ -99,7 +103,7 @@ export const SKILLS: Skill[] = [
     sources: ["gsc", "ga4"], tag: "Popular", publishedAt: "2026-07-13" },
   { id: "ai-traffic-report", name: "AI Traffic Report", cat: "reporting", icon: "bot",
     desc: "Break out sessions arriving from ChatGPT, Perplexity and Gemini referrals.",
-    sources: ["ga4"], tag: "New" },
+    sources: ["ga4"], tag: "New", publishedAt: "2026-07-24" },
   { id: "monthly-seo-report", name: "Monthly SEO Report", cat: "reporting", icon: "calendar-days",
     desc: "Your recurring month-end deck: traffic, rankings and conversions, auto-compiled.",
     sources: ["gsc", "ga4"] },
@@ -226,22 +230,22 @@ export const SKILL_FAQS: Record<string, { q: string; a: string }[]> = {
       a: "Yes — the skill is free to download and use with Claude. You need an Easy Fetcher account to run the live SERP checks, and there's a free tier to get started with no credit card required." },
   ],
   "ai-traffic-report": [
-    { q: "What is the AI Traffic Report skill for Claude?",
-      a: "AI Traffic Report is a free Claude skill by Easy Fetcher that breaks out the visits your site gets from AI assistants — ChatGPT, Copilot, Perplexity, Gemini, Claude, Meta AI and more. Using your GA4 data, it shows sessions, users, engagement and conversions per AI source, plus how the channel is trending." },
-    { q: "How do I see ChatGPT and Perplexity traffic in Claude?",
-      a: "Install the AI Traffic Report skill from Easy Fetcher, connect GA4, then ask Claude to “show my AI referral traffic.” It identifies sessions coming from ChatGPT, Perplexity, Gemini, Copilot and other AI tools and reports each one's sessions, users and conversions." },
-    { q: "Which AI sources does the report track?",
-      a: "It tracks referrals from ChatGPT, Microsoft Copilot, Perplexity, Google Gemini, Claude, Meta AI and Grok, plus an “others” bucket for emerging tools — each with its share of total AI traffic and a weekly trend." },
-    { q: "What data source does the AI Traffic Report use?",
-      a: "The report runs on Google Analytics 4 (GA4), which you connect once in Easy Fetcher. Claude reads your GA4 referral and session data to attribute traffic to each AI assistant — no extra tracking code needed." },
-    { q: "Can it show conversions and engagement from AI traffic?",
-      a: "Yes. Beyond sessions, the report shows total and new users, average session duration, bounce rate and key events (conversions) per AI source — so you can see not just how much AI traffic you get, but how well it converts." },
-    { q: "How do I know if AI search is sending me traffic?",
-      a: "The AI Traffic Report quantifies it directly: it shows what percentage of your total sessions now come from AI assistants and how that share is growing week over week, so you can prove the value of this emerging channel." },
-    { q: "Can I turn it into a client report?",
-      a: "Yes. Ask Claude to package the AI traffic breakdown into a client-ready report and it produces a written summary of top AI sources, growth and conversions you can share directly." },
-    { q: "Is the AI Traffic Report skill free?",
-      a: "Yes — the skill is free to download and use with Claude. You only need an Easy Fetcher account to connect GA4, and there's a free tier to get started with no credit card required." },
+    { q: "What is Easy Fetcher's AI Traffic Report skill and how does it work?",
+      a: "Easy Fetcher's AI Traffic Report is a Claude skill that breaks out the visits your site gets from AI assistants — ChatGPT, Copilot, Perplexity, Gemini, Claude, Meta AI, Grok and more. Using your Google Analytics 4 data, it reports sessions, users and signups per AI source, plus how fast the channel is growing week over week." },
+    { q: "How does Easy Fetcher track ChatGPT and Perplexity traffic in GA4?",
+      a: "Easy Fetcher reads your GA4 session and referral data and matches each source against known AI domains — chatgpt.com, perplexity.ai, gemini.google.com, copilot.microsoft.com, claude.ai, meta.ai, grok.com and others. Every visit is attributed to the AI assistant that sent it, with no extra tracking code, tag or pixel to install." },
+    { q: "Can Easy Fetcher show how many signups come from AI assistants like ChatGPT?",
+      a: "Yes. Beyond sessions and users, Easy Fetcher's AI Traffic Report attributes signups and other GA4 key events to each AI source — so you can see not just how much traffic ChatGPT, Perplexity or Gemini send, but how well that traffic actually converts into signups." },
+    { q: "Which AI sources does the Easy Fetcher AI Traffic Report track?",
+      a: "It tracks ChatGPT (OpenAI), Microsoft Copilot, Perplexity, Google Gemini, Claude (Anthropic), Meta AI and Grok, plus an “others” bucket that captures emerging tools like You.com, Poe, Phind and Mistral — each with its share of total AI traffic and a weekly trend line." },
+    { q: "How do I see AI traffic in Google Analytics 4 using Easy Fetcher and Claude?",
+      a: "Install the AI Traffic Report skill, connect GA4 in Easy Fetcher, then ask Claude to “show my AI referral traffic.” Claude pulls your GA4 data and returns a per-source breakdown of sessions, users and signups, ranked by volume — the view GA4 doesn't give you out of the box." },
+    { q: "Does Easy Fetcher need extra tracking code to measure AI referral traffic?",
+      a: "No. Easy Fetcher works entirely from the GA4 data you already collect — there's no new tag, script or pixel to add. Connect GA4 once and Claude attributes your existing sessions to each AI assistant automatically." },
+    { q: "Can I turn Easy Fetcher's AI Traffic Report into a client-ready report?",
+      a: "Yes. Ask Claude to package the AI traffic breakdown into a client report and it produces a written summary of your top AI sources, signups and week-over-week growth that you can share or export directly." },
+    { q: "Is Easy Fetcher's AI Traffic Report skill free to use with Claude?",
+      a: "The skill itself is free to download and add to Claude. To run it on your own data you'll need an Easy Fetcher account with an active plan to connect GA4 — that's what lets Claude read your analytics securely and attribute your AI traffic." },
   ],
   "keyword-cannibalization": [
     { q: "What is the Keyword Cannibalization Detector skill for Claude?",
@@ -292,7 +296,9 @@ export const DETAILS: Record<string, SkillDetail> = {
   "core-web-vitals-audit": { long: "Grade LCP, INP and CLS per template and turn raw field data into a clear, ranked fix-it list — so engineering knows precisely what to ship.", outputs: ["LCP / INP / CLS grade per template", "Field vs lab data comparison", "A fix-it checklist ranked by users affected"] },
   "internal-linking-audit": { long: "Map your internal link graph, find orphan and dead-end pages, and route authority to the pages that actually make you money.", outputs: ["A visual internal link graph", "An orphan and dead-end page list", "Authority-routing recommendations"] },
   "seo-report-generator": { long: "Generate a complete, narrated SEO report from your connected data in a single prompt — charts, tables and a written summary, ready to share.", outputs: ["A fully narrated SEO report", "Auto-pulled charts and tables", "A share-ready PDF or document"] },
-  "ai-traffic-report": { long: "Break out the sessions arriving from ChatGPT, Perplexity and Gemini, and see how this new channel stacks up against traditional organic.", outputs: ["Sessions broken out by AI source", "Conversion attribution from LLM referrals", "A trend line vs traditional organic"] },
+  "ai-traffic-report": { long: "Break out the sessions arriving from ChatGPT, Perplexity and Gemini, and see how this new channel stacks up against traditional organic.", outputs: ["Sessions broken out by AI source", "Conversion attribution from LLM referrals", "A trend line vs traditional organic"],
+    metaTitle: "Google Analytics AI Traffic Reporting Skill for Claude",
+    metaDescription: "Track AI traffic in Google Analytics 4 — ChatGPT, Perplexity & Gemini sessions, users and signups inside Claude. Signup today to see your AI referrals." },
   "monthly-seo-report": { long: "Your recurring month-end deck, auto-compiled: traffic, rankings and conversions, compared month over month with zero manual assembly.", outputs: ["A month-over-month KPI recap", "Rankings, traffic and conversions in one view", "A recurring, auto-compiled deck"] },
   "competitor-research": { long: "Profile any competitor's top pages, winning queries and content cadence at a glance — the brief you'd normally spend an afternoon building.", outputs: ["A competitor top-page list", "Their winning-query inventory", "A content-cadence snapshot"] },
   "keyword-cannibalization": { long: "Spot pages competing for the same query, see which is winning, and get a clear recommendation on which to consolidate.", outputs: ["Competing-page pairs per query", "A consolidation recommendation", "An estimated impact of fixing it"] },

@@ -32,13 +32,15 @@ const BRAND: Record<string, string> = {
   claude: "#d97757", meta: "#4267ee", grok: "#14181f", other: "#9aa3af",
 };
 
-// Real logos hosted on Cloudinary. Add more here to swap a placeholder mark.
+// Real logos. Claude + Gemini use the official brand assets served from
+// /public/connectors (Claude vector SVG, Gemini gradient spark); the rest come
+// from Cloudinary. Add more here to swap a placeholder mark.
 const AI_LOGO_FILES: Record<string, string> = {
   chatgpt: IMAGES.connectors.chatgpt,
-  gemini: IMAGES.connectors.gemini,
+  gemini: "/connectors/gemini-icon.png",
   perplexity: IMAGES.connectors.perplexity,
   grok: IMAGES.connectors.grok,
-  claude: IMAGES.connectors.claude,
+  claude: "/connectors/claude-color.svg",
   copilot: IMAGES.connectors.copilot,
   meta: IMAGES.connectors.meta,
 };
@@ -183,13 +185,13 @@ function ReportBody() {
           <Kpi k="Sessions" v="7.79K" d="▲ 41.2%" up spark={[3.1, 3.4, 4.0, 4.5, 5.2, 6.4, 7.8]} />
           <Kpi k="Total Users" v="6.68K" d="▲ 38.5%" up spark={[2.8, 3.1, 3.6, 4.1, 4.7, 5.5, 6.7]} />
           <Kpi k="New Users" v="5.30K" d="▲ 44.1%" up spark={[2.2, 2.6, 3.1, 3.6, 4.2, 4.8, 5.3]} />
-          <Kpi k="Key Events" v="407" d="▲ 29.8%" up spark={[280, 300, 320, 350, 370, 390, 407]} />
+          <Kpi k="Signups" v="407" d="▲ 29.8%" up spark={[280, 300, 320, 350, 370, 390, 407]} />
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 12, marginTop: 12 }}>
           <Kpi k="% of All Sessions" v="14.3%" d="▲ 4.1pts" up />
           <Kpi k="Avg Session Dur." v="3:12" d="▲ 8.4%" up />
           <Kpi k="Avg Bounce Rate" v="1.31%" d="▼ 0.6pts" up />
-          <Kpi k="Conv. Rate" v="5.22%" d="▲ 1.2pts" up />
+          <Kpi k="Signup Rate" v="5.22%" d="▲ 1.2pts" up />
         </div>
       </div>
 
@@ -216,7 +218,7 @@ function ReportBody() {
         <BlockHead title="AI Traffic Sources — Detailed" src="GA4 · session source" />
         <div style={{ overflowX: "auto", border: `1px solid ${M.line}`, borderRadius: 12 }}>
           <table style={{ width: "100%", minWidth: 780, borderCollapse: "collapse" }}>
-            <thead><tr><th style={th}>AI Source</th><th style={thNum}>Sessions</th><th style={th}>Share</th><th style={thNum}>Total Users</th><th style={thNum}>New Users</th><th style={thNum}>Avg Dur.</th><th style={thNum}>Bounce</th><th style={thNum}>Key Events</th><th style={thNum}>Conv.</th></tr></thead>
+            <thead><tr><th style={th}>AI Source</th><th style={thNum}>Sessions</th><th style={th}>Share</th><th style={thNum}>Total Users</th><th style={thNum}>New Users</th><th style={thNum}>Avg Dur.</th><th style={thNum}>Bounce</th><th style={thNum}>Signups</th><th style={thNum}>Conv.</th></tr></thead>
             <tbody>
               {SORTED.map((s) => {
                 const pct = (s.sessions / TOTAL * 100).toFixed(1);
@@ -262,13 +264,13 @@ function ReportBody() {
           <BlockHead title="Top AI Landing Pages" />
           <div style={{ overflowX: "auto", border: `1px solid ${M.line}`, borderRadius: 12 }}>
             <table style={{ width: "100%", minWidth: 280, borderCollapse: "collapse" }}>
-              <thead><tr><th style={th}>Page</th><th style={thNum}>Sessions</th><th style={thNum}>Key Events</th></tr></thead>
+              <thead><tr><th style={th}>Page</th><th style={thNum}>Sessions</th><th style={thNum}>Signups</th></tr></thead>
               <tbody>{pages.map((p) => <tr key={p[0]}><td style={{ ...td, fontFamily: M.mono, fontSize: 11.5, color: M.inkSoft }}>{p[0]}</td><td style={tdNum}>{p[1].toLocaleString()}</td><td style={tdNum}>{p[2]}</td></tr>)}</tbody>
             </table>
           </div>
         </div>
         <div>
-          <BlockHead title="Key Events by Source" />
+          <BlockHead title="Signups by Source" />
           <div style={{ border: `1px solid ${M.line}`, borderRadius: 13, padding: 16, display: "flex", flexDirection: "column", gap: 11 }}>
             {SORTED.map((s) => (
               <div key={s.key} style={{ display: "grid", gridTemplateColumns: "26px 1fr 40px", alignItems: "center", gap: 10, fontSize: 12 }}>
