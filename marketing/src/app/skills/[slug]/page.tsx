@@ -28,12 +28,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!skill || !isPublished(skill)) return { title: "Skill not found | Easy Fetcher" };
   const det = getDetail(skill.id);
   const url = `${SITE}/skills/${slug}`;
-  const title = `Claude ${skill.name} Skill — Powered by Your Data | Easy Fetcher`;
+  // Per-skill SEO overrides win; otherwise fall back to the shared template.
+  const title = det.metaTitle ?? `Claude ${skill.name} Skill — Powered by Your Data | Easy Fetcher`;
+  const description = det.metaDescription ?? det.long;
   return {
     title,
-    description: det.long,
+    description,
     alternates: { canonical: url },
-    openGraph: { title: `Claude ${skill.name} Skill`, description: det.long, url, type: "website" },
+    openGraph: { title: det.metaTitle ?? `Claude ${skill.name} Skill`, description, url, type: "website" },
   };
 }
 

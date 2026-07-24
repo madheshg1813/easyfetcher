@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { SIGNUP_URL } from "@/lib/constants";
-import { SOURCES, getCategory, getDetail, getFaqs, relatedSkills, type Skill } from "@/lib/skills";
+import { SOURCES, getCategory, getDetail, getFaqs, relatedSkills, type Skill, type SourceId } from "@/lib/skills";
 import Icon from "./Icon";
 import { Button, Eyebrow } from "./primitives";
 import { SkillMedia } from "./Thumbnail";
@@ -14,6 +14,39 @@ import Testimonials from "./Testimonials";
 import SkillsFaq from "./SkillsFaq";
 import { HERO_MOCKS, OUTPUT_MOCKS } from "./mocks";
 import WhyChoose, { WHY_CHOOSE } from "./WhyChoose";
+
+// Logo per data source for the hero preheader chips. Driven by each skill's
+// own `sources`, so the badge always reflects the data the skill actually uses
+// (e.g. GA4 for AI Traffic Report — not Search Console). serp has no logo file.
+const SOURCE_LOGO: Partial<Record<SourceId, string>> = {
+  gsc: "/connectors/gsc.svg",
+  ga4: "/connectors/google-analytics.svg",
+  psi: "/connectors/pagespeed.svg",
+};
+
+function SourcePreheader({ skill }: { skill: Skill }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+      {skill.sources.map((s) => {
+        const logo = SOURCE_LOGO[s];
+        return (
+          <span key={s} style={{
+            display: "inline-flex", alignItems: "center", gap: 7,
+            padding: "5px 12px 5px 9px", borderRadius: 999,
+            background: "#fff", border: "1px solid var(--border)",
+            fontSize: 12.5, fontWeight: 700, letterSpacing: "-0.01em", color: "var(--ink-2)",
+          }}>
+            {logo && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logo} alt="" width={16} height={16} style={{ width: 16, height: 16, objectFit: "contain" }} />
+            )}
+            {SOURCES[s].label}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
 
 function Breadcrumb({ skill }: { skill: Skill }) {
   const cat = getCategory(skill.cat)!;
@@ -59,6 +92,7 @@ export default function SkillDetail({ skill }: { skill: Skill }) {
           <div style={{ marginBottom: 26 }}><Breadcrumb skill={skill} /></div>
           <div className="ef-detail-hero" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48, alignItems: "center" }}>
             <div>
+              <SourcePreheader skill={skill} />
               <h1 style={{ fontSize: 46, lineHeight: 1.12, fontWeight: 800, letterSpacing: "-0.03em", color: "var(--ink)" }}>
                 {skill.name}{" "}
                 <span style={{ whiteSpace: "nowrap" }}>
