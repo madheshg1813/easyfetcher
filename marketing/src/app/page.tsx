@@ -34,10 +34,9 @@ const features = [
 ];
 
 const connectors = [
-  { name: "Google Search Console", logo: IMAGES.connectors.gsc },
-  { name: "Google Analytics 4", logo: IMAGES.connectors.ga4 },
-  { name: "Google My Business", logo: IMAGES.connectors.gmb },
-  { name: "PageSpeed Insights", logo: IMAGES.connectors.pagespeed },
+  { name: "Google Search Console", logo: IMAGES.connectors.gsc, href: "/integrations/google-search-console" },
+  { name: "Google Analytics 4", logo: IMAGES.connectors.ga4, href: "/integrations/google-analytics" },
+  { name: "PageSpeed Insights", logo: IMAGES.connectors.pagespeed, href: "/integrations/page-speed-insights" },
 ];
 
 const stats = [
@@ -416,13 +415,13 @@ export default function HomePage() {
             <p className="text-base sm:text-lg lg:text-xl text-gray-500">Connect your Google SEO tools and query them in plain English.</p>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 max-w-3xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 max-w-3xl mx-auto">
             {connectors.map((c) => (
-              <div key={c.name} className="group flex flex-col items-center gap-3 p-5 sm:p-7 rounded-2xl border border-gray-100/80 hover:border-amber-200 hover:shadow-xl hover:shadow-amber-100/30 transition-all duration-300 bg-white cursor-default hover:-translate-y-0.5">
+              <Link key={c.name} href={c.href} className="group flex flex-col items-center gap-3 p-5 sm:p-7 rounded-2xl border border-gray-100/80 hover:border-amber-200 hover:shadow-xl hover:shadow-amber-100/30 transition-all duration-300 bg-white hover:-translate-y-0.5">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={c.logo} alt={c.name} className="w-10 h-10 sm:w-12 sm:h-12 object-contain" />
-                <span className="text-xs font-semibold text-center leading-tight text-gray-700">{c.name}</span>
-              </div>
+                <span className="text-xs font-semibold text-center leading-tight text-gray-700 group-hover:text-amber-600 transition-colors">{c.name}</span>
+              </Link>
             ))}
           </div>
         </div>
